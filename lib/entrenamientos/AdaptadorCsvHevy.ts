@@ -22,7 +22,7 @@ export class AdaptadorCsvHevy implements AdaptadorEntrenamiento {
 
       fs.createReadStream(this.rutaArchivo)
         .pipe(csvParser())
-        .on('data', (fila: any) => {
+        .on('data', (fila: Record<string, string>) => {
           // Generamos una clave única para agrupar las filas (series) que pertenecen 
           // a la misma fecha y hora de inicio, y que tienen el mismo título de rutina
           const claveAgrupacion = `${fila.start_time}_${fila.title}`;

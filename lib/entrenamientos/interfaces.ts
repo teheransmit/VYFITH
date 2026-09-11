@@ -32,6 +32,6 @@ export interface SesionEntrenamiento {
  * Interfaz principal del Patrón Adaptador para abstraer la fuente de los datos (CSV o API).
  */
 export interface AdaptadorEntrenamiento {
-  obtenerEntrenamientos(...argumentos: any[]): Promise<SesionEntrenamiento[]>;
+  obtenerEntrenamientos(): Promise<SesionEntrenamiento[]>;
 }
 
