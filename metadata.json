@@ -1,0 +1,6 @@
+{
+  "name": "MegaProyecto",
+  "description": "Aplicación híbrida para sincronizar y correlacionar datos de salud, entrenamientos, agenda y finanzas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

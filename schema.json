@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MegaProyecto Data Unified Payload",
+  "description": "Esquema JSON que unifica los 4 pilares de datos personales para consumo del backend.",
+  "type": "object",
+  "properties": {
+    "health": {
+      "type": "array",
+      "description": "Datos de salud (Health Connect/HealthKit) mapeados al estándar HL7 FHIR R4 Observation resource.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "resourceType": { "type": "string", "const": "Observation" },
+          "status": { "type": "string" },
+          "code": {
+            "type": "object",
+            "properties": {
+              "coding": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "system": { "type": "string" },
+                    "code": { "type": "string", "description": "Código LOINC (ej. 55423-8 para pasos, 8867-4 para HR)" },
+                    "display": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "valueQuantity": {
+            "type": "object",
+            "properties": {
+              "value": { "type": "number" },
+              "unit": { "type": "string" }
+            }
+          },
+          "effectiveDateTime": { "type": "string", "format": "date-time" }
+        },
+        "required": ["resourceType", "code", "valueQuantity", "effectiveDateTime"]
+      }
+    },
+    "workouts": {
+      "type": "array",
+      "description": "Rutinas de entrenamiento exportadas desde Hevy API.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "workout_id": { "type": "string" },
+          "name": { "type": "string" },
+          "start_time": { "type": "string", "format": "date-time" },
+          "end_time": { "type": "string", "format": "date-time" },
+          "volume_kg": { "type": "number" },
+          "rpe": { "type": "number", "minimum": 1, "maximum": 10 },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "exercise_name": { "type": "string" },
+                "sets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "set_type": { "type": "string", "enum": ["normal", "warmup", "drop", "failure"] },
+                      "weight_kg": { "type": "number" },
+                      "reps": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": ["workout_id", "start_time", "end_time"]
+      }
+    },
+    "calendar": {
+      "type": "array",
+      "description": "Eventos de agenda desde Google Calendar (OAuth 2.0).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "event_id": { "type": "string" },
+          "summary": { "type": "string" },
+          "start_time": { "type": "string", "format": "date-time" },
+          "end_time": { "type": "string", "format": "date-time" },
+          "is_busy": { "type": "boolean" },
+          "attendees_count": { "type": "integer" }
+        }
+      }
+    },
+    "finance": {
+      "type": "array",
+      "description": "Transacciones financieras estandarizadas (Open Banking).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "transaction_id": { "type": "string" },
+          "amount": { "type": "number" },
+          "currency": { "type": "string" },
+          "category": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" },
+          "type": { "type": "string", "enum": ["income", "expense"] }
+        },
+        "required": ["transaction_id", "amount", "date", "type"]
+      }
+    }
+  },
+  "required": ["health", "workouts", "calendar", "finance"]
+}
