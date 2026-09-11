@@ -1,4 +1,5 @@
 import type {Metadata} from 'next';
+import FetchInterceptor from '@/components/FetchInterceptor';
 import './globals.css'; // Global styles
 
 export const metadata: Metadata = {
@@ -18,8 +19,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en">
-      <body suppressHydrationWarning>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head suppressHydrationWarning />
+      <body suppressHydrationWarning>
+        <FetchInterceptor />
+        {children}
+      </body>
     </html>
   );
 }
