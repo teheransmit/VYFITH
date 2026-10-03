@@ -8,6 +8,8 @@ import {
   Dumbbell,
   GraduationCap,
   Sparkles,
+  Footprints,
+  Plane,
 } from 'lucide-react';
 import DashboardOverview from '@/components/DashboardOverview';
 import GoogleHealthConnector from '@/components/GoogleHealthConnector';
@@ -15,6 +17,7 @@ import GoogleCalendarSection from '@/components/GoogleCalendarSection';
 import AcademicGradesSection from '@/components/AcademicGradesSection';
 import HevyWorkoutsSection from '@/components/HevyWorkoutsSection';
 import FinanceSection from '@/components/FinanceSection';
+import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -41,7 +44,7 @@ export default function Home() {
               Centro de Mando Personal
             </h1>
             <p className="mt-1.5 text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Plataforma unificada que correlaciona tus 5 pilares vitales: <strong>Salud Biométrica</strong> (Health Connect / VYFITH_APP), <strong>Entrenamientos de Fuerza</strong> (Hevy), <strong>Agenda</strong> (Google Calendar API), <strong>Notas del Semestre</strong> y <strong>Economía</strong>.
+              Plataforma unificada que correlaciona tus dimensiones vitales: <strong>Salud Biométrica</strong> (Health Connect / VYFITH_APP), <strong>Entrenamientos</strong> (Hevy), <strong>Agenda UPB</strong>, <strong>Economía & Viaje Medellín</strong> y <strong>Paseos Caninos en Montería</strong>.
             </p>
           </div>
 
@@ -49,8 +52,8 @@ export default function Home() {
             <div className="px-4 py-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <div className="text-xs">
-                <span className="font-bold text-slate-900 block">5 Motores Activos</span>
-                <span className="text-[10px] text-slate-400">HL7 FHIR • OAuth • Room</span>
+                <span className="font-bold text-slate-900 block">Ecosistema Unificado</span>
+                <span className="text-[10px] text-slate-400">HL7 FHIR • Montería • Medellín 2026</span>
               </div>
             </div>
           </div>
@@ -113,6 +116,17 @@ export default function Home() {
             Notas del Semestre
           </button>
           <button
+            onClick={() => scrollTo('upb-walk-simulator-section')}
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+              activeTab === 'upb-walk-simulator-section'
+                ? 'bg-amber-700 text-white shadow-xs'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <Footprints className="w-3.5 h-3.5 text-amber-600" />
+            Paseos & Rutina UPB
+          </button>
+          <button
             onClick={() => scrollTo('finance-section')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
               activeTab === 'finance-section'
@@ -120,8 +134,8 @@ export default function Home() {
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <CreditCard className="w-3.5 h-3.5 text-emerald-500" />
-            Finanzas & Ahorro
+            <Plane className="w-3.5 h-3.5 text-emerald-500" />
+            Finanzas & Medellín 2026
           </button>
         </nav>
 
@@ -136,19 +150,22 @@ export default function Home() {
         {/* 3. Pilar 2: Entrenamientos Hevy (Fuerza & Volumen) */}
         <HevyWorkoutsSection />
 
-        {/* 4. Pilar 4: Google Calendar (OAuth 2.0 y Eventos) */}
+        {/* 4. Pilar 3: Google Calendar (OAuth 2.0 y Eventos) */}
         <GoogleCalendarSection />
 
-        {/* 5. Pilar 5: Notas del Semestre Universitario & GPA */}
+        {/* 5. Pilar 4: Notas del Semestre Universitario & GPA */}
         <AcademicGradesSection />
 
-        {/* 6. Pilar 3: Finanzas Personales & Presupuesto */}
+        {/* 6. Módulo Especial: Simulador de Paseos Caninos & Puntualidad UPB */}
+        <UpbWalkSimulatorSection />
+
+        {/* 7. Pilar 5: Finanzas Personales & Viaje Medellín 2026 */}
         <FinanceSection />
 
         {/* Footer */}
         <footer className="mt-12 pt-6 border-t border-slate-200 text-center text-xs text-slate-400">
           <p>
-            MegaProyecto • Arquitectura de Datos Correlacionados (HL7 FHIR R4, Hevy Strength, Google Calendar OAuth 2.0 & Room Database).
+            MegaProyecto • Arquitectura de Vida y Rendimiento Unificado (Salud FHIR R4, Hevy, Rutinas UPB Montería, Finanzas Medellín 2026).
           </p>
         </footer>
       </div>
