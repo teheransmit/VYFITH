@@ -10,6 +10,7 @@ import {
   Sparkles,
   Footprints,
   Plane,
+  BookOpen,
 } from 'lucide-react';
 import DashboardOverview from '@/components/DashboardOverview';
 import GoogleHealthConnector from '@/components/GoogleHealthConnector';
@@ -18,6 +19,7 @@ import AcademicGradesSection from '@/components/AcademicGradesSection';
 import HevyWorkoutsSection from '@/components/HevyWorkoutsSection';
 import FinanceSection from '@/components/FinanceSection';
 import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
+import ScientificNotesSection from '@/components/ScientificNotesSection';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -38,13 +40,13 @@ export default function Home() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/80 mb-2">
               <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>MegaProyecto • Sistema Integral de Vida y Rendimiento</span>
+              <span>MegaProyecto • Sistema Integral de Vida, Ciencia y Rendimiento</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               Centro de Mando Personal
             </h1>
             <p className="mt-1.5 text-sm text-slate-500 max-w-2xl leading-relaxed">
-              Plataforma unificada que correlaciona tus dimensiones vitales: <strong>Salud Biométrica</strong> (Health Connect / VYFITH_APP), <strong>Entrenamientos</strong> (Hevy), <strong>Agenda UPB</strong>, <strong>Economía & Viaje Medellín</strong> y <strong>Paseos Caninos en Montería</strong>.
+              Plataforma unificada que correlaciona tus dimensiones vitales: <strong>Salud Biométrica</strong> (Health Connect), <strong>Entrenamientos</strong> (Hevy), <strong>Agenda UPB</strong>, <strong>Economía & Medellín 2026</strong>, <strong>Paseos Caninos</strong> y <strong>Notas & Literatura Científica</strong>.
             </p>
           </div>
 
@@ -52,8 +54,8 @@ export default function Home() {
             <div className="px-4 py-2.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <div className="text-xs">
-                <span className="font-bold text-slate-900 block">Ecosistema Unificado</span>
-                <span className="text-[10px] text-slate-400">HL7 FHIR • Montería • Medellín 2026</span>
+                <span className="font-bold text-slate-900 block">Ecosistema Completo</span>
+                <span className="text-[10px] text-slate-400">HL7 FHIR • OpenAlex • Room • Nu</span>
               </div>
             </div>
           </div>
@@ -116,6 +118,17 @@ export default function Home() {
             Notas del Semestre
           </button>
           <button
+            onClick={() => scrollTo('scientific-notes-section')}
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+              activeTab === 'scientific-notes-section'
+                ? 'bg-violet-600 text-white shadow-xs'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-violet-500" />
+            Notas & Referencias
+          </button>
+          <button
             onClick={() => scrollTo('upb-walk-simulator-section')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
               activeTab === 'upb-walk-simulator-section'
@@ -156,16 +169,19 @@ export default function Home() {
         {/* 5. Pilar 4: Notas del Semestre Universitario & GPA */}
         <AcademicGradesSection />
 
-        {/* 6. Módulo Especial: Simulador de Paseos Caninos & Puntualidad UPB */}
+        {/* 6. Módulo de Curiosidad y Literatura Científica (Notas & Referencias) */}
+        <ScientificNotesSection />
+
+        {/* 7. Módulo Especial: Simulador de Paseos Caninos & Puntualidad UPB */}
         <UpbWalkSimulatorSection />
 
-        {/* 7. Pilar 5: Finanzas Personales & Viaje Medellín 2026 */}
+        {/* 8. Pilar 5: Finanzas Personales & Viaje Medellín 2026 */}
         <FinanceSection />
 
         {/* Footer */}
         <footer className="mt-12 pt-6 border-t border-slate-200 text-center text-xs text-slate-400">
           <p>
-            MegaProyecto • Arquitectura de Vida y Rendimiento Unificado (Salud FHIR R4, Hevy, Rutinas UPB Montería, Finanzas Medellín 2026).
+            MegaProyecto • Arquitectura de Vida y Rendimiento Unificado (Salud FHIR R4, Hevy, OpenAlex Papers, Rutinas UPB Montería, Finanzas Medellín 2026).
           </p>
         </footer>
       </div>
