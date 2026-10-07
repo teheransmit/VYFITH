@@ -50,7 +50,7 @@ export default function FinanceSection() {
     { id: 'c4', label: 'Compras D1/Ara listas: Desodorante Roll-on XEN (75 ml), talco para pies pequeño y chicles para oídos', done: false },
     { id: 'c5', label: 'Líquidos ≤100 ml en Ziploc: Champú Medicasp (100 ml), Perfume Eros (30-50 ml), crema capilar reenvasada en frasco pequeño', done: false },
     { id: 'c6', label: 'Afeitadora Prestobarba desechable y pastillas en su blíster empacadas en cabina (ambos permitidos)', done: false },
-    { id: 'c7', label: 'Portátil, cargadores y Powerbank en la mochila contigo (prohibido baterías de litio en bodega)', done: false },
+    { id: 'c7', label: 'Power Bank LinkOn 20.000 mAh (74 Wh ≤ 100 Wh ✅) y portátil en la mochila de mano (prohibido en bodega; no usar durante el vuelo)', done: false },
     { id: 'c8', label: 'Llegada a Los Garzones a las 10:48 AM (subir directo al 2.° piso a control de seguridad)', done: false },
     { id: 'c9', label: 'Tomar bus blanco en Rionegro hacia San Diego ($15.000 COP) y taxi por Calle 33 a La Castellana', done: false },
   ]);
