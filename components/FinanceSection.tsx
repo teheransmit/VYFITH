@@ -43,10 +43,12 @@ export default function FinanceSection() {
     { id: 'c1', label: 'Cédula de ciudadanía física original (indispensable para abordar y sacar la Cívica)', done: true },
     { id: 'c2', label: 'Pasabordo JetSMART con código QR guardado en fotos del celular (JA5483)', done: true },
     { id: 'c3', label: 'Mochila Temu con correas de compresión tensadas (dimensiones ≤ 45x35x25 cm, peso ≤ 10 kg)', done: true },
-    { id: 'c4', label: 'Líquidos y geles en envases individuales ≤ 100 ml en bolsa Ziploc transparente (desodorante de 260 ml descartado)', done: false },
-    { id: 'c5', label: 'Computador portátil, cargador y Powerbank en la mochila contigo (prohibido litio en bodega)', done: false },
-    { id: 'c6', label: 'Llegada al Aeropuerto Los Garzones a las 10:48 AM (subir directo al 2.° piso a rayos X)', done: false },
-    { id: 'c7', label: 'Tomar bus blanco en Rionegro hacia San Diego ($15.000 COP) y tramitar Cívica en PAC Estación San Antonio', done: false },
+    { id: 'c4', label: 'Compras D1/Ara listas: Desodorante Roll-on XEN (75 ml), talco para pies pequeño y chicles para oídos', done: false },
+    { id: 'c5', label: 'Líquidos ≤100 ml en Ziploc: Champú Medicasp (100 ml), Perfume Eros (30-50 ml), crema capilar reenvasada en frasco pequeño', done: false },
+    { id: 'c6', label: 'Afeitadora Prestobarba desechable y pastillas en su blíster empacadas en cabina (ambos permitidos)', done: false },
+    { id: 'c7', label: 'Portátil, cargadores y Powerbank en la mochila contigo (prohibido baterías de litio en bodega)', done: false },
+    { id: 'c8', label: 'Llegada a Los Garzones a las 10:48 AM (subir directo al 2.° piso a control de seguridad)', done: false },
+    { id: 'c9', label: 'Tomar bus blanco en Rionegro hacia San Diego ($15.000 COP) y taxi por Calle 33 a La Castellana', done: false },
   ]);
 
   const toggleChecklist = (id: string) => {
