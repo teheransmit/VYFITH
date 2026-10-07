@@ -119,12 +119,34 @@ export default function Rome2RioRouteMap() {
 
       mapInstanceRef.current = map;
 
-      // Capa de OpenStreetMap (Estilo CartoDB Positron / OSM limpio)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; CARTO',
+      // Capas de mapas: CARTO Voyager (con API Key oficial de Santiago) y OpenStreetMap Estándar
+      const cartoKey = 'cb1_4day_1_177bb35db5bb24bb03734726';
+      const cartoVoyager = L.tileLayer(
+        `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${cartoKey}`,
+        {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          maxZoom: 19,
+          subdomains: 'abcd',
+        }
+      );
+
+      const osmStandard = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
-        subdomains: 'abcd',
-      }).addTo(map);
+      });
+
+      // Añadir CARTO Voyager por defecto (sin marca de agua)
+      cartoVoyager.addTo(map);
+
+      // Selector de capas (CARTO Voyager vs OpenStreetMap)
+      L.control.layers(
+        {
+          'CARTO Voyager (Sin marca)': cartoVoyager,
+          'OpenStreetMap Directo': osmStandard,
+        },
+        undefined,
+        { position: 'topright' }
+      ).addTo(map);
 
       // Iconos personalizados con estilos SVG limpios
       const createCustomIcon = (bgColor: string, text: string) => {
