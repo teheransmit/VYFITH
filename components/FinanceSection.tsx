@@ -26,8 +26,11 @@ import {
   Train,
   ArrowRight,
   Footprints,
+  Scissors,
+  Banknote,
 } from 'lucide-react';
 import { initialFinanceData, FinanceSummary, ExpenseItem, ReceivableItem } from '@/lib/financeStore';
+import Rome2RioRouteMap from '@/components/Rome2RioRouteMap';
 
 export default function FinanceSection() {
   const [finance, setFinance] = useState<FinanceSummary>(initialFinanceData);
@@ -60,54 +63,46 @@ export default function FinanceSection() {
   const remainingBudget = finance.monthlyBudget - finance.totalExpenses;
   const budgetPercentUsed = Math.min(100, Math.round((finance.totalExpenses / finance.monthlyBudget) * 100));
 
-  // Cálculo del Viaje Medellín
+  // Cálculo del Viaje Medellín en tiempo real (Miércoles 7 de Octubre de 2026)
   const med = finance.medellinTrip;
-  const totalFundsAcumulables =
-    med.liquidSavings + med.receivablesTotal + med.familyContributions - med.fixedMonthlyCosts;
-  const tripCoveragePercent = Math.min(100, Math.round((totalFundsAcumulables / med.targetBudget) * 100));
+  const totalLiquidAvailable = med.cashInHand + med.nuBoxSavings + med.nequiSavings; // $350.579 COP
+  const realFreeSurplus = totalLiquidAvailable + med.receivablesTotal - med.pendingFixedExpenses; // $338.579 COP
+  const totalTripSecuredCapital = realFreeSurplus + med.pendingFamilyContributions; // $488.579 COP
+  const netTripSurplus = totalTripSecuredCapital - med.targetBudget; // +$113.579 COP de excedente
+  const tripCoveragePercent = Math.min(100, Math.round((totalTripSecuredCapital / med.targetBudget) * 100)); // 100% Cobertura asegurada
 
-  // Registrar un cobro o ingreso rápido
-  const handleQuickAdd = (type: 'frida' | 'molly' | 'sienna' | 'papa') => {
-    if (type === 'frida') {
-      const added = 5850;
+  // Registrar un cobro, gasto o ingreso rápido
+  const handleQuickAdd = (type: 'barber' | 'familySync' | 'frida' | 'molly' | 'sienna' | 'papa') => {
+    if (type === 'barber') {
+      const cost = 12000;
       setFinance((prev) => ({
         ...prev,
         medellinTrip: {
           ...prev.medellinTrip,
-          receivablesTotal: prev.medellinTrip.receivablesTotal + added,
+          cashInHand: Math.max(0, prev.medellinTrip.cashInHand - cost),
+          pendingFixedExpenses: 0,
         },
       }));
-      showNotice(`✅ +$5.850 COP sumados a cobros de Laura (Paseo de Frida).`);
+      showNotice(`💈 -$12.000 COP descontados en efectivo para la motilada de hoy. Gastos fijos liquidados.`);
+    } else if (type === 'familySync') {
+      const added = 150000;
+      setFinance((prev) => ({
+        ...prev,
+        medellinTrip: {
+          ...prev.medellinTrip,
+          nuBoxSavings: prev.medellinTrip.nuBoxSavings + added,
+          pendingFamilyContributions: 0,
+        },
+      }));
+      showNotice(`👨‍👩‍👦 +$150.000 COP recibidos de padres e ingresados a Cajita Medayork de Nu (9.35% E.A.).`);
+    } else if (type === 'frida') {
+      showNotice(`✅ Cartera de Frida ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'molly') {
-      const added = 5000;
-      setFinance((prev) => ({
-        ...prev,
-        medellinTrip: {
-          ...prev.medellinTrip,
-          liquidSavings: prev.medellinTrip.liquidSavings + added,
-        },
-      }));
-      showNotice(`✅ +$5.000 COP recibidos en efectivo/cuenta por Paseo de Molly.`);
+      showNotice(`✅ Cartera de Molly ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'sienna') {
-      const added = 9000;
-      setFinance((prev) => ({
-        ...prev,
-        medellinTrip: {
-          ...prev.medellinTrip,
-          receivablesTotal: prev.medellinTrip.receivablesTotal + added,
-        },
-      }));
-      showNotice(`✅ +$9.000 COP sumados a cobros de Sienna.`);
+      showNotice(`✅ Cartera de Sienna ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'papa') {
-      const added = 35000;
-      setFinance((prev) => ({
-        ...prev,
-        medellinTrip: {
-          ...prev.medellinTrip,
-          familyContributions: prev.medellinTrip.familyContributions + added,
-        },
-      }));
-      showNotice(`✅ +$35.000 COP de pasajes registrados.`);
+      showNotice(`✅ Pasajes ya liquidados en el modelo general.`);
     }
   };
 
@@ -215,7 +210,7 @@ export default function FinanceSection() {
             {/* Barra de Cobertura */}
             <div className="mt-6 pt-5 border-t border-white/10">
               <div className="flex justify-between items-center text-xs font-bold mb-2">
-                <span className="text-emerald-200">Capital Acumulable Proyectado: {formatCurrency(totalFundsAcumulables)}</span>
+                <span className="text-emerald-200">Capital Asegurado Proyectado: {formatCurrency(totalTripSecuredCapital)}</span>
                 <span className="text-emerald-300">Cobertura: {tripCoveragePercent}%</span>
               </div>
               <div className="w-full h-3.5 bg-black/30 rounded-full overflow-hidden p-0.5 border border-white/10">
@@ -225,8 +220,166 @@ export default function FinanceSection() {
                 />
               </div>
               <div className="flex justify-between items-center text-[11px] text-emerald-100/70 mt-2">
-                <span>Saldo a favor proyectado: <strong>+{formatCurrency(med.projectedBuffer)} COP</strong> de colchón</span>
-                <span className="text-emerald-300 font-bold">Estado: BIEN 🟢</span>
+                <span>Saldo a favor asegurado: <strong>+{formatCurrency(netTripSurplus)} COP</strong> de colchón</span>
+                <span className="text-emerald-300 font-bold">Estado: {med.statusDiagnostic}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* BALANCE EN TABLA (ESTADO DE CUENTAS) & RECOMENDACIONES TÁCTICAS */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Tabla de Balance Real */}
+            <div className="lg:col-span-7 p-6 rounded-3xl bg-slate-50 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Banknote className="w-4 h-4 text-emerald-600" />
+                    Balance en Tiempo Real (Estado de Cuentas)
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Miércoles 7 de Octubre de 2026 • Menos de 24h pre-vuelo. Vuelos y Airbnb 100% liquidados en $0.
+                  </p>
+                </div>
+                <span className="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  {med.statusDiagnostic}
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-400 uppercase tracking-wider text-[10px]">
+                      <th className="pb-2 font-bold">Concepto (Variable de Estado)</th>
+                      <th className="pb-2 font-bold text-right">Saldo Actual (COP)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    <tr className="hover:bg-slate-100/50">
+                      <td className="py-2 font-medium text-slate-700 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                        Efectivo en mano (Físico para aterrizar)
+                      </td>
+                      <td className="py-2 text-right font-bold text-slate-900 font-mono">
+                        {formatCurrency(med.cashInHand)}
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50">
+                      <td className="py-2 font-medium text-slate-700 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-purple-500 inline-block" />
+                        Cuenta Nu (Cajita Medayork al 9.35% E.A.)
+                      </td>
+                      <td className="py-2 text-right font-bold text-purple-900 font-mono">
+                        {formatCurrency(med.nuBoxSavings)}
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50">
+                      <td className="py-2 font-medium text-slate-500 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-slate-300 inline-block" />
+                        Cuenta Nequi
+                      </td>
+                      <td className="py-2 text-right font-medium text-slate-400 font-mono">
+                        {formatCurrency(med.nequiSavings)}
+                      </td>
+                    </tr>
+                    <tr className="bg-emerald-50/50 font-semibold">
+                      <td className="py-2 text-emerald-950">Total Líquido Disponible</td>
+                      <td className="py-2 text-right font-black text-emerald-800 font-mono">
+                        {formatCurrency(totalLiquidAvailable)}
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50">
+                      <td className="py-2 text-slate-600">
+                        Cuentas por cobrar en calle (Rappi, Frida, Sienna, Andrés)
+                      </td>
+                      <td className="py-2 text-right font-bold text-emerald-600 font-mono">
+                        $0.00 COP ✅
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50">
+                      <td className="py-2 text-rose-700 font-medium">
+                        Deuda de vuelos y Gastos fijos próximos (Motilada pendiente)
+                      </td>
+                      <td className="py-2 text-right font-bold text-rose-600 font-mono">
+                        -{formatCurrency(med.pendingFixedExpenses)}
+                      </td>
+                    </tr>
+                    <tr className="bg-teal-50/60 font-semibold">
+                      <td className="py-2 text-teal-950">Excedente Líquido Libre real</td>
+                      <td className="py-2 text-right font-black text-teal-800 font-mono">
+                        {formatCurrency(realFreeSurplus)}
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50">
+                      <td className="py-2 text-blue-700">
+                        Fondo para Medellín (Papá $100k + Mamá $50k)
+                      </td>
+                      <td className="py-2 text-right font-bold text-blue-700 font-mono">
+                        {formatCurrency(med.pendingFamilyContributions)}
+                      </td>
+                    </tr>
+                    <tr className="bg-slate-900 text-white font-bold rounded-xl">
+                      <td className="py-2.5 px-2 rounded-l-xl">Capital Total Asegurado</td>
+                      <td className="py-2.5 px-2 rounded-r-xl text-right font-black text-emerald-300 font-mono">
+                        {formatCurrency(totalTripSecuredCapital)}
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50 text-slate-500">
+                      <td className="py-2">Costo Total Estimado RESTANTE</td>
+                      <td className="py-2 text-right font-bold text-slate-700 font-mono">
+                        -{formatCurrency(med.targetBudget)}
+                      </td>
+                    </tr>
+                    <tr className="bg-emerald-100/70 text-emerald-950 font-bold">
+                      <td className="py-2 px-2 rounded-l-xl">Excedente Neto Asegurado (Colchón Libre)</td>
+                      <td className="py-2 px-2 rounded-r-xl text-right font-black text-emerald-700 font-mono">
+                        +{formatCurrency(netTripSurplus)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recomendaciones Tácticas */}
+            <div className="lg:col-span-5 flex flex-col justify-between space-y-3.5">
+              <div className="p-5 rounded-3xl bg-linear-to-br from-amber-500/10 via-amber-50 to-orange-50 border border-amber-200/90 shadow-2xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-300">
+                    Prioridad Alta
+                  </span>
+                  <Scissors className="w-4 h-4 text-amber-700" />
+                </div>
+                <h5 className="text-sm font-bold text-slate-900">1. Ejecutar gasto de motilada</h5>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  El embarque cierra mañana a las 11:58 a.m. Se debe descontar hoy mismo el bloque de <strong>-$12.000 COP</strong> del efectivo disponible para ir a la barbería y no generar cuellos de botella operativos en la mañana del viaje.
+                </p>
+                <button
+                  onClick={() => handleQuickAdd('barber')}
+                  className="mt-3 w-full py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Scissors className="w-3.5 h-3.5" />
+                  Ejecutar Gasto de Motilada (-$12.000 COP)
+                </button>
+              </div>
+
+              <div className="p-5 rounded-3xl bg-linear-to-br from-blue-500/10 via-blue-50 to-indigo-50 border border-blue-200/90 shadow-2xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-300">
+                    Prioridad Media
+                  </span>
+                  <PiggyBank className="w-4 h-4 text-blue-700" />
+                </div>
+                <h5 className="text-sm font-bold text-slate-900">2. Sincronización familiar</h5>
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Solicitar esta misma noche el bloque de <strong>$150.000 COP</strong> restante a los padres (Papá $100k + Mamá $50k) para unificar el 100% del capital en la base de datos de Nu al 9.35% E.A. antes del despliegue al aeropuerto.
+                </p>
+                <button
+                  onClick={() => handleQuickAdd('familySync')}
+                  className="mt-3 w-full py-2 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  Sincronizar Aporte Familiar (+$150.000 COP)
+                </button>
               </div>
             </div>
           </div>
@@ -401,6 +554,11 @@ export default function FinanceSection() {
               </div>
             </div>
 
+            {/* Mapa Interactivo OpenStreetMap (Leaflet) */}
+            <div className="mb-6">
+              <Rome2RioRouteMap />
+            </div>
+
             {/* Stepper / Timeline de Tramos */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
               {/* Tramo 1 */}
@@ -487,32 +645,32 @@ export default function FinanceSection() {
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <span className="text-xs text-slate-500 font-medium">Saldo Líquido</span>
-              <div className="text-lg font-bold text-slate-900 mt-1">{formatCurrency(med.liquidSavings)}</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">En cuenta / disponible</div>
+              <span className="text-xs text-slate-500 font-medium">Efectivo en Mano</span>
+              <div className="text-lg font-bold text-slate-900 mt-1">{formatCurrency(med.cashInHand)}</div>
+              <div className="text-[11px] text-slate-400 mt-0.5">Físico para aterrizar en MDE</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-purple-50/60 border border-purple-200/80">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-purple-800 font-medium">Cajita Medayork (Nu)</span>
+                <span className="text-[10px] bg-purple-200 text-purple-900 px-1.5 py-0.5 rounded-full font-bold">
+                  9.35% E.A.
+                </span>
+              </div>
+              <div className="text-lg font-bold text-purple-950 mt-1">{formatCurrency(med.nuBoxSavings)}</div>
+              <div className="text-[11px] text-purple-700 mt-0.5">Rendimiento diario líquido</div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-teal-50/60 border border-teal-200/80">
+              <span className="text-xs text-teal-800 font-medium">Excedente Líquido Libre</span>
+              <div className="text-lg font-bold text-teal-950 mt-1">{formatCurrency(realFreeSurplus)}</div>
+              <div className="text-[11px] text-teal-700 mt-0.5">Líquido tras motilada (-$12k)</div>
             </div>
 
             <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/80">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-emerald-800 font-medium">Cajita Medayork (Nu)</span>
-                <span className="text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded-full font-bold">
-                  9.30% E.A.
-                </span>
-              </div>
-              <div className="text-lg font-bold text-emerald-950 mt-1">{formatCurrency(med.nuBoxSavings)}</div>
-              <div className="text-[11px] text-emerald-700 mt-0.5">Generando rendimientos diarios</div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80">
-              <span className="text-xs text-amber-800 font-medium">Por Cobrar en Calle</span>
-              <div className="text-lg font-bold text-amber-950 mt-1">{formatCurrency(med.receivablesTotal)}</div>
-              <div className="text-[11px] text-amber-700 mt-0.5">Paseos caninos (Laura / Sienna)</div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/80">
-              <span className="text-xs text-blue-800 font-medium">Aportes Familiares</span>
-              <div className="text-lg font-bold text-blue-950 mt-1">{formatCurrency(med.familyContributions)}</div>
-              <div className="text-[11px] text-blue-700 mt-0.5">Pasajes papá ($35k/sem) + apoyo</div>
+              <span className="text-xs text-emerald-800 font-medium">Capital Total Asegurado</span>
+              <div className="text-lg font-bold text-emerald-950 mt-1">{formatCurrency(totalTripSecuredCapital)}</div>
+              <div className="text-[11px] text-emerald-700 mt-0.5">Colchón libre: +{formatCurrency(netTripSurplus)}</div>
             </div>
           </div>
 
@@ -564,32 +722,32 @@ export default function FinanceSection() {
 
             <div className="flex flex-wrap gap-2.5">
               <button
+                onClick={() => handleQuickAdd('barber')}
+                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-amber-200 hover:border-amber-400 text-xs font-bold text-amber-900 flex items-center gap-1.5 shadow-2xs hover:bg-amber-50/50 transition-all"
+              >
+                <Scissors className="w-3.5 h-3.5 text-amber-600" />
+                Ejecutar Motilada (-$12.000 COP)
+              </button>
+              <button
+                onClick={() => handleQuickAdd('familySync')}
+                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-blue-200 hover:border-blue-400 text-xs font-bold text-blue-900 flex items-center gap-1.5 shadow-2xs hover:bg-blue-50/50 transition-all"
+              >
+                <PlusCircle className="w-3.5 h-3.5 text-blue-600" />
+                Recibir Fondos Padres (+$150.000 COP)
+              </button>
+              <button
                 onClick={() => handleQuickAdd('frida')}
-                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-indigo-200 hover:border-indigo-400 text-xs font-bold text-indigo-900 flex items-center gap-1.5 shadow-2xs hover:bg-indigo-50/50 transition-all"
+                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-emerald-200 hover:border-emerald-400 text-xs font-bold text-emerald-900 flex items-center gap-1.5 shadow-2xs hover:bg-emerald-50/50 transition-all"
               >
-                <PlusCircle className="w-3.5 h-3.5 text-emerald-600" />
-                Paseo Frida (+$$5.850 COP)
-              </button>
-              <button
-                onClick={() => handleQuickAdd('molly')}
-                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-indigo-200 hover:border-indigo-400 text-xs font-bold text-indigo-900 flex items-center gap-1.5 shadow-2xs hover:bg-indigo-50/50 transition-all"
-              >
-                <PlusCircle className="w-3.5 h-3.5 text-amber-600" />
-                Paseo Molly (+$$5.000 COP)
-              </button>
-              <button
-                onClick={() => handleQuickAdd('sienna')}
-                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-indigo-200 hover:border-indigo-400 text-xs font-bold text-indigo-900 flex items-center gap-1.5 shadow-2xs hover:bg-indigo-50/50 transition-all"
-              >
-                <PlusCircle className="w-3.5 h-3.5 text-indigo-600" />
-                Paseo Sienna (+$$9.000 COP)
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                Cartera en Calle ($0.00 COP ✅)
               </button>
               <button
                 onClick={() => handleQuickAdd('papa')}
-                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-indigo-200 hover:border-indigo-400 text-xs font-bold text-indigo-900 flex items-center gap-1.5 shadow-2xs hover:bg-indigo-50/50 transition-all"
+                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-purple-200 hover:border-purple-400 text-xs font-bold text-purple-900 flex items-center gap-1.5 shadow-2xs hover:bg-purple-50/50 transition-all"
               >
-                <PlusCircle className="w-3.5 h-3.5 text-blue-600" />
-                Pasajes Papá (+$$35.000 COP)
+                <Bus className="w-3.5 h-3.5 text-purple-600" />
+                Bus Rionegro ➔ Centro ($15.000 COP)
               </button>
             </div>
           </div>
