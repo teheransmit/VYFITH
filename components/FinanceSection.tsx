@@ -1207,6 +1207,71 @@ export default function FinanceSection() {
             </div>
           </div>
 
+          {/* PRONÓSTICO METEOROLÓGICO Y ESTADO VIAL EN VIVO (8 AL 12 OCT) */}
+          <div className="p-6 rounded-3xl bg-linear-to-br from-slate-900 via-sky-950 to-slate-900 text-white border border-sky-800/40 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 mb-4 gap-2">
+              <div>
+                <h4 className="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
+                  <CloudRain className="w-4 h-4 text-sky-400" />
+                  Meteorología & Estado Vial en Vivo (8 al 12 de Octubre)
+                </h4>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Inspección técnica en tiempo real: Medellín (16°-25°C), Rionegro (14°-22°C) y Concesión Túnel de Oriente.
+                </p>
+              </div>
+              <span className="self-start sm:self-auto px-2.5 py-1 rounded-full text-[11px] font-black bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                Patrón Bimodal Confirmado
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-amber-300 tracking-wider block mb-1">
+                    ☀️ Mañanas Secas (8:00 AM - 1:00 PM)
+                  </span>
+                  <h5 className="text-sm font-bold text-white">Ventana Ideal de Paseo & Sol</h5>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Probabilidad de lluvia muy baja (10-15%). Mañanas ideales para caminar por Laureles, Comuna 13, Jardín Botánico y diligencias como la tarjeta Cívica en San Antonio.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-white/10 text-[11px] text-amber-300 font-bold">
+                  Aprovechar para exteriores
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-sky-300 tracking-wider block mb-1">
+                    🌧️ Tardes Lluviosas (1:30 PM - 7:30 PM)
+                  </span>
+                  <h5 className="text-sm font-bold text-white">Tormentas Vespertinas (70-75%)</h5>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Aterrizas en MDE el jueves a la 1:49 PM justo cuando inicia la lluvia. Sal ágil en el bus y toma taxi directo. Para los demás días, programa planes bajo techo de 3 a 6 PM.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-white/10 text-[11px] text-sky-300 font-bold">
+                  Llevar sombrilla o impermeable
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-emerald-300 tracking-wider block mb-1">
+                    🛣️ Túnel de Oriente (100% Operativo)
+                  </span>
+                  <h5 className="text-sm font-bold text-white">Sin Cierres Nocturnos en tu Viaje</h5>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    El túnel opera normal 24/7. El contraflujo festivo unidireccional es domingo/lunes de 5 a 9 PM; tu regreso es el lunes a las 5:00 AM (flujo bidireccional libre sin trancones).
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-white/10 text-[11px] text-emerald-300 font-bold">
+                  Vía despejada para tu vuelo
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* PANEL DE PREVENCIÓN DE GASTOS OCULTOS & HACKS DE AHORRO */}
           <div className="p-5 rounded-2xl bg-linear-to-r from-emerald-50 via-teal-50 to-blue-50 border border-teal-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="space-y-1 max-w-xl">
