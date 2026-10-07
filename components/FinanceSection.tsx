@@ -573,18 +573,18 @@ export default function FinanceSection() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
-                      <Car className="w-3.5 h-3.5" /> Tramo 1: Urbano
+                      <Car className="w-3.5 h-3.5" /> Tramo 1: Montería
                     </span>
                     <span className="text-[10px] text-slate-400">~12.5 km</span>
                   </div>
                   <h5 className="text-sm font-bold text-white">Casa ➔ Aeropuerto MTR</h5>
                   <p className="text-[11px] text-slate-300 mt-1">
-                    Taxi / Urbano desde <strong>Cl 35 # 15B-18</strong> hacia Aeropuerto Los Garzones.
+                    Transporte familiar directo desde <strong>Cl 35 # 15B-18</strong> hacia Los Garzones (te llevan gratis).
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
                   <span className="text-slate-400">Salida: <strong>10:25 AM</strong> (25m)</span>
-                  <span className="text-amber-300 font-bold">~$25k - $30k</span>
+                  <span className="text-emerald-400 font-bold">Gratis ✅ ($0 COP)</span>
                 </div>
               </div>
 
@@ -657,14 +657,14 @@ export default function FinanceSection() {
                     </span>
                     <span className="text-[10px] text-purple-300">~4.5 km</span>
                   </div>
-                  <h5 className="text-sm font-bold text-white">Airbnb La Castellana</h5>
+                  <h5 className="text-sm font-bold text-white">San Diego ➔ Airbnb</h5>
                   <p className="text-[11px] text-slate-300 mt-1">
-                    Taxi directo por Calle 33 desde San Diego a <strong>Calle 35, La Castellana</strong> (12-15 min).
+                    Taxi por Calle 33 (~$12k-$14k, 12 min). <strong>A pie no renta:</strong> 4.5 km / 1h 10m con maleta, sol y cruce de río.
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-400">Taxi Calle 33</span>
-                  <span className="text-purple-300 font-bold">~$12k - $14k</span>
+                  <span className="text-slate-400">Taxi Calle 33 directo</span>
+                  <span className="text-purple-300 font-bold">~$12.000 COP</span>
                 </div>
               </div>
             </div>

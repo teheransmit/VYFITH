@@ -21,9 +21,9 @@ const waypoints: Waypoint[] = [
     leg: 'Tramo 1: Urbano Montería',
     coords: [8.7554, -75.8752],
     type: 'home',
-    desc: 'Salida en Taxi desde Cl 35 # 15B-18 hacia Los Garzones.',
+    desc: 'Salida en transporte familiar directo (gratis) desde Cl 35 # 15B-18 hacia Los Garzones.',
     time: '10:25 AM',
-    badge: 'Origen',
+    badge: 'Origen ($0 COP)',
   },
   {
     id: 'p2',
