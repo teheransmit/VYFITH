@@ -13,6 +13,19 @@ import {
   TrendingUp,
   Sparkles,
   ArrowUpRight,
+  Luggage,
+  AlertCircle,
+  Bus,
+  MapPin,
+  QrCode,
+  CheckSquare,
+  Square,
+  Calendar,
+  Navigation,
+  Car,
+  Train,
+  ArrowRight,
+  Footprints,
 } from 'lucide-react';
 import { initialFinanceData, FinanceSummary, ExpenseItem, ReceivableItem } from '@/lib/financeStore';
 
@@ -20,6 +33,21 @@ export default function FinanceSection() {
   const [finance, setFinance] = useState<FinanceSummary>(initialFinanceData);
   const [activeTab, setActiveTab] = useState<'general' | 'medellin' | 'cobros'>('medellin');
   const [quickNotice, setQuickNotice] = useState<string | null>(null);
+
+  // Checklist interactivo pre-vuelo para no tener ningún imprevisto
+  const [checklist, setChecklist] = useState([
+    { id: 'c1', label: 'Cédula de ciudadanía física original (indispensable para abordar y sacar la Cívica)', done: true },
+    { id: 'c2', label: 'Pasabordo JetSMART con código QR guardado en fotos del celular (JA5483)', done: true },
+    { id: 'c3', label: 'Mochila Temu con correas de compresión tensadas (dimensiones ≤ 45x35x25 cm, peso ≤ 10 kg)', done: true },
+    { id: 'c4', label: 'Líquidos y geles en envases individuales ≤ 100 ml en bolsa Ziploc transparente (desodorante de 260 ml descartado)', done: false },
+    { id: 'c5', label: 'Computador portátil, cargador y Powerbank en la mochila contigo (prohibido litio en bodega)', done: false },
+    { id: 'c6', label: 'Llegada al Aeropuerto Los Garzones a las 10:48 AM (subir directo al 2.° piso a rayos X)', done: false },
+    { id: 'c7', label: 'Tomar bus blanco en Rionegro hacia San Diego ($15.000 COP) y tramitar Cívica en PAC Estación San Antonio', done: false },
+  ]);
+
+  const toggleChecklist = (id: string) => {
+    setChecklist((prev) => prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item)));
+  };
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('es-CO', {
@@ -203,7 +231,260 @@ export default function FinanceSection() {
             </div>
           </div>
 
-          {/* Tarjetas de Desglose de Fondos */}
+          {/* VUELOS OFICIALES & TARJETA DE EMBARQUE JETSMART */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Vuelo de Ida */}
+            <div className="p-5 rounded-3xl bg-linear-to-br from-slate-900 to-indigo-950 text-white border border-indigo-800/40 shadow-sm relative overflow-hidden">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                <div className="flex items-center gap-2">
+                  <Plane className="w-4 h-4 text-emerald-400 rotate-45" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">Vuelo de Ida (Mañana)</span>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                  Check-in Confirmado ✅
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between my-2">
+                <div>
+                  <span className="text-2xl font-black tracking-tight text-white">MTR</span>
+                  <span className="text-xs text-slate-300 block">Montería (Los Garzones)</span>
+                  <span className="text-sm font-bold text-emerald-300">12:48 PM</span>
+                </div>
+                <div className="flex flex-col items-center px-4">
+                  <span className="text-[10px] text-slate-400 font-mono">Vuelo JA 5483</span>
+                  <div className="w-20 h-0.5 bg-linear-to-r from-emerald-400 to-indigo-400 my-1 relative">
+                    <Plane className="w-3 h-3 text-white absolute -top-1.5 left-1/2 -translate-x-1/2" />
+                  </div>
+                  <span className="text-[10px] text-slate-400">1 hora de trayecto</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black tracking-tight text-white">MDE</span>
+                  <span className="text-xs text-slate-300 block">Medellín (Rionegro)</span>
+                  <span className="text-sm font-bold text-emerald-300">01:49 PM</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-white/10 text-center">
+                <div className="bg-white/5 rounded-xl p-2">
+                  <span className="text-[10px] text-slate-400 block">PNR Reserva</span>
+                  <span className="text-xs font-mono font-bold text-white">WCZUYT</span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-2">
+                  <span className="text-[10px] text-slate-400 block">Asiento</span>
+                  <span className="text-xs font-mono font-black text-emerald-300">20 B</span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-2">
+                  <span className="text-[10px] text-slate-400 block">Zona Embarque</span>
+                  <span className="text-xs font-mono font-bold text-white">Zona 3</span>
+                </div>
+                <div className="bg-white/5 rounded-xl p-2">
+                  <span className="text-[10px] text-slate-400 block">Llegada Aerop.</span>
+                  <span className="text-xs font-mono font-bold text-amber-300">10:48 AM</span>
+                </div>
+              </div>
+
+              <div className="mt-3 p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-[11px]">
+                <span className="text-slate-300 flex items-center gap-1.5">
+                  <Luggage className="w-3.5 h-3.5 text-emerald-400" />
+                  Equipaje: 1 Mochila Temu (35x25x45 cm, máx 10 kg)
+                </span>
+                <span className="text-emerald-300 font-bold">Bajo asiento</span>
+              </div>
+            </div>
+
+            {/* Vuelo de Regreso & Traslado */}
+            <div className="p-5 rounded-3xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-3">
+                  <div className="flex items-center gap-2">
+                    <Plane className="w-4 h-4 text-blue-400 -rotate-45" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-300">Vuelo de Regreso</span>
+                  </div>
+                  <span className="text-xs text-slate-400">Lunes 12 OCT 2026</span>
+                </div>
+
+                <div className="flex items-center justify-between my-2">
+                  <div>
+                    <span className="text-2xl font-black text-white">MDE</span>
+                    <span className="text-xs text-slate-400 block">Medellín (JMC)</span>
+                    <span className="text-sm font-bold text-blue-300">07:17 AM</span>
+                  </div>
+                  <div className="flex flex-col items-center px-4">
+                    <span className="text-[10px] text-slate-400 font-mono">Vuelo JA 5480</span>
+                    <div className="w-16 h-0.5 bg-slate-700 my-1" />
+                    <span className="text-[10px] text-slate-400">1h 01m</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-white">MTR</span>
+                    <span className="text-xs text-slate-400 block">Montería</span>
+                    <span className="text-sm font-bold text-blue-300">08:18 AM</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Conexión Aeropuerto a Medellín */}
+              <div className="mt-4 p-3 rounded-2xl bg-indigo-950/60 border border-indigo-800/40">
+                <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5 mb-1">
+                  <Bus className="w-3.5 h-3.5" />
+                  Traslado Rionegro ➡️ Medellín Centro ($15.000 COP)
+                </span>
+                <p className="text-[11px] text-indigo-100/80 leading-relaxed">
+                  Al salir de llegadas en MDE, toma el bus blanco directo a San Diego / Centro (45 min por el Túnel de Oriente). Desde allí camina o toma Metro hasta el PAC de <strong>Estación San Antonio</strong> para expedir tu tarjeta Cívica personalizada antes de las 6:45 PM.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* CHECKLIST INTERACTIVO ANTI-IMPREVISTOS */}
+          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200/90 shadow-2xs">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  Checklist Digital Pre-Vuelo (Cero Imprevistos)
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Marca cada elemento conforme lo tengas listo en tu mochila para viajar con total tranquilidad.
+                </p>
+              </div>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                {checklist.filter((c) => c.done).length} de {checklist.length} listos
+              </span>
+            </div>
+
+            <div className="space-y-2 mt-4">
+              {checklist.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => toggleChecklist(item.id)}
+                  className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 select-none ${
+                    item.done
+                      ? 'bg-white border-emerald-300 text-slate-800 shadow-2xs'
+                      : 'bg-white/60 border-slate-200 text-slate-500 hover:border-slate-300'
+                  }`}
+                >
+                  <div className={`p-1 rounded-lg ${item.done ? 'text-emerald-600' : 'text-slate-400'}`}>
+                    {item.done ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                  </div>
+                  <span className={`text-xs font-medium ${item.done ? 'text-slate-900 font-semibold' : 'text-slate-600'}`}>
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ITINERARIO PUERTA A PUERTA (ESTILO ROME2RIO) */}
+          <div className="p-6 rounded-3xl bg-linear-to-br from-slate-900 via-slate-900 to-teal-950 text-white border border-teal-800/30 shadow-md">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-white/10 mb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="p-1.5 rounded-xl bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                    <Navigation className="w-4 h-4" />
+                  </span>
+                  <h4 className="text-base font-extrabold tracking-tight text-white">
+                    Ruta Puerta a Puerta (Rome2Rio): De tu Casa a Medellín
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Itinerario multimodal detallado: Calle 35 ➔ Aeropuerto MTR ➔ Vuelo JA5483 ➔ Rionegro ➔ Medellín Centro ➔ PAC San Antonio.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 self-start md:self-auto">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-teal-500/20 text-teal-200 border border-teal-400/30">
+                  ⏱️ Duración Total: ~4h 30m
+                </span>
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 text-slate-200 border border-white/10">
+                  🛣️ 4 Tramos
+                </span>
+              </div>
+            </div>
+
+            {/* Stepper / Timeline de Tramos */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+              {/* Tramo 1 */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between hover:bg-white/10 transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1">
+                      <Car className="w-3.5 h-3.5" /> Tramo 1: Urbano
+                    </span>
+                    <span className="text-[10px] text-slate-400">~12.5 km</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">Casa ➔ Aeropuerto MTR</h5>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Taxi / Urbano desde <strong>Cl 35 # 15B-18</strong> hacia Aeropuerto Los Garzones.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Salida: <strong>10:25 AM</strong> (25m)</span>
+                  <span className="text-amber-300 font-bold">~$25k - $30k</span>
+                </div>
+              </div>
+
+              {/* Tramo 2 */}
+              <div className="p-4 rounded-2xl bg-teal-950/40 border border-teal-500/30 flex flex-col justify-between hover:bg-teal-900/30 transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 flex items-center gap-1">
+                      <Plane className="w-3.5 h-3.5" /> Tramo 2: Vuelo
+                    </span>
+                    <span className="text-[10px] text-teal-300 font-mono">JA 5483</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">MTR ➔ MDE (Rionegro)</h5>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    JetSMART directo. Embarque: <strong>11:58 AM</strong> | Despegue: <strong>12:48 PM</strong> | Llegada: <strong>01:49 PM</strong>.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-300">Asiento <strong>20B (Zona 3)</strong></span>
+                  <span className="text-emerald-400 font-bold">Cubierto ✅</span>
+                </div>
+              </div>
+
+              {/* Tramo 3 */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between hover:bg-white/10 transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-400 flex items-center gap-1">
+                      <Bus className="w-3.5 h-3.5" /> Tramo 3: Bus
+                    </span>
+                    <span className="text-[10px] text-slate-400">~24 km (Túnel)</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">Aeropuerto JMC ➔ Medellín</h5>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Buses blancos de enlace (Combuses Nutibara) en bahía de llegadas hacia <strong>San Diego / Centro</strong>.
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Duración: <strong>40-45 min</strong></span>
+                  <span className="text-blue-300 font-bold">$15.000 COP</span>
+                </div>
+              </div>
+
+              {/* Tramo 4 */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between hover:bg-white/10 transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                      <Train className="w-3.5 h-3.5" /> Tramo 4: Metro
+                    </span>
+                    <span className="text-[10px] text-slate-400">Líneas A/T-A</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">Centro ➔ PAC San Antonio</h5>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Trámite de <strong>Tarjeta Cívica</strong> personalizada con cédula física en Punto de Atención al Cliente (PAC).
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Atención: <strong>hasta 6:45 PM</strong></span>
+                  <span className="text-emerald-300 font-bold">Cédula original</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
               <span className="text-xs text-slate-500 font-medium">Saldo Líquido</span>
