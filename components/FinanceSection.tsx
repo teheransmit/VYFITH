@@ -28,6 +28,7 @@ import {
   Footprints,
   Scissors,
   Banknote,
+  Home,
 } from 'lucide-react';
 import { initialFinanceData, FinanceSummary, ExpenseItem, ReceivableItem } from '@/lib/financeStore';
 import Rome2RioRouteMap from '@/components/Rome2RioRouteMap';
@@ -549,7 +550,7 @@ export default function FinanceSection() {
                   ⏱️ Duración Total: ~4h 30m
                 </span>
                 <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/10 text-slate-200 border border-white/10">
-                  🛣️ 4 Tramos
+                  🛣️ 5 Tramos
                 </span>
               </div>
             </div>
@@ -560,7 +561,7 @@ export default function FinanceSection() {
             </div>
 
             {/* Stepper / Timeline de Tramos */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 relative">
               {/* Tramo 1 */}
               <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between hover:bg-white/10 transition-all">
                 <div>
@@ -602,21 +603,21 @@ export default function FinanceSection() {
               </div>
 
               {/* Tramo 3 */}
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between hover:bg-white/10 transition-all">
+              <div className="p-4 rounded-2xl bg-blue-950/40 border border-blue-500/30 flex flex-col justify-between hover:bg-blue-900/30 transition-all">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-400 flex items-center gap-1">
-                      <Bus className="w-3.5 h-3.5" /> Tramo 3: Bus
+                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-300 flex items-center gap-1">
+                      <Bus className="w-3.5 h-3.5" /> Tramo 3: Bus Túnel
                     </span>
-                    <span className="text-[10px] text-slate-400">~24 km (Túnel)</span>
+                    <span className="text-[10px] text-blue-300">~24 km</span>
                   </div>
-                  <h5 className="text-sm font-bold text-white">Aeropuerto JMC ➔ Medellín</h5>
+                  <h5 className="text-sm font-bold text-white">MDE ➔ CC San Diego</h5>
                   <p className="text-[11px] text-slate-300 mt-1">
-                    Buses blancos de enlace (Combuses Nutibara) en bahía de llegadas hacia <strong>San Diego / Centro</strong>.
+                    Bus blanco Combuses en Puerta 2. <strong>¡Bájate en San Diego!</strong> El bus NO va a Laureles.
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-400">Duración: <strong>40-45 min</strong></span>
+                  <span className="text-slate-400">Duración: <strong>35-40 min</strong></span>
                   <span className="text-blue-300 font-bold">$15.000 COP</span>
                 </div>
               </div>
@@ -626,18 +627,38 @@ export default function FinanceSection() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1">
-                      <Train className="w-3.5 h-3.5" /> Tramo 4: Metro
+                      <Train className="w-3.5 h-3.5" /> Tramo 4: Cívica
                     </span>
-                    <span className="text-[10px] text-slate-400">Líneas A/T-A</span>
+                    <span className="text-[10px] text-slate-400">Metro A</span>
                   </div>
-                  <h5 className="text-sm font-bold text-white">Centro ➔ PAC San Antonio</h5>
+                  <h5 className="text-sm font-bold text-white">PAC Est. San Antonio</h5>
                   <p className="text-[11px] text-slate-300 mt-1">
-                    Trámite de <strong>Tarjeta Cívica</strong> personalizada con cédula física en Punto de Atención al Cliente (PAC).
+                    Expedición de <strong>Tarjeta Cívica</strong> personalizada con cédula física original (hasta 6:45 PM).
                   </p>
                 </div>
                 <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
-                  <span className="text-slate-400">Atención: <strong>hasta 6:45 PM</strong></span>
-                  <span className="text-emerald-300 font-bold">Cédula original</span>
+                  <span className="text-slate-400">Desde San Diego: <strong>Metro</strong></span>
+                  <span className="text-emerald-300 font-bold">Cédula física</span>
+                </div>
+              </div>
+
+              {/* Tramo 5 */}
+              <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/30 flex flex-col justify-between hover:bg-purple-900/30 transition-all">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-purple-300 flex items-center gap-1">
+                      <Home className="w-3.5 h-3.5" /> Tramo 5: Destino
+                    </span>
+                    <span className="text-[10px] text-purple-300">~4.5 km</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">Airbnb La Castellana</h5>
+                  <p className="text-[11px] text-slate-300 mt-1">
+                    Taxi directo por Calle 33 desde San Diego a <strong>Calle 35, La Castellana</strong> (12-15 min).
+                  </p>
+                </div>
+                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Taxi Calle 33</span>
+                  <span className="text-purple-300 font-bold">~$12k - $14k</span>
                 </div>
               </div>
             </div>

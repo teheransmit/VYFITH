@@ -41,19 +41,19 @@ const waypoints: Waypoint[] = [
     leg: 'Tramo 2 / 3: Rionegro',
     coords: [6.1645, -75.4231],
     type: 'airport',
-    desc: 'Aterrizaje 01:49 PM. Salida a bahía de buses blancos.',
+    desc: 'Aterrizaje 01:49 PM. Salida bahía Puerta 2 hacia bus blanco Combuses por Túnel ($15.000 COP).',
     time: '01:49 PM',
     badge: 'Llegada Antioquia',
   },
   {
     id: 'p4',
-    name: 'Medellín Centro (San Diego / Nutibara)',
-    leg: 'Tramo 3: Bus por Túnel de Oriente',
+    name: 'Parada Clave Bus: CC San Diego',
+    leg: 'Tramo 3: Bus Túnel de Oriente',
     coords: [6.2365, -75.5695],
     type: 'bus',
-    desc: 'Llegada en Combuses Nutibara ($15.000 COP). Conexión a Metro.',
-    time: '03:00 PM',
-    badge: 'Bus MDE',
+    desc: '¡BÁJATE AQUÍ! Primera parada en Medellín. El bus NO llega a Laureles. Desde aquí tomas taxi directo a La Castellana (~$12.000 COP, 12 min).',
+    time: '02:40 PM',
+    badge: '🛑 Bájate Aquí',
   },
   {
     id: 'p5',
@@ -61,19 +61,19 @@ const waypoints: Waypoint[] = [
     leg: 'Tramo 4: Metro Medellín',
     coords: [6.247, -75.5694],
     type: 'metro',
-    desc: 'Expedición de Tarjeta Cívica personalizada con cédula física.',
-    time: '03:30 PM',
+    desc: 'Punto de Atención al Cliente para expedir tu Tarjeta Cívica personalizada con cédula física.',
+    time: '03:15 PM',
     badge: 'Tarjeta Cívica',
   },
   {
     id: 'p6',
-    name: 'Airbnb Medellín (Destino Final)',
+    name: 'Airbnb La Castellana (Destino Final)',
     leg: 'Tramo 5: Alojamiento',
-    coords: [6.242, -75.578],
+    coords: [6.242847, -75.601348],
     type: 'airbnb',
-    desc: 'Check-in y descanso. 100% Cubierto y liquidado ($0.00 COP).',
-    time: '04:15 PM',
-    badge: 'Destino',
+    desc: 'Calle 35, La Castellana (Comuna 11 Laureles-Estadio). Check-in y descanso.',
+    time: '04:00 PM',
+    badge: '🎯 Destino Exacto',
   },
 ];
 
@@ -185,14 +185,14 @@ export default function Rome2RioRouteMap() {
           color = '#0284c7';
           iconText = '✈️ J.M. Córdova';
         } else if (wp.type === 'bus') {
-          color = '#2563eb';
-          iconText = '🚌 Nutibara';
+          color = '#ef4444';
+          iconText = '🛑 Parada San Diego';
         } else if (wp.type === 'metro') {
           color = '#059669';
           iconText = '🚆 PAC Cívica';
         } else if (wp.type === 'airbnb') {
           color = '#7c3aed';
-          iconText = '🏨 Airbnb';
+          iconText = '🎯 Airbnb La Castellana';
         }
 
         const marker = L.marker(wp.coords, {
@@ -200,7 +200,7 @@ export default function Rome2RioRouteMap() {
         }).addTo(map);
 
         marker.bindPopup(`
-          <div style="font-family: sans-serif; padding: 4px; min-width: 180px;">
+          <div style="font-family: sans-serif; padding: 4px; min-width: 190px;">
             <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">${wp.leg}</div>
             <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 2px 0;">${wp.name}</div>
             <div style="font-size: 12px; color: #334155; margin-bottom: 6px;">${wp.desc}</div>
@@ -227,7 +227,6 @@ export default function Rome2RioRouteMap() {
       ).addTo(map);
 
       // 2. Línea Aérea (Vuelo JetSMART JA5483: MTR ➔ MDE)
-      // Trayectoria en arco suave
       const midLat = (8.8242 + 6.1645) / 2;
       const midLng = ( -75.8258 + -75.4231 ) / 2 - 0.25;
       L.polyline(
@@ -245,31 +244,53 @@ export default function Rome2RioRouteMap() {
       ).addTo(map);
 
       // 3. Línea Bus Aeropuerto Rionegro ➔ San Diego (Túnel de Oriente)
+      // Trazado fiel a la autopista y túnel
       L.polyline(
         [
-          [6.1645, -75.4231],
-          [6.195, -75.475],
-          [6.2365, -75.5695],
+          [6.1645, -75.4231], // Salida JMC Aeropuerto
+          [6.1775, -75.4350], // Glorieta Sajonia
+          [6.1960, -75.4520], // Portal Oriente Túnel
+          [6.2150, -75.4980], // Interior Túnel de Oriente
+          [6.2235, -75.5390], // Portal Occidente (Mirador / Caunces)
+          [6.2270, -75.5510], // Vía Las Palmas
+          [6.2365, -75.5695], // Parada 1: CC San Diego (¡Bájate aquí!)
         ],
         {
-          color: '#3b82f6',
-          weight: 4,
-          opacity: 0.85,
+          color: '#2563eb',
+          weight: 5,
+          opacity: 0.9,
         }
       ).addTo(map);
 
-      // 4. Línea Urbana San Diego ➔ PAC San Antonio ➔ Airbnb
+      // 4. Conexión Urbana hacia el Airbnb en La Castellana (Calle 35)
+      // Cruza el Río Medellín por Calle 33 directo a Laureles y La Castellana
+      L.polyline(
+        [
+          [6.2365, -75.5695], // Salida desde San Diego
+          [6.2440, -75.5780], // Cruce Río Medellín por Calle 33
+          [6.2435, -75.5865], // Glorieta de Bulerías (UPB Laureles)
+          [6.2430, -75.5940], // Transversal 39 / Av. Nutibara (Laureles)
+          [6.242847, -75.601348], // Destino Final: Airbnb Calle 35, La Castellana
+        ],
+        {
+          color: '#7c3aed',
+          weight: 4,
+          dashArray: '6, 6',
+          opacity: 0.9,
+        }
+      ).addTo(map);
+
+      // Enlace peatonal Centro: San Diego ➔ PAC San Antonio
       L.polyline(
         [
           [6.2365, -75.5695],
-          [6.247, -75.5694],
-          [6.242, -75.578],
+          [6.2470, -75.5694],
         ],
         {
-          color: '#8b5cf6',
-          weight: 4,
-          dashArray: '5, 5',
-          opacity: 0.85,
+          color: '#059669',
+          weight: 2,
+          dashArray: '4, 4',
+          opacity: 0.7,
         }
       ).addTo(map);
 
@@ -312,7 +333,13 @@ export default function Rome2RioRouteMap() {
         { duration: 1.2 }
       );
     } else if (leg === 'medellin') {
-      map.flyTo([6.22, -75.52], 12, { duration: 1.2 });
+      map.flyToBounds(
+        [
+          [6.16, -75.42],
+          [6.255, -75.605],
+        ],
+        { duration: 1.2 }
+      );
     }
   };
 
@@ -330,7 +357,7 @@ export default function Rome2RioRouteMap() {
             </h4>
           </div>
           <p className="text-xs text-slate-300">
-            Trazado geográfico en vivo: Montería (Calle 35 ➔ Aeropuerto MTR) ✈️ Vuelo JetSMART ➔ Rionegro (MDE) 🚌 Medellín 🏨 Airbnb.
+            Trazado en vivo: Montería ➔ MTR ✈️ JA5483 ➔ Rionegro (MDE) 🚌 Bus Túnel ➔ San Diego 🚖 Airbnb La Castellana.
           </p>
         </div>
 
@@ -374,13 +401,13 @@ export default function Rome2RioRouteMap() {
                 : 'bg-white/10 text-slate-300 hover:bg-white/20'
             }`}
           >
-            3. Valle de Aburrá
+            3. Rionegro ➔ Medellín
           </button>
         </div>
       </div>
 
       {/* Contenedor del Mapa OpenStreetMap / Leaflet */}
-      <div className="relative w-full h-[420px] bg-slate-100">
+      <div className="relative w-full h-[440px] bg-slate-100">
         <div ref={mapContainerRef} className="w-full h-full z-10" />
 
         {/* Leyenda Flotante sobre el Mapa */}
@@ -398,14 +425,47 @@ export default function Rome2RioRouteMap() {
               <span>Vuelo JetSMART JA5483 (~280 km)</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-1 bg-blue-500 rounded-full" />
-              <span>Bus Túnel de Oriente MDE ➔ San Diego (~24 km)</span>
+              <span className="w-3.5 h-1 bg-blue-600 rounded-full" />
+              <span>Bus Túnel de Oriente MDE ➔ San Diego (~24 km, $15k)</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3.5 h-1 bg-purple-500 rounded-full" />
-              <span>Metro Línea A ➔ PAC San Antonio ➔ Airbnb</span>
+              <span className="w-3.5 h-1 bg-purple-600 rounded-full" />
+              <span>Conexión San Diego ➔ Airbnb La Castellana (~4.5 km)</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Panel Explicativo Táctico de Bajada y Traslado al Airbnb */}
+      <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="p-3.5 rounded-2xl bg-white border border-rose-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 text-xs font-black text-rose-700 uppercase tracking-wider mb-1">
+            <span>🛑 ¿Dónde bajarse?</span>
+          </div>
+          <h5 className="text-xs font-bold text-slate-900">En Centro Comercial San Diego</h5>
+          <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+            El bus blanco del aeropuerto <strong>NO pasa por La Castellana ni Laureles</strong> (termina en el Centro). Bájate en la <strong>primera parada (San Diego)</strong> para no quedar atrapado en el tráfico del centro.
+          </p>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-white border border-blue-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 text-xs font-black text-blue-700 uppercase tracking-wider mb-1">
+            <span>🚌 Costo del Bus</span>
+          </div>
+          <h5 className="text-xs font-bold text-slate-900">$15.000 COP (Túnel de Oriente)</h5>
+          <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+            Se paga en efectivo al abordar en la Puerta 2 de llegadas en MDE o con Cívica/QR si sale de Exposiciones. Tu presupuesto de $20k cubre el pasaje con tranquilidad.
+          </p>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-white border border-purple-200 shadow-2xs">
+          <div className="flex items-center gap-1.5 text-xs font-black text-purple-700 uppercase tracking-wider mb-1">
+            <span>🎯 Llegada al Airbnb</span>
+          </div>
+          <h5 className="text-xs font-bold text-slate-900">Taxi Calle 33 directo (~$12k - $14k)</h5>
+          <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+            Desde la bahía de San Diego toma un taxi directo hacia el occidente por la Calle 33 hasta la <strong>Calle 35 en La Castellana</strong> (12-15 min). Coordenadas exactas: <code className="text-[10px] text-purple-700 font-mono">6.2428, -75.6013</code>.
+          </p>
         </div>
       </div>
     </div>
