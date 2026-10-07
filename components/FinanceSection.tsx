@@ -40,6 +40,8 @@ import {
   CloudRain,
   Smartphone,
   ShieldAlert,
+  ShoppingBag,
+  Coffee,
 } from 'lucide-react';
 import { initialFinanceData, FinanceSummary, ExpenseItem, ReceivableItem } from '@/lib/financeStore';
 import Rome2RioRouteMap from '@/components/Rome2RioRouteMap';
@@ -65,6 +67,7 @@ export default function FinanceSection() {
     { id: 'c10', label: 'Efectivo fraccionado a mano: $50.000 COP en billetes de $10k/$20k para bus y taxi', done: false },
     { id: 'c11', label: 'Chaqueta / buzo ligero a mano para el frío de Rionegro (16°C) al descender del avión', done: false },
     { id: 'c12', label: 'Captura offline guardada: Código de acceso y WhatsApp del anfitrión en La Castellana', done: true },
+    { id: 'c13', label: 'Termo de café de aluminio empacado 100% VACÍO (se llena gratis en sala de abordaje de Los Garzones y MDE; agua potable EPM en Medellín)', done: false },
   ]);
 
   const toggleChecklist = (id: string) => {
@@ -91,7 +94,7 @@ export default function FinanceSection() {
   const tripCoveragePercent = Math.min(100, Math.round((totalTripSecuredCapital / med.targetBudget) * 100)); // 100% Cobertura asegurada
 
   // Registrar un cobro, gasto o ingreso rápido
-  const handleQuickAdd = (type: 'barber' | 'familySync' | 'frida' | 'molly' | 'sienna' | 'papa') => {
+  const handleQuickAdd = (type: 'barber' | 'preShopping' | 'familySync' | 'frida' | 'molly' | 'sienna' | 'papa') => {
     if (type === 'barber') {
       const cost = 12000;
       setFinance((prev) => ({
@@ -103,6 +106,16 @@ export default function FinanceSection() {
         },
       }));
       showNotice(`💈 -$12.000 COP descontados en efectivo para la motilada de hoy. Gastos fijos liquidados.`);
+    } else if (type === 'preShopping') {
+      const cost = 18000;
+      setFinance((prev) => ({
+        ...prev,
+        medellinTrip: {
+          ...prev.medellinTrip,
+          cashInHand: Math.max(0, prev.medellinTrip.cashInHand - cost),
+        },
+      }));
+      showNotice(`🛍️ -$18.000 COP descontados en efectivo por compras previas D1/Ara (Roll-on XEN, talco pies, chicles y snack).`);
     } else if (type === 'familySync') {
       const added = 150000;
       setFinance((prev) => ({
@@ -220,6 +233,16 @@ export default function FinanceSection() {
       impact: 'Leve (Cambio de plan)',
       protocol: 'Medellín tiene chubascos típicos entre 3:00 PM y 5:30 PM. Si llueve, pásate a planes bajo techo: Museo Casa de la Memoria (entrada libre techada), centros comerciales (Unicentro Laureles / San Diego), o cafés de la Transversal 39.',
       prevention: 'Lleva sombrilla compacta de bolsillo o impermeable en la mochila todos los días.',
+    },
+    {
+      id: 'cont-10',
+      category: 'luggage',
+      categoryLabel: '🎒 Equipaje & Filtros',
+      title: 'Termo Metálico de Café / Agua en Filtro de Seguridad Rayos X',
+      risk: 'Alta si lleva líquido dentro',
+      impact: 'Decomiso del líquido o retención',
+      protocol: 'El termo de aluminio o acero inoxidable para café/agua está 100% PERMITIDO por la Aerocivil y JetSMART en cabina. La única regla inquebrantable es que DEBE PASAR EL CONTROL DE RAYOS X TOTALMENTE VACÍO (0 ml de líquido). Una vez dentro de la sala de abordaje en el 2.° piso de Los Garzones o en MDE, llénalo gratis en los bebederos. En Medellín el agua de grifo EPM es 100% potable y pura.',
+      prevention: 'Vaciar y secar el termo antes de salir de casa en Montería. Ahorro de ~$20.000 COP en botellas plásticas.',
     },
   ];
 
@@ -658,7 +681,7 @@ export default function FinanceSection() {
               </div>
               <div className="flex items-center gap-2 self-start md:self-auto">
                 <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  🛡️ 9 Escenarios Blindados
+                  🛡️ 10 Escenarios Blindados
                 </span>
               </div>
             </div>
@@ -666,7 +689,7 @@ export default function FinanceSection() {
             {/* Filtros de Categoría */}
             <div className="flex flex-wrap gap-2 mb-5">
               {[
-                { id: 'all', label: 'Todos (9)' },
+                { id: 'all', label: 'Todos (10)' },
                 { id: 'flight', label: '✈️ Vuelo & Aeropuerto' },
                 { id: 'luggage', label: '🎒 Equipaje & Filtros' },
                 { id: 'arrival', label: '🚖 Movilidad & Llegada' },
@@ -970,6 +993,13 @@ export default function FinanceSection() {
                 Ejecutar Motilada (-$12.000 COP)
               </button>
               <button
+                onClick={() => handleQuickAdd('preShopping')}
+                className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-rose-200 hover:border-rose-400 text-xs font-bold text-rose-900 flex items-center gap-1.5 shadow-2xs hover:bg-rose-50/50 transition-all"
+              >
+                <ShoppingBag className="w-3.5 h-3.5 text-rose-600" />
+                Compras D1/Ara Hoy (-$18.000 COP)
+              </button>
+              <button
                 onClick={() => handleQuickAdd('familySync')}
                 className="cursor-pointer px-4 py-2 rounded-xl bg-white border border-blue-200 hover:border-blue-400 text-xs font-bold text-blue-900 flex items-center gap-1.5 shadow-2xs hover:bg-blue-50/50 transition-all"
               >
@@ -1062,6 +1092,139 @@ export default function FinanceSection() {
                 </div>
                 <div className="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-purple-300 font-bold">
                   🛡️ Cero riesgo en aeropuerto
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* PROTOCOLO OFICIAL DEL TERMO DE ALUMINIO / CAFÉ & AGUA GRATIS EPM */}
+          <div className="p-6 rounded-3xl bg-linear-to-br from-slate-900 via-teal-950 to-slate-900 text-white border border-teal-800/40 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 mb-4 gap-2">
+              <div>
+                <h4 className="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
+                  <Coffee className="w-4 h-4 text-teal-400" />
+                  Protocolo del Termo de Café (Aluminio) & Agua Gratis EPM
+                </h4>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Respuesta oficial a la duda de equipaje: Sí puedes llevar tu termo térmico metálico para café y agua.
+                </p>
+              </div>
+              <span className="self-start sm:self-auto px-2.5 py-1 rounded-full text-[11px] font-black bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                100% Permitido en Cabina ✅
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                <div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30 block w-fit mb-2">
+                    1. Normativa Aeronáutica
+                  </span>
+                  <h5 className="text-sm font-bold text-white">Metálico / Aluminio Legal</h5>
+                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                    Tanto la Aerocivil colombiana (RAC 160) como JetSMART autorizan termos de café, botellas térmicas y pachones de aluminio o acero inoxidable dentro del artículo personal bajo el asiento. No se considera arma ni objeto punzante.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-teal-300 font-bold">
+                  🛡️ Cero riesgo de decomiso
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/40 flex flex-col justify-between">
+                <div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/30 block w-fit mb-2">
+                    2. La Regla de Oro
+                  </span>
+                  <h5 className="text-sm font-bold text-white">Pasar 100% Vacío en Rayos X</h5>
+                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                    <strong>¡Ojo!:</strong> En el control de seguridad de Los Garzones no permiten líquidos &gt;100 ml. Si tu termo lleva café o agua, el escáner lo detecta y te obligan a vaciarlo en la caneca. Llévalo <strong>totalmente vacío y seco</strong> al pasar los Rayos X.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-amber-300 font-bold">
+                  ⚠️ 0 ml de líquido al pasar el filtro
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 flex flex-col justify-between">
+                <div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 block w-fit mb-2">
+                    3. Hack de Ahorro
+                  </span>
+                  <h5 className="text-sm font-bold text-white">Agua Gratis EPM & Salas</h5>
+                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                    Apenas superes el filtro hacia la sala del 2.° piso, llénalo gratis en los bebederos. En Medellín, el agua de grifo de EPM es una de las más puras de América Latina (100% potable). Ahorras más de <strong>$20.000 COP</strong> en botellitas plásticas.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-emerald-300 font-bold">
+                  💧 Ahorro: +$20.000 COP asegurados
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* COMERCIO LOCAL & ALIMENTACIÓN LOW-COST A 3 CUADRAS DEL AIRBNB */}
+          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200/90 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 mb-4 gap-2">
+              <div>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-emerald-600" />
+                  Puntos D1, Ara & Alimentación Low-Cost a 3 Cuadras del Airbnb
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Barrio La Castellana (`6.242847, -75.601348`): Come rico y compra barato como un local sin gastar de más.
+                </p>
+              </div>
+              <span className="self-start sm:self-auto px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                Economía de Barrio
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between shadow-2xs">
+                <div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase text-emerald-700 bg-emerald-50 border border-emerald-200 block w-fit mb-2">
+                    🛒 Supermercados Vecinos
+                  </span>
+                  <h5 className="text-sm font-bold text-slate-900">D1 La Castellana (a 3 cuadras)</h5>
+                  <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                    • <strong>D1 La Castellana:</strong> Calle 33 # 83A - 35 (a solo 3 cuadras).<br />
+                    • <strong>D1 Laureles:</strong> Cra 78A # 34A - 14 (a 4 cuadras).<br />
+                    • <strong>Éxito Laureles:</strong> Cra 81 # 37-100 (a 3 cuadras cruzando la 80).<br />
+                    Ideal para comprar atún, avena, panela, huevos, snacks y desodorante aerosol si lo necesitas.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-emerald-700 font-bold">
+                  📍 A 3 minutos caminando
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between shadow-2xs">
+                <div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase text-amber-700 bg-amber-50 border border-amber-200 block w-fit mb-2">
+                    🍲 Almuerzos Ejecutivos
+                  </span>
+                  <h5 className="text-sm font-bold text-slate-900">Corrientazos ($14k - $16k)</h5>
+                  <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                    Alrededor de la <strong>Glorieta de Santa Gema</strong> y sobre la <strong>Carrera 81</strong> abundan restaurantes de comida casera tradicional paisa. El menú incluye sopa de mondongo/verduras/costilla, bandeja con carne/pollo/pescado, arroz, ensalada, patacón y vaso de jugo natural.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-amber-700 font-bold">
+                  🥩 Comida completa y llenadora
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col justify-between shadow-2xs">
+                <div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase text-blue-700 bg-blue-50 border border-blue-200 block w-fit mb-2">
+                    ☕ Desayunos de Panadería
+                  </span>
+                  <h5 className="text-sm font-bold text-slate-900">Combo Mañanero (&lt;$6.000)</h5>
+                  <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                    Las panaderías de esquina sobre la Calle 33 y la Calle 35 ofrecen buñuelo recién horneado ($2.000), pandebono y café con leche o perico ($2.500), o huevos al gusto con arepa con queso por ~$5.500 COP. No necesitas pagar desayunos costosos de hotel.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-blue-700 font-bold">
+                  🥐 Desayuno paisa low-cost
                 </div>
               </div>
             </div>
