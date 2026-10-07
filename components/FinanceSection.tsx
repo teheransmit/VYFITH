@@ -33,6 +33,13 @@ import {
   Music,
   Droplets,
   Compass,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  CloudRain,
+  Smartphone,
+  ShieldAlert,
 } from 'lucide-react';
 import { initialFinanceData, FinanceSummary, ExpenseItem, ReceivableItem } from '@/lib/financeStore';
 import Rome2RioRouteMap from '@/components/Rome2RioRouteMap';
@@ -41,6 +48,8 @@ export default function FinanceSection() {
   const [finance, setFinance] = useState<FinanceSummary>(initialFinanceData);
   const [activeTab, setActiveTab] = useState<'general' | 'medellin' | 'cobros'>('medellin');
   const [quickNotice, setQuickNotice] = useState<string | null>(null);
+  const [contingencyFilter, setContingencyFilter] = useState<'all' | 'flight' | 'luggage' | 'arrival' | 'finance'>('all');
+  const [expandedContingency, setExpandedContingency] = useState<string | null>(null);
 
   // Checklist interactivo pre-vuelo para no tener ningún imprevisto
   const [checklist, setChecklist] = useState([
@@ -53,6 +62,9 @@ export default function FinanceSection() {
     { id: 'c7', label: 'Power Bank LinkOn 20.000 mAh (74 Wh ≤ 100 Wh ✅) y portátil en la mochila de mano (prohibido en bodega; no usar durante el vuelo)', done: false },
     { id: 'c8', label: 'Llegada a Los Garzones a las 10:48 AM (subir directo al 2.° piso a control de seguridad)', done: false },
     { id: 'c9', label: 'Tomar bus blanco en Rionegro hacia San Diego ($15.000 COP) y taxi por Calle 33 a La Castellana', done: false },
+    { id: 'c10', label: 'Efectivo fraccionado a mano: $50.000 COP en billetes de $10k/$20k para bus y taxi', done: false },
+    { id: 'c11', label: 'Chaqueta / buzo ligero a mano para el frío de Rionegro (16°C) al descender del avión', done: false },
+    { id: 'c12', label: 'Captura offline guardada: Código de acceso y WhatsApp del anfitrión en La Castellana', done: true },
   ]);
 
   const toggleChecklist = (id: string) => {
@@ -117,6 +129,99 @@ export default function FinanceSection() {
     setQuickNotice(msg);
     setTimeout(() => setQuickNotice(null), 4000);
   };
+
+  const contingencyScenarios = [
+    {
+      id: 'cont-1',
+      category: 'flight',
+      categoryLabel: '✈️ Vuelo & Aeropuerto',
+      title: 'Retraso o Reprogramación del Vuelo JA5483',
+      risk: 'Media (Clima Rionegro)',
+      impact: 'Bajo (Check-in flexible)',
+      protocol: 'El check-in en el Airbnb es flexible después de las 3:00 PM. Si JetSMART anuncia demora, escribe al anfitrión por WhatsApp. La expedición de la Tarjeta Cívica en PAC San Antonio atiende hasta 6:45 PM; si llegas más tarde, compras pasajes univiaje en taquilla ($3.600 COP) y sacas la Cívica el viernes por la mañana.',
+      prevention: 'Revisa el estado del vuelo en Google Vuelos o FlightAware buscando "JA5483" desde las 10:00 AM.',
+    },
+    {
+      id: 'cont-2',
+      category: 'luggage',
+      categoryLabel: '🎒 Equipaje & Filtros',
+      title: 'Revisión Estricta del Medidor de Maletas (Sizer JetSMART)',
+      risk: 'Media (Si va inflada)',
+      impact: 'Alto ($140.000 COP cobro en puerta)',
+      protocol: 'Tensa al máximo las correas de compresión de la mochila Temu antes de hacer la fila de la Zona 3. Ponte la chaqueta o buzo encima (la ropa puesta no cuenta como bulto). No lleves ninguna riñonera, gorra o bolsa plástica por fuera: absolutamente todo debe caber dentro de la mochila.',
+      prevention: 'Dimensiones garantizadas: 45×35×25 cm y peso ≤ 10 kg. Cabe perfectamente debajo del asiento 20B.',
+    },
+    {
+      id: 'cont-3',
+      category: 'luggage',
+      categoryLabel: '🎒 Equipaje & Filtros',
+      title: 'Filtro de Seguridad Decomisando Aerosoles o Líquidos',
+      risk: 'Alta si se llevan tarros >100 ml',
+      impact: 'Pérdida de productos',
+      protocol: 'Axe (150 ml), Yoxen (260 ml) y Old Spice (150 ml) están 100% prohibidos en cabina y la policía los desecha. Solo recipientes ≤100 ml en la bolsa Ziploc (Medicasp 100 ml ✅, Perfume 30-50 ml ✅, crema reenvasada en tarro pequeño ✅). Saca la bolsa Ziploc y la Power Bank de la mochila y colócalas en la bandeja antes de pasar el escáner.',
+      prevention: 'Comprar hoy en el D1/Ara el roll-on XEN y el talco pequeño. Al llegar a Medellín puedes comprar un aerosol grande de $14.000 COP en droguería o Éxito.',
+    },
+    {
+      id: 'cont-4',
+      category: 'flight',
+      categoryLabel: '✈️ Vuelo & Aeropuerto',
+      title: 'Dolor Agudo u Oídos Tapados en el Descenso a Rionegro',
+      risk: 'Alta (Presión de descenso a 2.140 msnm)',
+      impact: 'Molestia física temporal',
+      protocol: 'Empieza a masticar chicle de menta desde las 1:25 PM cuando comience el descenso. Si sientes presión, realiza la maniobra de Valsalva suave: tapa la nariz con dos dedos, cierra la boca y sopla aire suavemente como si inflaras un globo hasta escuchar un clic en el oído.',
+      prevention: 'Lleva el paquete de chicles en el bolsillo del pantalón o bolsillo exterior del morral, no en el fondo.',
+    },
+    {
+      id: 'cont-5',
+      category: 'arrival',
+      categoryLabel: '🚖 Movilidad & Llegada',
+      title: 'Falta de Señal Móvil / Batería al Llegar a San Diego',
+      risk: 'Baja',
+      impact: 'Desorientación urbana',
+      protocol: 'Ten guardada en fotos una captura con: (1) Dirección exacta: Calle 35, La Castellana, (2) Celular del anfitrión, (3) Código de acceso. Enciende tu Power Bank LinkOn apenas salgas del avión para llegar a San Diego con 100% de batería. Si no hay señal, tómate el taxi directo diciendo "Calle 35 con la 80, La Castellana".',
+      prevention: 'Descarga hoy el mapa offline de Medellín en Google Maps (ocupa 40 MB) para navegar sin datos.',
+    },
+    {
+      id: 'cont-6',
+      category: 'arrival',
+      categoryLabel: '🚖 Movilidad & Llegada',
+      title: 'Taxista en San Diego sin Cambio o Cobrando Tarifa Excesiva',
+      risk: 'Media',
+      impact: 'Sobrecosto de $10.000 COP',
+      protocol: 'Paga el bus Combuses con un billete de $20.000 para que te devuelvan $5.000 y así tengas cambio. Al subirte al taxi exige amablemente: "Por favor active el taxímetro hacia Calle 35 en La Castellana". La carrera diurna marca ~$12.000 - $14.000 COP. Si no tiene taxímetro o te pide más de $20k, toma otro taxi de la fila.',
+      prevention: 'Lleva billetes de $10.000 y $20.000 en la billetera a mano.',
+    },
+    {
+      id: 'cont-7',
+      category: 'arrival',
+      categoryLabel: '🚖 Movilidad & Llegada',
+      title: 'Cierre Temporal del Túnel de Oriente o Taco en la Vía',
+      risk: 'Baja',
+      impact: '+25 min de viaje',
+      protocol: 'Los buses Combuses tienen desvío regulado por la Variante Palmas o Vía Santa Elena. No tienes que bajarte ni pagar más; el pasaje sigue siendo $15.000 COP y te dejará en San Diego exactamente igual.',
+      prevention: 'Tu tarde del jueves está 100% libre sin compromisos de horario estricto.',
+    },
+    {
+      id: 'cont-8',
+      category: 'finance',
+      categoryLabel: '💵 Finanzas & Clima',
+      title: 'Bloqueo Preventivo de Tarjeta Bancaria o Falla de Red',
+      risk: 'Baja',
+      impact: 'Medio',
+      protocol: 'Tienes $202.000 COP en efectivo físico en mano (menos $12k de motilada = $190.000 COP). Con ese efectivo cubres transporte, alimentación y 2 días enteros de gastos sin tocar ninguna tarjeta bancaria ni app.',
+      prevention: 'Mantén el efectivo dividido: $50.000 COP en la billetera para gastos del día, y el resto guardado en un compartimento interno con cremallera de la mochila.',
+    },
+    {
+      id: 'cont-9',
+      category: 'finance',
+      categoryLabel: '💵 Finanzas & Clima',
+      title: 'Lluvia Torrencial en Medellín durante Actividades de Tarde',
+      risk: 'Alta (Temporada de Octubre)',
+      impact: 'Leve (Cambio de plan)',
+      protocol: 'Medellín tiene chubascos típicos entre 3:00 PM y 5:30 PM. Si llueve, pásate a planes bajo techo: Museo Casa de la Memoria (entrada libre techada), centros comerciales (Unicentro Laureles / San Diego), o cafés de la Transversal 39.',
+      prevention: 'Lleva sombrilla compacta de bolsillo o impermeable en la mochila todos los días.',
+    },
+  ];
 
   return (
     <section id="finance-section" className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs mb-10">
@@ -532,6 +637,115 @@ export default function FinanceSection() {
                   </span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* MATRIZ MAESTRA DE CONTINGENCIAS & PROTOCOLO ANTI-IMPREVISTOS 360° */}
+          <div className="p-6 rounded-3xl bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 text-white border border-indigo-700/40 shadow-lg">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-white/10 mb-5">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="p-1.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                    <ShieldAlert className="w-4 h-4" />
+                  </span>
+                  <h4 className="text-base font-extrabold tracking-tight text-white">
+                    Matriz Maestra de Contingencias & Anti-Imprevistos 360°
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Simulación de todos los escenarios de riesgo posibles para el 8 al 12 de Octubre. Protocolo de reacción inmediata y blindaje preventivo.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 self-start md:self-auto">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                  🛡️ 9 Escenarios Blindados
+                </span>
+              </div>
+            </div>
+
+            {/* Filtros de Categoría */}
+            <div className="flex flex-wrap gap-2 mb-5">
+              {[
+                { id: 'all', label: 'Todos (9)' },
+                { id: 'flight', label: '✈️ Vuelo & Aeropuerto' },
+                { id: 'luggage', label: '🎒 Equipaje & Filtros' },
+                { id: 'arrival', label: '🚖 Movilidad & Llegada' },
+                { id: 'finance', label: '💵 Finanzas & Clima' },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setContingencyFilter(cat.id as any)}
+                  className={`cursor-pointer px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    contingencyFilter === cat.id
+                      ? 'bg-amber-400 text-slate-950 shadow-xs'
+                      : 'bg-white/10 text-slate-300 hover:bg-white/15 hover:text-white border border-white/10'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Grid de Escenarios */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {contingencyScenarios
+                .filter((sc) => contingencyFilter === 'all' || sc.category === contingencyFilter)
+                .map((sc) => {
+                  const isExpanded = expandedContingency === sc.id;
+                  return (
+                    <div
+                      key={sc.id}
+                      onClick={() => setExpandedContingency(isExpanded ? null : sc.id)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                        isExpanded
+                          ? 'bg-white/15 border-amber-400/60 shadow-md ring-1 ring-amber-400/30'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-400/20">
+                          {sc.categoryLabel}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-slate-400">Riesgo: <strong>{sc.risk}</strong></span>
+                          {isExpanded ? (
+                            <ChevronUp className="w-3.5 h-3.5 text-amber-300" />
+                          ) : (
+                            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                          )}
+                        </div>
+                      </div>
+
+                      <h5 className="text-sm font-bold text-white mb-2 leading-snug">{sc.title}</h5>
+
+                      <div className="space-y-2 mt-3 pt-2.5 border-t border-white/10">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-emerald-400 tracking-wider block mb-0.5">
+                            ⚡ Protocolo de Acción Inmediato
+                          </span>
+                          <p className="text-xs text-slate-200 leading-relaxed">{sc.protocol}</p>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="pt-2 border-t border-white/5 animate-fadeIn">
+                            <span className="text-[10px] font-black uppercase text-amber-300 tracking-wider block mb-0.5">
+                              🛡️ Blindaje Preventivo (Qué hacer hoy)
+                            </span>
+                            <p className="text-xs text-slate-300 leading-relaxed">{sc.prevention}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {!isExpanded && (
+                        <div className="mt-2.5 text-right">
+                          <span className="text-[10px] text-amber-300/80 font-medium hover:underline">
+                            Toca para ver blindaje preventivo ➔
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
 
