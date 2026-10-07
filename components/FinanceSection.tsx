@@ -29,6 +29,10 @@ import {
   Scissors,
   Banknote,
   Home,
+  Utensils,
+  Music,
+  Droplets,
+  Compass,
 } from 'lucide-react';
 import { initialFinanceData, FinanceSummary, ExpenseItem, ReceivableItem } from '@/lib/financeStore';
 import Rome2RioRouteMap from '@/components/Rome2RioRouteMap';
@@ -772,6 +776,240 @@ export default function FinanceSection() {
                 <Bus className="w-3.5 h-3.5 text-purple-600" />
                 Bus Rionegro ➔ Centro ($15.000 COP)
               </button>
+            </div>
+          </div>
+
+          {/* ESTRATEGIA DE DESODORANTE & SUDORACIÓN EN CABINA */}
+          <div className="p-6 rounded-3xl bg-linear-to-br from-slate-900 to-indigo-950 text-white border border-indigo-800/40 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 mb-4 gap-2">
+              <div>
+                <h4 className="text-base font-extrabold tracking-tight text-white flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Estrategia para Sudoración Fuerte & Equipaje de Mano
+                </h4>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Los aerosoles estándar (Axe/Old Spice 150 ml) están prohibidos en cabina. Aquí tienes las 3 soluciones reales sin comprometer tu protección:
+                </p>
+              </div>
+              <span className="self-start sm:self-auto px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                Solución Clínica & Viajera
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                      Opción 1: Mini Aerosol
+                    </span>
+                    <span className="text-xs font-mono text-slate-400">≤ 50 ml</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">Rexona o Nivea Mini 50ml</h5>
+                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                    Si prefieres formato aerosol, busca en <strong>Farmatodo o Éxito</strong> las versiones travel size de 50 ml. Al ser ≤100 ml pasan el filtro de rayos X sin decomiso.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-amber-300 font-bold">
+                  ⚠️ Difícil de hallar suelto en Montería
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                      Opción 2: Máximo Poder (Recomendada)
+                    </span>
+                    <span className="text-xs font-mono text-emerald-300">48 g</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">Barra o Gel Clinical (48g)</h5>
+                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                    <strong>Rexona Clinical</strong> o <strong>Gillette Clinical Gel</strong>. Tienen 3 veces más concentración antitranspirante que cualquier aerosol común. Bloquean el sudor de raíz y al ser barra de 48g viajan 100% legales en cabina.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-emerald-300 font-bold">
+                  ✅ 100% Seguro en Cabina + Máxima Secura
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-500/40 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                      Opción 3: Truco Viajero
+                    </span>
+                    <span className="text-xs font-mono text-purple-300">150 ml</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-white">Comprar Aerosol en Medellín</h5>
+                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                    Viaja ligero con un roll-on de D1 ($6.950). Apenas te bajes del bus en <strong>San Diego</strong> o en el Éxito cerca a tu Airbnb en La Castellana, compras tu tarro normal de 150 ml ($14k) y lo usas libremente en Medellín.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2.5 border-t border-white/10 text-[11px] text-purple-300 font-bold">
+                  🛡️ Cero riesgo en aeropuerto
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AGENDA CULTURAL & RUTAS CAMINABLES LOW-COST MEDELLÍN */}
+          <div className="p-6 rounded-3xl bg-slate-50 border border-slate-200/90 shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 mb-4 gap-2">
+              <div>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-teal-600" />
+                  Planes de Costo $0 y Low-Cost en Medellín (8 al 12 Octubre)
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Pasea, camina y disfruta la ciudad sin gastar tu presupuesto. Planes ideales para recorrer a pie o con la Cívica.
+                </p>
+              </div>
+              <span className="self-start sm:self-auto px-3 py-1 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-300">
+                Ahorro en Pasajes & Caminata
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {/* Plan 1 */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-teal-400 transition-all flex flex-col justify-between shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                      🎸 Evento del Año
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 font-mono">100% Gratis</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-900">Festival Altavoz 2026 (10-12 Oct)</h5>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Estadio Cincuentenario (Metro Universidad). Más de 50 bandas de rock, rap, reggae, ska y electrónica en vivo con entrada totalmente libre.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Llegada: Metro Línea A</span>
+                  <span className="text-teal-700 font-semibold">Tarde / Noche</span>
+                </div>
+              </div>
+
+              {/* Plan 2 */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-teal-400 transition-all flex flex-col justify-between shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                      🚠 Hack del Metro
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 font-mono">$3.600 COP</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-900">Metrocable Panorámico (Línea J o K)</h5>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Toma el Metro y haz transbordo dentro del sistema al Metrocable hacia La Aurora o Santo Domingo. ¡Sobrevolarás Medellín con vista 360° sin pagar un peso adicional si no sales de los torniquetes!
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Mirador Aéreo</span>
+                  <span className="text-blue-700 font-semibold">1 Solo Pasaje</span>
+                </div>
+              </div>
+
+              {/* Plan 3 */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-teal-400 transition-all flex flex-col justify-between shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                      🎨 Arte Urbano
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 font-mono">Entrada Libre</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-900">Comuna 13 & Escaleras Eléctricas</h5>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Metro Línea B hasta San Javier + caminata o integrado. Murales gigantes, shows de breakdance y ambiente vibrante. Solo gastas en una paleta de mango biche ($3.000 COP).
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Caminata guiada libre</span>
+                  <span className="text-purple-700 font-semibold">2-3 horas</span>
+                </div>
+              </div>
+
+              {/* Plan 4 */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-teal-400 transition-all flex flex-col justify-between shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      🌿 Naturaleza & Relax
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 font-mono">100% Gratis</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-900">Jardín Botánico & Orquideorama</h5>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Estación Universidad. Enorme pulmón verde con lagos, aves y el icónico Orquideorama. Perfecto para una tarde fresca caminando y descansando bajo los árboles.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Zona norte de Medellín</span>
+                  <span className="text-emerald-700 font-semibold">Cero costo</span>
+                </div>
+              </div>
+
+              {/* Plan 5 */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-teal-400 transition-all flex flex-col justify-between shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                      🏞️ Mirador Tradicional
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 font-mono">Entrada Libre</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-900">Cerro Nutibara / Pueblito Paisa</h5>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    Sube a pie por el sendero ecológico del cerro (ideal para hacer ejercicio). Arriba hay una réplica de pueblo antioqueño tradicional y vista panorámica de la ciudad.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Cerca a Exposiciones</span>
+                  <span className="text-amber-700 font-semibold">Senderismo suave</span>
+                </div>
+              </div>
+
+              {/* Plan 6 */}
+              <div className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-teal-400 transition-all flex flex-col justify-between shadow-2xs">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] font-black uppercase text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                      🚶 Caminata Local
+                    </span>
+                    <span className="text-xs font-bold text-emerald-600 font-mono">Desde tu Puerta</span>
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-900">Circuito Parques de Laureles</h5>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    A pocas cuadras de tu Airbnb en La Castellana. Camina por la Transversal 39 hacia el Primer y Segundo Parque de Laureles. Calles sombreadas, seguras y llenas de vida nocturna tranquila.
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Laureles / Av. Nutibara</span>
+                  <span className="text-teal-700 font-semibold">Caminable 100%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* PANEL DE PREVENCIÓN DE GASTOS OCULTOS & HACKS DE AHORRO */}
+          <div className="p-5 rounded-2xl bg-linear-to-r from-emerald-50 via-teal-50 to-blue-50 border border-teal-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1 max-w-xl">
+              <h5 className="text-sm font-bold text-teal-950 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-teal-600" />
+                3 Hacks Locales para Cuidar tu Dinero en Antioquia
+              </h5>
+              <p className="text-xs text-teal-800 leading-relaxed">
+                1. <strong>Agua gratis:</strong> Lleva tu termo vacío en la mochila. En el aeropuerto de Montería y en Medellín el agua de grifo es 100% potable y de primera calidad (ahorras ~$20k en botellitas).<br />
+                2. <strong>Almuerzo ejecutivo ("Corrientazo"):</strong> En La Castellana y Laureles pide almuerzo del día ($14.000 - $17.000 COP con sopa, proteína, ensalada y jugo natural). Evita restaurantes turísticos de $45k+.<br />
+                3. <strong>Cívica siempre:</strong> Pagar con Cívica te ahorra $500 por viaje y te permite transbordar gratis entre Metro y Metrocables.
+              </p>
+            </div>
+            <div className="self-end sm:self-center px-4 py-2.5 rounded-2xl bg-white border border-teal-300 text-right shadow-2xs">
+              <span className="text-[10px] text-teal-600 uppercase font-black tracking-wider block">Ahorro Estimado</span>
+              <span className="text-lg font-black text-teal-900 font-mono">+$45.000 COP</span>
+              <span className="text-[10px] text-slate-500 block">En 5 días de viaje</span>
             </div>
           </div>
         </div>
