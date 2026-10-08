@@ -9,8 +9,6 @@ let inMemoryState: TravelState = initialTravelState;
 const isVercel = Boolean(process.env.VERCEL);
 const DATA_DIR = isVercel ? '/tmp' : path.join(process.cwd(), 'data');
 const STATE_FILE = path.join(DATA_DIR, 'travel_state.json');
-const MIRROR_DIR = 'G:\\Mi unidad\\MegaProyecto\\VYFITH\\data';
-const MIRROR_FILE = path.join(MIRROR_DIR, 'travel_state.json');
 
 function ensureDataDirectory() {
   try {
@@ -42,18 +40,6 @@ function writeStoredState(state: TravelState): void {
     ensureDataDirectory();
     const payload = JSON.stringify(state, null, 2);
     fs.writeFileSync(STATE_FILE, payload, 'utf8');
-
-    // Intentar escribir al mirror en Google Drive si la unidad G: está montada en local
-    try {
-      if (!isVercel && fs.existsSync('G:\\Mi unidad')) {
-        if (!fs.existsSync(MIRROR_DIR)) {
-          fs.mkdirSync(MIRROR_DIR, { recursive: true });
-        }
-        fs.writeFileSync(MIRROR_FILE, payload, 'utf8');
-      }
-    } catch (mirrorErr) {
-      // Ignorar si Drive no está accesible
-    }
   } catch (err) {
     console.error('Error escribiendo travel_state.json (usando in-memory fallback):', err);
   }
