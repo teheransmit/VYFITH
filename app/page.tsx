@@ -20,9 +20,11 @@ import HevyWorkoutsSection from '@/components/HevyWorkoutsSection';
 import FinanceSection from '@/components/FinanceSection';
 import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
 import ScientificNotesSection from '@/components/ScientificNotesSection';
+import MobileTravelDashboard from '@/components/MobileTravelDashboard';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'travel' | 'full'>('travel');
 
   const scrollTo = (id: string) => {
     setActiveTab(id);
@@ -33,8 +35,49 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50/70 py-8 px-4 sm:px-6 lg:px-8 font-sans selection:bg-indigo-500 selection:text-white">
+    <main className="min-h-screen bg-slate-50/70 py-6 px-3 sm:px-6 lg:px-8 font-sans selection:bg-indigo-500 selection:text-white">
       <div className="max-w-6xl mx-auto">
+        {/* Conmutador de Modo: Viaje Móvil vs Centro de Mando */}
+        <div className="mb-6 flex items-center justify-between p-1.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
+            <button
+              onClick={() => setViewMode('travel')}
+              className={`flex-1 sm:flex-initial cursor-pointer px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                viewMode === 'travel'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Plane className="w-3.5 h-3.5" />
+              <span>✈️ Modo Viaje (Móvil)</span>
+            </button>
+            <button
+              onClick={() => setViewMode('full')}
+              className={`flex-1 sm:flex-initial cursor-pointer px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                viewMode === 'full'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>🌟 Centro Completo</span>
+            </button>
+          </div>
+          <span className="text-[11px] text-slate-500 font-medium hidden sm:inline mr-2">
+            {viewMode === 'travel' ? '📱 Optimizado para tu teléfono (Maleta, Billetera & Ruta)' : '🖥️ Dashboard de 8 pilares'}
+          </span>
+        </div>
+
+        {/* VISTA 1: MODO VIAJE MÓVIL */}
+        {viewMode === 'travel' && (
+          <div className="animate-fadeIn">
+            <MobileTravelDashboard />
+          </div>
+        )}
+
+        {/* VISTA 2: CENTRO DE MANDO COMPLETO */}
+        {viewMode === 'full' && (
+          <div className="animate-fadeIn">
         {/* Header Superior Ejecutivo */}
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
           <div>
@@ -184,6 +227,8 @@ export default function Home() {
             MegaProyecto • Arquitectura de Vida y Rendimiento Unificado (Salud FHIR R4, Hevy, OpenAlex Papers, Rutinas UPB Montería, Finanzas Medellín 2026).
           </p>
         </footer>
+          </div>
+        )}
       </div>
     </main>
   );

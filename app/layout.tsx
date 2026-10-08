@@ -5,6 +5,13 @@ import './globals.css'; // Global styles
 export const metadata: Metadata = {
   title: 'MegaProyecto | Unified Health & Life Data',
   description: 'Aplicación híbrida para sincronizar datos de salud, entrenamientos, agenda y finanzas.',
+  manifest: '/manifest.json',
+  themeColor: '#064e3b',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'VYFITH',
+  },
   openGraph: {
     title: 'MegaProyecto | Unified Health & Life Data',
     description: 'Aplicación híbrida para sincronizar datos de salud, entrenamientos, agenda y finanzas.',
