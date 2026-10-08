@@ -3,14 +3,22 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { initialTravelState, TravelState } from '@/lib/travelStore';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+// Memoria en caliente para entornos serverless (Vercel)
+let inMemoryState: TravelState = initialTravelState;
+
+const isVercel = Boolean(process.env.VERCEL);
+const DATA_DIR = isVercel ? '/tmp' : path.join(process.cwd(), 'data');
 const STATE_FILE = path.join(DATA_DIR, 'travel_state.json');
 const MIRROR_DIR = 'G:\\Mi unidad\\MegaProyecto\\VYFITH\\data';
 const MIRROR_FILE = path.join(MIRROR_DIR, 'travel_state.json');
 
 function ensureDataDirectory() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (e) {
+    // Silencioso en entornos con permisos restringidos
   }
 }
 
@@ -19,33 +27,35 @@ function readStoredState(): TravelState {
     ensureDataDirectory();
     if (fs.existsSync(STATE_FILE)) {
       const content = fs.readFileSync(STATE_FILE, 'utf8');
-      return JSON.parse(content);
+      inMemoryState = JSON.parse(content);
+      return inMemoryState;
     }
   } catch (err) {
     console.error('Error leyendo travel_state.json:', err);
   }
-  return initialTravelState;
+  return inMemoryState || initialTravelState;
 }
 
 function writeStoredState(state: TravelState): void {
+  inMemoryState = state;
   try {
     ensureDataDirectory();
     const payload = JSON.stringify(state, null, 2);
     fs.writeFileSync(STATE_FILE, payload, 'utf8');
 
-    // Intentar escribir al mirror en Google Drive si la unidad G: está montada
+    // Intentar escribir al mirror en Google Drive si la unidad G: está montada en local
     try {
-      if (fs.existsSync('G:\\Mi unidad')) {
+      if (!isVercel && fs.existsSync('G:\\Mi unidad')) {
         if (!fs.existsSync(MIRROR_DIR)) {
           fs.mkdirSync(MIRROR_DIR, { recursive: true });
         }
         fs.writeFileSync(MIRROR_FILE, payload, 'utf8');
       }
     } catch (mirrorErr) {
-      // Ignorar si Drive no está accesible temporalmente
+      // Ignorar si Drive no está accesible
     }
   } catch (err) {
-    console.error('Error escribiendo travel_state.json:', err);
+    console.error('Error escribiendo travel_state.json (usando in-memory fallback):', err);
   }
 }
 
