@@ -1,0 +1,111 @@
+{
+  "isPaired": true,
+  "deviceId": "santiago-pixel-8-pro",
+  "deviceName": "Google Pixel 8 Pro (Google Health / Health Sync)",
+  "pairingToken": "MEGA-HC-8924",
+  "lastSyncTime": "2026-10-13T16:32:26.231797",
+  "syncCount": 206,
+  "changesToken": "token_health_sync_1791927146",
+  "currentMetrics": {
+    "steps": 4525,
+    "hrv": 76,
+    "heartRate": 57,
+    "sleepHours": 8.0
+  },
+  "vyfithData": {
+    "connected": true,
+    "appName": "Google Health Sync & Hevy App",
+    "readinessScore": 93,
+    "readinessCategory": "Vitalidad Óptima",
+    "lastSyncTimestamp": "2026-10-13T16:32:26.231804",
+    "geminiAnalysis": {
+      "diagnostico": "Análisis biométrico unificado: Descanso nocturno de 8.0h con 2.71h de fase profunda. Frecuencia cardíaca basal estable en 57 bpm. Volumen de carga absorbido de forma óptima.",
+      "recomendacionMuscular": "Condiciones óptimas para sesión de fuerza e hipertrofia. Mantener progresión de sobrecarga en básicos multiarticulares.",
+      "gruposPriorizar": [
+        "Dorsales",
+        "Pectoral",
+        "Hombros"
+      ],
+      "gruposDescanso": [
+        "Tren Inferior"
+      ],
+      "tiempoRecuperacionHoras": 0
+    },
+    "roomMetrics": {
+      "steps": 4525,
+      "deepSleepHours": 2.71,
+      "totalSleepHours": 8.0,
+      "restingHeartRate": 57,
+      "spo2": 99,
+      "caloriesBurned": 2450
+    },
+    "hevySummary": {
+      "lastWorkoutName": "Full Legs",
+      "totalVolumeKg": 6402.4,
+      "setsCompleted": 18,
+      "date": "30 sept 2026, 16:08"
+    }
+  },
+  "recentObservations": [
+    {
+      "id": "obs-steps-1791927146",
+      "resourceType": "Observation",
+      "status": "final",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "55423-8",
+            "display": "Number of steps"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 4525,
+        "unit": "steps"
+      },
+      "effectiveDateTime": "2026-10-13T16:32:26.231816",
+      "category": "Google Health - Actividad"
+    },
+    {
+      "id": "obs-hr-1791927146",
+      "resourceType": "Observation",
+      "status": "final",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8867-4",
+            "display": "Resting Heart Rate"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 57,
+        "unit": "bpm"
+      },
+      "effectiveDateTime": "2026-10-13T16:32:26.231819",
+      "category": "Google Health - Cardiovascular"
+    },
+    {
+      "id": "obs-sleep-1791927146",
+      "resourceType": "Observation",
+      "status": "final",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93832-4",
+            "display": "Sleep duration total"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 8.0,
+        "unit": "hours"
+      },
+      "effectiveDateTime": "2026-10-13T16:32:26.231821",
+      "category": "Google Health - Sueño"
+    }
+  ]
+}

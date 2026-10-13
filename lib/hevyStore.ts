@@ -24,7 +24,9 @@ export interface HevyWorkoutSession {
   exercises: HevyExercise[];
 }
 
-export const initialHevySessions: HevyWorkoutSession[] = [
+import realHevyWorkouts from '@/data/real_hevy_workouts.json';
+
+const fallbackHevySessions: HevyWorkoutSession[] = [
   {
     id: 'hevy-w1',
     name: 'Push Hypertrophy (Pecho, Hombro, Tríceps)',
@@ -137,3 +139,7 @@ export const initialHevySessions: HevyWorkoutSession[] = [
     ],
   },
 ];
+
+export const initialHevySessions: HevyWorkoutSession[] = (realHevyWorkouts && (realHevyWorkouts as any).length > 0)
+  ? (realHevyWorkouts as unknown as HevyWorkoutSession[])
+  : fallbackHevySessions;

@@ -64,6 +64,8 @@ export interface SyncSessionState {
   vyfithData: VyfithAppIntegration;
 }
 
+import realHealthState from '@/data/real_health_state.json';
+
 // Global in-memory singleton to persist state during dev server runs
 declare global {
   var __HEALTH_SYNC_STATE: SyncSessionState | undefined;
@@ -71,7 +73,10 @@ declare global {
 
 export function getHealthSyncState(): SyncSessionState {
   if (!global.__HEALTH_SYNC_STATE) {
-    global.__HEALTH_SYNC_STATE = {
+    if (realHealthState && (realHealthState as any).currentMetrics) {
+      global.__HEALTH_SYNC_STATE = realHealthState as unknown as SyncSessionState;
+    } else {
+      global.__HEALTH_SYNC_STATE = {
       isPaired: true,
       deviceId: 'pixel-8-pro-santiago',
       deviceName: 'Google Pixel 8 Pro (Android 14)',
@@ -197,7 +202,8 @@ export function getHealthSyncState(): SyncSessionState {
       },
     };
   }
-  return global.__HEALTH_SYNC_STATE;
+}
+return global.__HEALTH_SYNC_STATE;
 }
 
 export function updateHealthSyncState(updater: (state: SyncSessionState) => void) {

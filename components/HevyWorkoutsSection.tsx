@@ -101,8 +101,8 @@ export default function HevyWorkoutsSection() {
       {/* Selector de Sesiones y Detalle */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Lista de Sesiones Recientes */}
-        <div className="space-y-3">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Sesiones Recientes</span>
+        <div className="space-y-3 max-h-[650px] overflow-y-auto pr-1.5 scrollbar-thin">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Historial de Sesiones ({sessions.length})</span>
           {sessions.map((sess) => {
             const isSelected = sess.id === selectedSession.id;
             return (

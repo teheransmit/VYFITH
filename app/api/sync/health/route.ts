@@ -25,6 +25,25 @@ export async function POST(req: NextRequest) {
     let newHr = 0;
     let newSleep = 0;
 
+    // Caso 0: Recargar datos reales desde data/real_health_state.json (Google Health & Hevy)
+    if (body.source === 'RELOAD_REAL_DATA' || body.reloadReal) {
+      const fs = await import('fs');
+      const path = await import('path');
+      const jsonPath = path.join(process.cwd(), 'data', 'real_health_state.json');
+      if (fs.existsSync(jsonPath)) {
+        const raw = fs.readFileSync(jsonPath, 'utf8');
+        const realData = JSON.parse(raw);
+        const updated = updateHealthSyncState((state) => {
+          Object.assign(state, realData);
+        });
+        return NextResponse.json({
+          success: true,
+          message: '¡Datos de Google Health y Hevy sincronizados exitosamente desde disco!',
+          data: updated,
+        });
+      }
+    }
+
     // Caso A: Simulación o Envío real desde VYFITH_APP
     if (body.source === 'VYFITH_APP' || body.simulateVyfith) {
       const isSimulated = Boolean(body.simulateVyfith);

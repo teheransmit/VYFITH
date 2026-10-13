@@ -99,6 +99,28 @@ export default function GoogleHealthConnector() {
     }
   };
 
+  // Recargar datos reales procesados de Google Health & Hevy
+  const triggerReloadRealData = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/sync/health', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reloadReal: true }),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        setSyncState(result.data);
+        setNotificationMsg('¡Datos reales de Google Health y Hevy sincronizados exitosamente desde disco!');
+        setTimeout(() => setNotificationMsg(null), 5000);
+      }
+    } catch (err) {
+      console.error('Error sincronizando datos reales:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Simular worker en segundo plano
   const triggerSimulation = async () => {
     try {
@@ -241,6 +263,15 @@ class HealthSyncWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker
 
         {/* Acciones */}
         <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
+          <button
+            onClick={triggerReloadRealData}
+            disabled={isLoading}
+            className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
+            title="Carga los datos reales procesados desde tu Google Health y Hevy"
+          >
+            <Activity className="w-4 h-4 text-emerald-200" />
+            <span>Sincronizar Google Health & Hevy</span>
+          </button>
           <button
             onClick={triggerVyfithSimulation}
             disabled={isSimulatingVyfith}
