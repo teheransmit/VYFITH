@@ -10,13 +10,7 @@ import {
   Sparkles,
   AlertCircle,
 } from 'lucide-react';
-import {
-  initCalendarAuth,
-  signInWithGoogleCalendar,
-  logoutGoogleCalendar,
-  fetchUserCalendarEvents,
-  CalendarEvent,
-} from '@/lib/googleCalendar';
+import { CalendarEvent } from '@/lib/googleCalendar';
 
 interface CalendarUser {
   displayName: string | null;
@@ -52,19 +46,31 @@ const STATIC_SAMPLE_EVENTS: CalendarEvent[] = [
 ];
 
 export default function GoogleCalendarSection() {
-  const [user, setUser] = useState<CalendarUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [events, setEvents] = useState<CalendarEvent[]>(STATIC_SAMPLE_EVENTS);
+  const [user, setUser] = useState<CalendarUser | null>({
+    displayName: 'Santiago Smith',
+    email: 'santiagosmitttt@gmail.com',
+  });
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const loadEvents = useCallback(async (accessToken: string) => {
+  const loadEvents = useCallback(async () => {
     try {
       setIsLoading(true);
       setErrorMsg(null);
-      const items = await fetchUserCalendarEvents(accessToken);
-      setEvents(items.length > 0 ? items : STATIC_SAMPLE_EVENTS);
+      const res = await fetch('/api/calendar/events');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.events) && data.events.length > 0) {
+        setEvents(data.events);
+        if (data.account) {
+          setUser({
+            displayName: 'Santiago Smith Terán',
+            email: data.account,
+          });
+        }
+      } else {
+        setEvents(STATIC_SAMPLE_EVENTS);
+      }
     } catch (err: any) {
       console.warn('Calendar fetch error, using sample events fallback:', err);
       setErrorMsg(err.message || 'Error cargando eventos de Google Calendar');
@@ -75,47 +81,16 @@ export default function GoogleCalendarSection() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = initCalendarAuth(
-      (currentUser, accessToken) => {
-        setUser(currentUser);
-        setToken(accessToken);
-        loadEvents(accessToken);
-      },
-      () => {
-        setUser(null);
-        setToken(null);
-        setEvents(STATIC_SAMPLE_EVENTS);
-      }
-    );
-    return () => unsubscribe();
+    loadEvents();
   }, [loadEvents]);
 
-  const handleSignIn = async () => {
-    try {
-      setIsLoggingIn(true);
-      setErrorMsg(null);
-      const res = await signInWithGoogleCalendar();
-      if (res) {
-        setUser(res.user);
-        setToken(res.accessToken);
-        await loadEvents(res.accessToken);
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Error al autenticarse con Google');
-    } finally {
-      setIsLoggingIn(false);
-    }
+  const handleRefresh = async () => {
+    await loadEvents();
   };
 
   const handleLogout = async () => {
-    try {
-      await logoutGoogleCalendar();
-      setUser(null);
-      setToken(null);
-      setEvents(STATIC_SAMPLE_EVENTS);
-    } catch (err: any) {
-      console.error('Logout error:', err);
-    }
+    setUser(null);
+    setEvents(STATIC_SAMPLE_EVENTS);
   };
 
   const displayEvents = events.length > 0 ? events : STATIC_SAMPLE_EVENTS;
@@ -151,46 +126,29 @@ export default function GoogleCalendarSection() {
                 </div>
               </div>
               <button
-                onClick={() => token && loadEvents(token)}
+                onClick={handleRefresh}
                 disabled={isLoading}
                 className="cursor-pointer p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-200/60 transition-colors"
-                title="Recargar eventos"
+                title="Recargar eventos de Google Calendar"
               >
                 <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
               </button>
               <button
                 onClick={handleLogout}
                 className="cursor-pointer p-2 rounded-xl text-red-500 hover:bg-red-50 transition-colors"
-                title="Cerrar sesión de Google"
+                title="Desconectar vista"
               >
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
           ) : (
             <button
-              onClick={handleSignIn}
-              disabled={isLoggingIn}
-              className="cursor-pointer flex items-center gap-2.5 px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-semibold rounded-xl shadow-xs transition-all hover:border-slate-400"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="cursor-pointer flex items-center gap-2.5 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                />
-              </svg>
-              <span>{isLoggingIn ? 'Conectando...' : 'Conectar con Google Calendar'}</span>
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <span>{isLoading ? 'Cargando eventos...' : 'Sincronizar Google Calendar'}</span>
             </button>
           )}
         </div>

@@ -1,0 +1,538 @@
+[
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "accepted",
+        "self": true
+      }
+    ],
+    "colorId": "5",
+    "conferenceData": {
+      "conferenceId": "xcs-zcfy-edf",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/xcs-zcfy-edf",
+          "uri": "https://meet.google.com/xcs-zcfy-edf"
+        }
+      ]
+    },
+    "created": "2026-06-13T23:45:20.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "description": "B3 302",
+    "end": {
+      "dateTime": "2026-10-13T18:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3583809066440062\"",
+    "eventLabelId": "a9195c4a-e026-44c1-9eda-eb3065f2ded4",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/xcs-zcfy-edf",
+    "htmlLink": "https://www.google.com/calendar/event?eid=YmEzcXNqYnZvdWdiZDRjOG1hdmU0cjdjNWdfMjAyNjEwMTNUMjMwMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "ba3qsjbvougbd4c8mave4r7c5g_R20260929T230000@google.com",
+    "id": "ba3qsjbvougbd4c8mave4r7c5g_20261013T230000Z",
+    "kind": "calendar#event",
+    "location": "B3 302",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-13T18:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "ba3qsjbvougbd4c8mave4r7c5g_R20260929T230000",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-13T18:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "PROGRAMACIÓN Y PRESUPUESTO",
+    "updated": "2026-10-13T15:15:33.220Z",
+    "visibility": "public"
+  },
+  {
+    "created": "2026-07-09T23:44:28.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-10-13T21:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573795710921118\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=MDJuYjVoZG5tZWhzZjhyNGtlbmhwN2UxbzVfMjAyNjEwMTRUMDE0NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "02nb5hdnmehsf8r4kenhp7e1o5@google.com",
+    "id": "02nb5hdnmehsf8r4kenhp7e1o5_20261014T014500Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-13T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "02nb5hdnmehsf8r4kenhp7e1o5",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-13T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-16T16:30:55.460Z"
+  },
+  {
+    "colorId": "4",
+    "created": "2026-06-19T20:19:27.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-10-14T06:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3583590498110334\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=bzE1dGR1cTRycXNlZjV2cmwxZzhvODJ0dGhfMjAyNjEwMTRUMTA1MDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "o15tduq4rqsef5vrl1g8o82tth@google.com",
+    "id": "o15tduq4rqsef5vrl1g8o82tth_20261014T105000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-14T05:50:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "o15tduq4rqsef5vrl1g8o82tth",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 3,
+    "start": {
+      "dateTime": "2026-10-14T05:50:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-10-12T08:54:09.055Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "pqt-qisp-dgh",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/pqt-qisp-dgh",
+          "uri": "https://meet.google.com/pqt-qisp-dgh"
+        }
+      ]
+    },
+    "created": "2026-08-03T15:22:41.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "description": "B3 401",
+    "end": {
+      "dateTime": "2026-10-14T11:40:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3582469494423326\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/pqt-qisp-dgh",
+    "htmlLink": "https://www.google.com/calendar/event?eid=YzVpbTJkcjFjOWltYWJiMjcxajNhYjlrNmhnamViOW9jOWo2NmJiNWNjcDNhcGI0Nm9vajRjOW5jZ18yMDI2MTAxNFQxNTAwMDBaIHNhbnRpYWdvc21pdHR0dEBt",
+    "iCalUID": "c5im2dr1c9imabb271j3ab9k6hgjeb9oc9j66bb5ccp3apb46ooj4c9ncg_R20260930T150000@google.com",
+    "id": "c5im2dr1c9imabb271j3ab9k6hgjeb9oc9j66bb5ccp3apb46ooj4c9ncg_20261014T150000Z",
+    "kind": "calendar#event",
+    "location": "B3 401",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-14T10:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "c5im2dr1c9imabb271j3ab9k6hgjeb9oc9j66bb5ccp3apb46ooj4c9ncg_R20260930T150000",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-14T10:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "VÍAS II",
+    "updated": "2026-10-05T21:12:27.211Z",
+    "visibility": "public"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "conferenceData": {
+      "conferenceId": "odw-ftao-wbs",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/odw-ftao-wbs",
+          "uri": "https://meet.google.com/odw-ftao-wbs"
+        }
+      ]
+    },
+    "created": "2026-06-13T23:45:20.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "description": "B1 211",
+    "end": {
+      "dateTime": "2026-10-14T13:40:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3582469513382750\"",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/odw-ftao-wbs",
+    "htmlLink": "https://www.google.com/calendar/event?eid=ZDYwM3A4YnV0ZjBqMzY5YW85bmFocmYxdG9fMjAyNjEwMTRUMTcwMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "d603p8butf0j369ao9nahrf1to_R20260930T170000@google.com",
+    "id": "d603p8butf0j369ao9nahrf1to_20261014T170000Z",
+    "kind": "calendar#event",
+    "location": "B1 211",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-14T12:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "d603p8butf0j369ao9nahrf1to_R20260930T170000",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-14T12:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "FUNDAMENTOS DE HIDROLOGÍA",
+    "updated": "2026-10-05T21:12:36.691Z",
+    "visibility": "public"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "5",
+    "conferenceData": {
+      "conferenceId": "qxw-vauj-mne",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/qxw-vauj-mne",
+          "uri": "https://meet.google.com/qxw-vauj-mne"
+        }
+      ]
+    },
+    "created": "2026-06-13T23:45:20.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "description": "B3 301",
+    "end": {
+      "dateTime": "2026-10-14T19:40:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3582758824494014\"",
+    "eventLabelId": "a9195c4a-e026-44c1-9eda-eb3065f2ded4",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/qxw-vauj-mne",
+    "htmlLink": "https://www.google.com/calendar/event?eid=NTdia3JldTY2ZG9rZmZzYzE3Zmc0dW04MGNfMjAyNjEwMTRUMjMwMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "57bkreu66dokffsc17fg4um80c_R20260928T230000@google.com",
+    "id": "57bkreu66dokffsc17fg4um80c_20261014T230000Z",
+    "kind": "calendar#event",
+    "location": "B3 301",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-14T18:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "57bkreu66dokffsc17fg4um80c_R20260928T230000",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-14T18:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "PROGRAMACIÓN Y PRESUPUESTO",
+    "updated": "2026-10-07T13:23:32.247Z",
+    "visibility": "public"
+  },
+  {
+    "created": "2026-07-09T00:22:16.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-10-14T20:35:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573081369227646\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=bXZ1aWx2ZnEwbWwxNHNqcmowc3JtZ3VrNHZfMjAyNjEwMTVUMDEyMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "mvuilvfq0ml14sjrj0srmguk4v@google.com",
+    "id": "mvuilvfq0ml14sjrj0srmguk4v_20261015T012000Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-14T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "mvuilvfq0ml14sjrj0srmguk4v",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-10-14T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-12T13:18:04.613Z"
+  },
+  {
+    "colorId": "4",
+    "created": "2026-07-06T14:29:32.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-10-15T06:12:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3583590514648670\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=czd1Ym84dmNjY2sxYjhmOXRyM2tyMWgyc2dfMjAyNjEwMTVUMTA0MjAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "s7ubo8vccck1b8f9tr3kr1h2sg@google.com",
+    "id": "s7ubo8vccck1b8f9tr3kr1h2sg_20261015T104200Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-15T05:42:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "s7ubo8vccck1b8f9tr3kr1h2sg",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-15T05:42:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-10-12T08:54:17.324Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "11",
+    "conferenceData": {
+      "conferenceId": "yth-ozvr-nuk",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/yth-ozvr-nuk",
+          "uri": "https://meet.google.com/yth-ozvr-nuk"
+        }
+      ]
+    },
+    "created": "2026-06-13T23:45:20.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "description": "B1 407",
+    "end": {
+      "dateTime": "2026-10-15T09:40:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3581390703755678\"",
+    "eventLabelId": "0cf09671-f7a1-42fe-808e-50b2b7cb03c5",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/yth-ozvr-nuk",
+    "htmlLink": "https://www.google.com/calendar/event?eid=ZWljMGVycjJzNmx2dGVwOGlobGZvZDVwcjRfMjAyNjEwMTVUMTMwMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "eic0err2s6lvtep8ihlfod5pr4_R20261001T130000@google.com",
+    "id": "eic0err2s6lvtep8ihlfod5pr4_20261015T130000Z",
+    "kind": "calendar#event",
+    "location": "B1 407",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-15T08:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "eic0err2s6lvtep8ihlfod5pr4_R20261001T130000",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-15T08:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "ANÁLISIS DE ESTRUCTURAS - Método de las fuerzas",
+    "updated": "2026-09-29T15:22:31.877Z",
+    "visibility": "public"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "accepted",
+        "self": true
+      }
+    ],
+    "colorId": "8",
+    "created": "2026-09-29T14:55:38.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "description": "B1 106",
+    "end": {
+      "dateTime": "2026-10-15T13:40:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3581389185508798\"",
+    "eventLabelId": "f739bc31-c8b2-474d-b593-96fbcc2ca472",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=dGY5cjVtNGhmbTBwNDNpOTM4NDdtcGM0azRfMjAyNjEwMTVUMTcwMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "tf9r5m4hfm0p43i93847mpc4k4@google.com",
+    "id": "tf9r5m4hfm0p43i93847mpc4k4_20261015T170000Z",
+    "kind": "calendar#event",
+    "location": "B1 106",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-10-15T12:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "tf9r5m4hfm0p43i93847mpc4k4",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-10-15T12:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "English Level 10",
+    "updated": "2026-09-29T15:09:52.754Z",
+    "visibility": "public"
+  }
+]
