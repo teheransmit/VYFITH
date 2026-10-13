@@ -77,6 +77,12 @@ class HealthSyncWorker(
                     Log.w(TAG, "Reintentando sincronización posterior por fallo de red")
                     return@withContext Result.retry()
                 }
+            } else {
+                val nowStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                getPrefs().edit().apply {
+                    putString("key_last_sync_time", nowStr)
+                    putString("key_last_sync_status", "Al día (Sin nuevos deltas desde la última sincronización)")
+                }.apply()
             }
 
             // 4. Guardar de forma persistente el siguiente token de cambios para la próxima ejecución
@@ -128,9 +134,25 @@ class HealthSyncWorker(
             OutputStreamWriter(connection.outputStream).use { it.write(body.toString()) }
             
             val responseCode = connection.responseCode
-            responseCode in 200..299
+            val isSuccess = responseCode in 200..299
+            
+            // Guardar registro de auditoría para verificación en la UI de MainActivity
+            val nowStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            getPrefs().edit().apply {
+                putString("key_last_sync_time", nowStr)
+                putInt("key_last_sync_code", responseCode)
+                putInt("key_last_sync_records", payload.length())
+                putString("key_last_sync_status", if (isSuccess) "HTTP $responseCode OK — Datos recibidos" else "HTTP $responseCode Error en backend")
+            }.apply()
+            
+            isSuccess
         } catch (e: Exception) {
             Log.e(TAG, "Fallo de conexión enviando deltas al backend", e)
+            val nowStr = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            getPrefs().edit().apply {
+                putString("key_last_sync_time", nowStr)
+                putString("key_last_sync_status", "Fallo de conexión: ${e.message ?: "Sin respuesta de red"}")
+            }.apply()
             false
         }
     }

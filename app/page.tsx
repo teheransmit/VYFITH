@@ -23,16 +23,8 @@ import ScientificNotesSection from '@/components/ScientificNotesSection';
 import MobileTravelDashboard from '@/components/MobileTravelDashboard';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('overview');
   const [viewMode, setViewMode] = useState<'travel' | 'full'>('travel');
-
-  const scrollTo = (id: string) => {
-    setActiveTab(id);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   return (
     <main className="min-h-screen bg-slate-50/70 py-6 px-3 sm:px-6 lg:px-8 font-sans selection:bg-indigo-500 selection:text-white">
@@ -104,122 +96,148 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Barra de Navegación por Pilares */}
+        {/* Barra de Navegación por Pilares (Modo Exclusivo) */}
         <nav className="mb-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           <button
-            onClick={() => setActiveTab('all')}
-            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
-              activeTab === 'all'
-                ? 'bg-slate-900 text-white shadow-xs'
+            onClick={() => setActiveTab('overview')}
+            className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+              activeTab === 'overview'
+                ? 'bg-slate-900 text-white shadow-md ring-2 ring-slate-900/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
-            🌟 Vista Integral Completa
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Vista General</span>
           </button>
           <button
-            onClick={() => scrollTo('health-sync-section')}
+            onClick={() => setActiveTab('health')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-              activeTab === 'health-sync-section'
-                ? 'bg-indigo-600 text-white shadow-xs'
+              activeTab === 'health'
+                ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <Activity className="w-3.5 h-3.5 text-indigo-500" />
-            Salud & VYFITH_APP
+            <span>Salud & VYFITH_APP</span>
           </button>
           <button
-            onClick={() => scrollTo('hevy-workouts-section')}
+            onClick={() => setActiveTab('hevy')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-              activeTab === 'hevy-workouts-section'
-                ? 'bg-rose-600 text-white shadow-xs'
+              activeTab === 'hevy'
+                ? 'bg-rose-600 text-white shadow-md ring-2 ring-rose-600/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <Dumbbell className="w-3.5 h-3.5 text-rose-500" />
-            Hevy Workouts
+            <span>Hevy Workouts</span>
           </button>
           <button
-            onClick={() => scrollTo('google-calendar-section')}
+            onClick={() => setActiveTab('calendar')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-              activeTab === 'google-calendar-section'
-                ? 'bg-blue-600 text-white shadow-xs'
+              activeTab === 'calendar'
+                ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-600/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <Calendar className="w-3.5 h-3.5 text-blue-500" />
-            Google Calendar
+            <span>Google Calendar</span>
           </button>
           <button
-            onClick={() => scrollTo('academic-grades-section')}
+            onClick={() => setActiveTab('grades')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-              activeTab === 'academic-grades-section'
-                ? 'bg-amber-600 text-white shadow-xs'
+              activeTab === 'grades'
+                ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-600/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <GraduationCap className="w-3.5 h-3.5 text-amber-500" />
-            Notas del Semestre
+            <span>Notas del Semestre</span>
           </button>
           <button
-            onClick={() => scrollTo('scientific-notes-section')}
+            onClick={() => setActiveTab('science')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-              activeTab === 'scientific-notes-section'
-                ? 'bg-violet-600 text-white shadow-xs'
+              activeTab === 'science'
+                ? 'bg-violet-600 text-white shadow-md ring-2 ring-violet-600/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5 text-violet-500" />
-            Notas & Referencias
+            <span>Notas & Referencias</span>
           </button>
           <button
-            onClick={() => scrollTo('upb-walk-simulator-section')}
+            onClick={() => setActiveTab('walks')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-              activeTab === 'upb-walk-simulator-section'
-                ? 'bg-amber-700 text-white shadow-xs'
+              activeTab === 'walks'
+                ? 'bg-amber-700 text-white shadow-md ring-2 ring-amber-700/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <Footprints className="w-3.5 h-3.5 text-amber-600" />
-            Paseos & Rutina UPB
+            <span>Paseos & Rutina UPB</span>
           </button>
           <button
-            onClick={() => scrollTo('finance-section')}
+            onClick={() => setActiveTab('finance')}
             className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-              activeTab === 'finance-section'
-                ? 'bg-emerald-600 text-white shadow-xs'
+              activeTab === 'finance'
+                ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-600/20'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
             <Plane className="w-3.5 h-3.5 text-emerald-500" />
-            Finanzas & Medellín 2026
+            <span>Finanzas & Medellín 2026</span>
           </button>
         </nav>
 
-        {/* 1. Vista General Ejecutiva & Gráficos Multivariables */}
-        <DashboardOverview />
+        {/* Renderizado Exclusivo: Sólo el Pilar Seleccionado */}
+        <div className="transition-all duration-200">
+          {activeTab === 'overview' && (
+            <div className="animate-fadeIn">
+              <DashboardOverview />
+            </div>
+          )}
 
-        {/* 2. Pilar 1: Salud Biométrica y Conexión con VYFITH_APP */}
-        <div id="health-sync-section">
-          <GoogleHealthConnector />
+          {activeTab === 'health' && (
+            <div className="animate-fadeIn">
+              <GoogleHealthConnector />
+            </div>
+          )}
+
+          {activeTab === 'hevy' && (
+            <div className="animate-fadeIn">
+              <HevyWorkoutsSection />
+            </div>
+          )}
+
+          {activeTab === 'calendar' && (
+            <div className="animate-fadeIn">
+              <GoogleCalendarSection />
+            </div>
+          )}
+
+          {activeTab === 'grades' && (
+            <div className="animate-fadeIn">
+              <AcademicGradesSection />
+            </div>
+          )}
+
+          {activeTab === 'science' && (
+            <div className="animate-fadeIn">
+              <ScientificNotesSection />
+            </div>
+          )}
+
+          {activeTab === 'walks' && (
+            <div className="animate-fadeIn">
+              <UpbWalkSimulatorSection />
+            </div>
+          )}
+
+          {activeTab === 'finance' && (
+            <div className="animate-fadeIn">
+              <FinanceSection />
+            </div>
+          )}
         </div>
-
-        {/* 3. Pilar 2: Entrenamientos Hevy (Fuerza & Volumen) */}
-        <HevyWorkoutsSection />
-
-        {/* 4. Pilar 3: Google Calendar (OAuth 2.0 y Eventos) */}
-        <GoogleCalendarSection />
-
-        {/* 5. Pilar 4: Notas del Semestre Universitario & GPA */}
-        <AcademicGradesSection />
-
-        {/* 6. Módulo de Curiosidad y Literatura Científica (Notas & Referencias) */}
-        <ScientificNotesSection />
-
-        {/* 7. Módulo Especial: Simulador de Paseos Caninos & Puntualidad UPB */}
-        <UpbWalkSimulatorSection />
-
-        {/* 8. Pilar 5: Finanzas Personales & Viaje Medellín 2026 */}
-        <FinanceSection />
 
         {/* Footer */}
         <footer className="mt-12 pt-6 border-t border-slate-200 text-center text-xs text-slate-400">
