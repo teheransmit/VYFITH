@@ -48,8 +48,10 @@ import Rome2RioRouteMap from '@/components/Rome2RioRouteMap';
 
 export default function FinanceSection() {
   const [finance, setFinance] = useState<FinanceSummary>(initialFinanceData);
-  const [activeTab, setActiveTab] = useState<'general' | 'medellin' | 'cobros'>('medellin');
+  const [activeTab, setActiveTab] = useState<'goals-debt' | 'weekly-flow' | 'medellin' | 'cobros' | 'general'>('goals-debt');
   const [quickNotice, setQuickNotice] = useState<string | null>(null);
+  const [debtPayInput, setDebtPayInput] = useState<number>(50000);
+  const [iphoneSaveInput, setIphoneSaveInput] = useState<number>(100000);
   const [contingencyFilter, setContingencyFilter] = useState<'all' | 'flight' | 'luggage' | 'arrival' | 'finance'>('all');
   const [expandedContingency, setExpandedContingency] = useState<string | null>(null);
 
@@ -84,6 +86,69 @@ export default function FinanceSection() {
 
   const remainingBudget = finance.monthlyBudget - finance.totalExpenses;
   const budgetPercentUsed = Math.min(100, Math.round((finance.totalExpenses / finance.monthlyBudget) * 100));
+
+  // Cálculos dinámicos de Flujo Semanal (Paseos de perros y pasajes UPB)
+  const weeklyDogIncome = (finance.weeklyFlow?.dogWalksIncome || []).reduce((acc, curr) => acc + curr.weeklyTotal, 0);
+  const totalWeeklyIncome = weeklyDogIncome + (finance.weeklyFlow?.upbTransportSavings || 0) + (finance.weeklyFlow?.otherWeeklyIncome || 0);
+  const totalWeeklyExpenses = (finance.weeklyFlow?.weeklyFixedExpenses || []).reduce((acc, curr) => acc + curr.amount, 0);
+  const netWeeklySavings = totalWeeklyIncome - totalWeeklyExpenses;
+
+  // Cálculos Deuda Yessin ($580.000 COP)
+  const yessinTotal = finance.yessinDebt?.totalAmount ?? 580000;
+  const yessinPaid = finance.yessinDebt?.paidAmount ?? 0;
+  const yessinRemaining = Math.max(0, yessinTotal - yessinPaid);
+  const debtProgress = Math.min(100, Math.round((yessinPaid / yessinTotal) * 100));
+
+  // Cálculos Meta iPhone 15 Pro Bodega Mayorista ($1.950.000 COP)
+  const iphoneCost = finance.iphoneGoal?.price ?? 1950000;
+  const iphoneSaved = finance.iphoneGoal?.savedAmount ?? 0;
+  const iphoneRemaining = Math.max(0, iphoneCost - iphoneSaved);
+  const iphoneProgress = Math.min(100, Math.round((iphoneSaved / iphoneCost) * 100));
+
+  // Proyecciones de semanas
+  const weeksToPayDebt = netWeeklySavings > 0 ? Math.ceil(yessinRemaining / netWeeklySavings) : 0;
+  const weeksToBuyIphone = netWeeklySavings > 0 ? Math.ceil(iphoneRemaining / netWeeklySavings) : 0;
+
+  const handlePayDebt = (amount: number) => {
+    if (amount <= 0) return;
+    setFinance((prev) => {
+      const currentPaid = prev.yessinDebt?.paidAmount || 0;
+      const total = prev.yessinDebt?.totalAmount || 580000;
+      const newPaid = Math.min(total, currentPaid + amount);
+      const remaining = total - newPaid;
+      return {
+        ...prev,
+        yessinDebt: {
+          ...prev.yessinDebt,
+          paidAmount: newPaid,
+          remainingAmount: remaining,
+        },
+      };
+    });
+    showNotice(`🤝 +${formatCurrency(amount)} abonados a la deuda de Yessin. Saldo pendiente: ${formatCurrency(Math.max(0, yessinRemaining - amount))}`);
+  };
+
+  const handleSaveIPhone = (amount: number) => {
+    if (yessinRemaining > 0) {
+      showNotice(`⚠️ Regla Innegociable: Primero salda la deuda de $580.000 COP con tu mejor amigo Yessin.`);
+      return;
+    }
+    if (amount <= 0) return;
+    setFinance((prev) => {
+      const currentSaved = prev.iphoneGoal?.savedAmount || 0;
+      const price = prev.iphoneGoal?.price || 1950000;
+      const newSaved = Math.min(price, currentSaved + amount);
+      return {
+        ...prev,
+        iphoneGoal: {
+          ...prev.iphoneGoal,
+          savedAmount: newSaved,
+          status: newSaved >= price ? 'Completado' : 'En Progreso',
+        },
+      };
+    });
+    showNotice(`📱 +${formatCurrency(amount)} asignados al fondo del iPhone 15 Pro.`);
+  };
 
   // Cálculo del Viaje Medellín en tiempo real (Miércoles 7 de Octubre de 2026)
   const med = finance.medellinTrip;
@@ -267,32 +332,43 @@ export default function FinanceSection() {
         </div>
 
         {/* Pestañas de Navegación Interna */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl">
+        <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl overflow-x-auto scrollbar-none">
           <button
-            onClick={() => setActiveTab('medellin')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              activeTab === 'medellin'
-                ? 'bg-white text-emerald-700 shadow-xs'
+            onClick={() => setActiveTab('goals-debt')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+              activeTab === 'goals-debt'
+                ? 'bg-emerald-600 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Plane className="w-3.5 h-3.5 text-emerald-600" />
-            Viaje Medellín 2026
+            <Smartphone className="w-3.5 h-3.5" />
+            🎯 Deuda Yessin & iPhone 15 Pro
+          </button>
+          <button
+            onClick={() => setActiveTab('weekly-flow')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+              activeTab === 'weekly-flow'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            💵 Flujo Semanal & Paseos
           </button>
           <button
             onClick={() => setActiveTab('cobros')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'cobros'
                 ? 'bg-white text-emerald-700 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Coins className="w-3.5 h-3.5 text-amber-600" />
-            Cuentas por Cobrar
+            Cartera Canina
           </button>
           <button
             onClick={() => setActiveTab('general')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
               activeTab === 'general'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -300,6 +376,17 @@ export default function FinanceSection() {
           >
             <Wallet className="w-3.5 h-3.5 text-slate-600" />
             Presupuesto Mensual
+          </button>
+          <button
+            onClick={() => setActiveTab('medellin')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 ${
+              activeTab === 'medellin'
+                ? 'bg-white text-emerald-700 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Plane className="w-3.5 h-3.5 text-emerald-600" />
+            Viaje Medellín
           </button>
         </div>
       </div>
@@ -310,6 +397,366 @@ export default function FinanceSection() {
           <button onClick={() => setQuickNotice(null)} className="text-emerald-700 font-bold ml-2">
             ✕
           </button>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VISTA 0A: DEUDA YESSIN & META IPHONE 15 PRO */}
+      {/* ======================================================== */}
+      {activeTab === 'goals-debt' && (
+        <div className="mt-6 space-y-6 animate-fadeIn">
+          {/* Banner de Estrategia Financiera Innegociable */}
+          <div className="p-6 rounded-3xl bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md relative overflow-hidden">
+            <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 mb-2">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Plan de Saneamiento y Capitalización • Montería 2026</span>
+                </div>
+                <h3 className="text-2xl font-black tracking-tight">Deuda Yessin ➡️ Compra iPhone 15 Pro</h3>
+                <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                  Regla de oro: liquidar primero el 100% de la deuda moral con tu mejor amigo Yessin (<strong>$580.000 COP</strong>) antes de desbloquear el fondo para el iPhone 15 Pro (<strong>$1.950.000 COP</strong>) en la bodega mayorista de Montería.
+                </p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 text-right self-start md:self-center">
+                <span className="text-[11px] text-slate-300 uppercase tracking-wider block font-semibold">Excedente Semanal Actual</span>
+                <span className="text-2xl font-black text-emerald-400">+{formatCurrency(netWeeklySavings)}</span>
+                <span className="text-[11px] text-slate-400 block font-medium">Paseos de perros + Ahorro UPB</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Dos Columnas: Tarjeta 1 (Deuda Yessin) y Tarjeta 2 (iPhone 15 Pro) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 1. TARJETA DEUDA YESSIN (PRIORIDAD #1) */}
+            <div className="p-6 rounded-3xl bg-white border-2 border-rose-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+                    <span className="text-xs font-black uppercase tracking-wider text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full">
+                      Prioridad #1 Innegociable
+                    </span>
+                  </div>
+                  <span className="text-xs font-mono text-slate-400">Compromiso de Honor</span>
+                </div>
+
+                <div className="mt-4">
+                  <h4 className="text-xl font-bold text-slate-900">Deuda con mi Mejor Amigo (Yessin)</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Total adeudado: <strong className="text-slate-900">{formatCurrency(yessinTotal)}</strong>. Se debe extinguir antes de cualquier gasto de ocio o tecnología.
+                  </p>
+                </div>
+
+                {/* Métricas de la deuda */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Abonado hasta hoy</span>
+                    <span className="text-lg font-black text-emerald-600">{formatCurrency(yessinPaid)}</span>
+                    <span className="text-[10px] text-slate-400">{debtProgress}% saldado</span>
+                  </div>
+                  <div className="p-3 bg-rose-50/70 rounded-2xl border border-rose-100">
+                    <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Saldo Pendiente</span>
+                    <span className="text-lg font-black text-rose-700">{formatCurrency(yessinRemaining)}</span>
+                    <span className="text-[10px] text-rose-500 font-medium">{yessinRemaining === 0 ? '¡Deuda 100% pagada!' : 'Por transferir a Yessin'}</span>
+                  </div>
+                </div>
+
+                {/* Barra de Progreso */}
+                <div className="mt-4">
+                  <div className="flex justify-between items-center text-xs font-semibold mb-1">
+                    <span className="text-slate-600">Progreso de Pago</span>
+                    <span className={yessinRemaining === 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>
+                      {yessinRemaining === 0 ? 'COMPLETADO ✅' : `${formatCurrency(yessinRemaining)} restantes`}
+                    </span>
+                  </div>
+                  <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        yessinRemaining === 0 ? 'bg-emerald-500' : 'bg-gradient-to-r from-rose-500 to-amber-500'
+                      }`}
+                      style={{ width: `${debtProgress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Proyección de Pago */}
+                <div className="mt-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
+                  <p className="font-semibold flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Tiempo estimado para salir de la deuda:</span>
+                  </p>
+                  <p className="text-[11px] text-amber-800/90 mt-1 leading-relaxed">
+                    Con tu excedente semanal actual de <strong>{formatCurrency(netWeeklySavings)}</strong> (paseos + pasajes UPB), la liquidas en <strong>{weeksToPayDebt} semanas</strong>. Si sumas un empleo de temporada o apoyo virtual, ¡la pagas en <strong>menos de 2 semanas</strong>!
+                  </p>
+                </div>
+              </div>
+
+              {/* Controles de Abono Interactivo */}
+              <div className="mt-6 pt-4 border-t border-slate-100">
+                <span className="text-xs font-bold text-slate-700 block mb-2">Registrar abono a Yessin:</span>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  <button
+                    onClick={() => handlePayDebt(50000)}
+                    disabled={yessinRemaining === 0}
+                    className="cursor-pointer py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all disabled:opacity-40"
+                  >
+                    +$50.000
+                  </button>
+                  <button
+                    onClick={() => handlePayDebt(100000)}
+                    disabled={yessinRemaining === 0}
+                    className="cursor-pointer py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all disabled:opacity-40"
+                  >
+                    +$100.000
+                  </button>
+                  <button
+                    onClick={() => handlePayDebt(yessinRemaining)}
+                    disabled={yessinRemaining === 0}
+                    className="cursor-pointer py-1.5 px-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all disabled:opacity-40"
+                  >
+                    Saldar Todo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. TARJETA META IPHONE 15 PRO (BODEGA MAYORISTA MONTERÍA) */}
+            <div className={`p-6 rounded-3xl bg-white border-2 shadow-sm flex flex-col justify-between ${yessinRemaining > 0 ? 'border-slate-200 opacity-95' : 'border-indigo-300'}`}>
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse" />
+                    <span className="text-xs font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full">
+                      Meta de Capital • Bodega Montería
+                    </span>
+                  </div>
+                  <span className="text-xs font-mono text-slate-400">Importadores Directos 🇨🇴</span>
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xl font-bold text-slate-900">iPhone 15 Pro (256 GB - Titanio)</h4>
+                    <span className="text-lg font-black text-indigo-600">{formatCurrency(iphoneCost)}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Titanio Natural/Negro, Dynamic Island, Chip A17 Pro (3nm para emulación y render), Puerto USB-C 3.0 de alta velocidad.
+                  </p>
+                </div>
+
+                {/* Métricas del iPhone */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Capital Guardado</span>
+                    <span className="text-lg font-black text-indigo-600">{formatCurrency(iphoneSaved)}</span>
+                    <span className="text-[10px] text-slate-400">{iphoneProgress}% acumulado</span>
+                  </div>
+                  <div className="p-3 bg-indigo-50/70 rounded-2xl border border-indigo-100">
+                    <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider block">Falta por Ahorrar</span>
+                    <span className="text-lg font-black text-indigo-900">{formatCurrency(iphoneRemaining)}</span>
+                    <span className="text-[10px] text-indigo-500 font-medium">Meta final para ir a comprar</span>
+                  </div>
+                </div>
+
+                {/* Barra de Progreso del iPhone */}
+                <div className="mt-4">
+                  <div className="flex justify-between items-center text-xs font-semibold mb-1">
+                    <span className="text-slate-600">Progreso hacia el iPhone</span>
+                    <span className="text-indigo-600 font-bold">{iphoneProgress}%</span>
+                  </div>
+                  <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-500"
+                      style={{ width: `${iphoneProgress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Candado de advertencia o habilitación */}
+                {yessinRemaining > 0 ? (
+                  <div className="mt-4 p-3 rounded-2xl bg-slate-100 border border-slate-200 text-xs text-slate-600 flex items-start gap-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-slate-800">Fondo de compra bloqueado temporalmente:</strong>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Por disciplina financiera, este fondo se activará apenas los <strong>{formatCurrency(yessinRemaining)}</strong> de Yessin queden totalmente pagados.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>¡Deuda saldada! Todo tu ahorro semanal ahora entra directamente a la compra del iPhone.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Protocolo de Inspección en Bodega */}
+              <div className="mt-4 pt-3 border-t border-slate-100">
+                <span className="text-[11px] font-bold text-slate-700 block mb-1">🔍 Protocolo de Verificación Batería 100% en Bodega:</span>
+                <ul className="text-[10px] text-slate-500 space-y-1 leading-tight">
+                  <li>• <strong>Ciclos Reales (iOS 17.4+):</strong> Ajustes ➔ General ➔ Información ➔ Batería. Si marca 100% y tiene ≤50 ciclos, es legítimo. Si tiene &gt;150 ciclos y dice 100%, fue alterada.</li>
+                  <li>• <strong>Test 3uTools en PC:</strong> Pedir que lo conecten a la computadora para verificar el serial BMS original y la capacidad en mAh (3.274 mAh diseño).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabla Comparativa de Escenarios Laborales para Lograr el iPhone */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs">
+            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-emerald-600" />
+              Proyección de Tiempos según Escenario Laboral
+            </h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3 font-bold">Escenario Laboral</th>
+                    <th className="px-4 py-3 font-bold">Ingreso Semanal Estimado</th>
+                    <th className="px-4 py-3 font-bold">Ahorro Neto Semanal</th>
+                    <th className="px-4 py-3 font-bold text-rose-600">Tiempo Deuda Yessin</th>
+                    <th className="px-4 py-3 font-bold text-indigo-600">Tiempo iPhone 15 Pro</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      1. Situación Actual (Paseos Caninos + Ahorro UPB)
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{formatCurrency(totalWeeklyIncome)}</td>
+                    <td className="px-4 py-3 font-bold text-emerald-600">{formatCurrency(netWeeklySavings)}</td>
+                    <td className="px-4 py-3 font-bold text-rose-600">9 semanas</td>
+                    <td className="px-4 py-3 font-bold text-indigo-600">31 semanas</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50 bg-emerald-50/30">
+                    <td className="px-4 py-3 font-bold text-slate-900 flex items-center gap-1.5">
+                      <span>2. Empleo de Temporada en Montería (Éxito, Koaj, Bosi, Ara)</span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-bold">Recomendado</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">~$395.000 COP</td>
+                    <td className="px-4 py-3 font-bold text-emerald-700">~$280.000 COP</td>
+                    <td className="px-4 py-3 font-black text-rose-700">2 semanas</td>
+                    <td className="px-4 py-3 font-black text-emerald-700">7 semanas (¡En Diciembre!)</td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      3. Empleo en Medellín / Bucaramanga (Arriendo Compartido con Compañero)
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">~$415.000 COP</td>
+                    <td className="px-4 py-3 font-bold text-indigo-600">~$260.000 COP</td>
+                    <td className="px-4 py-3 font-bold text-rose-600">2.2 semanas</td>
+                    <td className="px-4 py-3 font-bold text-indigo-600">7.5 semanas</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VISTA 0B: FLUJO DE CAJA SEMANAL & PASEOS */}
+      {/* ======================================================== */}
+      {activeTab === 'weekly-flow' && (
+        <div className="mt-6 space-y-6 animate-fadeIn">
+          {/* Tarjetas de Resumen Semanal */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-5 rounded-3xl bg-emerald-50 border border-emerald-100">
+              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Ingresos Semanales Totales</span>
+              <span className="text-2xl font-black text-emerald-700 mt-1 block">{formatCurrency(totalWeeklyIncome)}</span>
+              <span className="text-xs text-emerald-600">Paseos Frida, Molly, Sienna + Ahorro UPB</span>
+            </div>
+            <div className="p-5 rounded-3xl bg-rose-50 border border-rose-100">
+              <span className="text-xs font-bold text-rose-800 uppercase tracking-wider block">Gastos Fijos Semanales</span>
+              <span className="text-2xl font-black text-rose-700 mt-1 block">-{formatCurrency(totalWeeklyExpenses)}</span>
+              <span className="text-xs text-rose-600">Almuerzos UPB + SmartFit + Varios</span>
+            </div>
+            <div className="p-5 rounded-3xl bg-slate-900 text-white shadow-sm">
+              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Excedente Neto Disponible</span>
+              <span className="text-2xl font-black text-emerald-400 mt-1 block">+{formatCurrency(netWeeklySavings)}</span>
+              <span className="text-xs text-slate-400">Saldo libre semanal para pagar deuda y ahorrar</span>
+            </div>
+          </div>
+
+          {/* Desglose de Paseos Caninos */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                  <Footprints className="w-4 h-4 text-amber-600" />
+                  Ingresos Semanales por Paseos Caninos
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">Control de clientes caninos activos y tarifa por paseo</p>
+              </div>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-xl">
+                Subtotal Paseos: {formatCurrency(weeklyDogIncome)}/semana
+              </span>
+            </div>
+
+            <div className="overflow-x-auto mt-4">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3 font-bold">Cliente / Mascota</th>
+                    <th className="px-4 py-3 font-bold">Frecuencia</th>
+                    <th className="px-4 py-3 font-bold">Tarifa por Paseo</th>
+                    <th className="px-4 py-3 font-bold">Total Semanal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {finance.weeklyFlow?.dogWalksIncome?.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-semibold text-slate-900">
+                        {item.dogName} <span className="text-slate-400 font-normal">({item.client})</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{item.walksPerWeek} paseos/semana</td>
+                      <td className="px-4 py-3 text-slate-600">{formatCurrency(item.ratePerWalk)}</td>
+                      <td className="px-4 py-3 font-bold text-emerald-600">{formatCurrency(item.weeklyTotal)}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-indigo-50/40">
+                    <td className="px-4 py-3 font-bold text-indigo-900">
+                      Ahorro Pasajes UPB
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">5 días hábiles</td>
+                    <td className="px-4 py-3 text-slate-600">Tarjeta / Ruta Eficiente</td>
+                    <td className="px-4 py-3 font-bold text-indigo-600">+{formatCurrency(finance.weeklyFlow?.upbTransportSavings || 35000)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Desglose de Gastos Fijos Semanales */}
+          <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-xs">
+            <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+              <Banknote className="w-4 h-4 text-rose-600" />
+              Gastos Fijos Semanales Inevitables
+            </h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3 font-bold">Concepto</th>
+                    <th className="px-4 py-3 font-bold">Categoría</th>
+                    <th className="px-4 py-3 font-bold text-rose-600">Monto Semanal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {finance.weeklyFlow?.weeklyFixedExpenses?.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-semibold text-slate-900">{item.concept}</td>
+                      <td className="px-4 py-3 text-slate-600">{item.category}</td>
+                      <td className="px-4 py-3 font-bold text-rose-600">-{formatCurrency(item.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 

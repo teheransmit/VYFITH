@@ -183,8 +183,8 @@ export default function Home() {
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <Plane className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Finanzas & Medellín 2026</span>
+            <CreditCard className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Finanzas & iPhone</span>
           </button>
         </nav>
 

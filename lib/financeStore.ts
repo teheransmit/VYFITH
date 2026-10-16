@@ -1,6 +1,6 @@
 export interface ExpenseItem {
   id: string;
-  category: 'Nutrición y Proteína' | 'Gimnasio & Salud' | 'Universidad & Libros' | 'Transporte' | 'Ocio y Café' | 'Viaje Medellín';
+  category: 'Nutrición y Proteína' | 'Gimnasio & Salud' | 'Universidad & Libros' | 'Transporte' | 'Ocio y Café' | 'Viaje Medellín' | 'Deuda Yessin' | 'Ahorro iPhone';
   title: string;
   amount: number;
   date: string;
@@ -16,6 +16,52 @@ export interface ReceivableItem {
   perWalkRate?: number;
   dogName?: string;
   notes?: string;
+}
+
+export interface DogWalkIncomeItem {
+  id: string;
+  client: string;
+  dogName: string;
+  walksPerWeek: number;
+  ratePerWalk: number;
+  weeklyTotal: number;
+}
+
+export interface WeeklyCashFlow {
+  dogWalksIncome: DogWalkIncomeItem[];
+  upbTransportSavings: number; // Ahorro de pasajes UPB semanal
+  otherWeeklyIncome: number;
+  weeklyFixedExpenses: {
+    id: string;
+    concept: string;
+    amount: number;
+    category: string;
+  }[];
+}
+
+export interface DebtPriorityItem {
+  id: string;
+  creditor: string;
+  relationship: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  priority: number;
+  targetPaymentDate: string;
+  notes: string;
+}
+
+export interface AssetGoalItem {
+  id: string;
+  name: string;
+  store: string;
+  location: string;
+  specs: string;
+  price: number;
+  savedAmount: number;
+  targetDate: string;
+  verifiedBatteryHealth: string;
+  status: 'En Espera de Pago Deuda' | 'En Progreso' | 'Completado';
 }
 
 export interface MedellinTripBudget {
@@ -56,6 +102,9 @@ export interface FinanceSummary {
   savingsRate: number;
   expenses: ExpenseItem[];
   medellinTrip: MedellinTripBudget;
+  yessinDebt: DebtPriorityItem;
+  iphoneGoal: AssetGoalItem;
+  weeklyFlow: WeeklyCashFlow;
 }
 
 export const initialFinanceData: FinanceSummary = {
@@ -63,6 +112,43 @@ export const initialFinanceData: FinanceSummary = {
   monthlyBudget: 2400000,
   totalExpenses: 1845000,
   savingsRate: 42.3,
+  yessinDebt: {
+    id: 'debt-yessin',
+    creditor: 'Yessin',
+    relationship: 'Mejor Amigo',
+    totalAmount: 580000,
+    paidAmount: 0,
+    remainingAmount: 580000,
+    priority: 1,
+    targetPaymentDate: 'Noviembre 2026 (Prioridad Absoluta #1)',
+    notes: 'Deuda de palabra con mi mejor amigo Yessin. Regla de oro financiera: pagar el 100% de esta deuda antes de gastar en el iPhone.',
+  },
+  iphoneGoal: {
+    id: 'goal-iphone-15-pro',
+    name: 'iPhone 15 Pro (256 GB - Titanio)',
+    store: 'Bodega Mayorista Montería (Importadores Directos)',
+    location: 'Montería, Córdoba',
+    specs: '256 GB, Dynamic Island, A17 Pro (3nm), Cámara 48MP Pro, USB-C 3.0',
+    price: 1950000,
+    savedAmount: 0,
+    targetDate: 'Diciembre 2026 (Temporada)',
+    verifiedBatteryHealth: 'Verificar en iOS 17.4+ ciclos reales (≤50 ciclos) o test en 3uTools',
+    status: 'En Espera de Pago Deuda',
+  },
+  weeklyFlow: {
+    dogWalksIncome: [
+      { id: 'walk-1', client: 'Laura', dogName: 'Frida', walksPerWeek: 5, ratePerWalk: 10000, weeklyTotal: 50000 },
+      { id: 'walk-2', client: 'Familia Gómez', dogName: 'Molly', walksPerWeek: 4, ratePerWalk: 9000, weeklyTotal: 36000 },
+      { id: 'walk-3', client: 'Carlos', dogName: 'Sienna', walksPerWeek: 4, ratePerWalk: 10000, weeklyTotal: 40000 },
+    ],
+    upbTransportSavings: 35000, // Ahorro semanal pasajes UPB
+    otherWeeklyIncome: 0,
+    weeklyFixedExpenses: [
+      { id: 'fix-1', concept: 'Almuerzos & Nutrición UPB', amount: 55000, category: 'Nutrición' },
+      { id: 'fix-2', concept: 'SmartFit Prorrateado Semanal', amount: 28000, category: 'Gimnasio' },
+      { id: 'fix-3', concept: 'Imprevistos & Recargas', amount: 15000, category: 'Varios' },
+    ],
+  },
   expenses: [
     {
       id: 'exp-1',
