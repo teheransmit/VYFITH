@@ -15,9 +15,15 @@ import re
 from datetime import datetime
 import pandas as pd
 
-BASE_DIR = r"C:\Users\Luis\AndroidStudioProjects\VYFITH"
-DATA_OUT_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(DATA_OUT_DIR, exist_ok=True)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(SCRIPT_DIR)
+DATA_OUT_DIRS = [os.path.join(BASE_DIR, "data")]
+ALT_DIR = r"C:\Users\Luis\AndroidStudioProjects\VYFITH\data"
+if os.path.exists(os.path.dirname(ALT_DIR)) and ALT_DIR not in DATA_OUT_DIRS:
+    DATA_OUT_DIRS.append(ALT_DIR)
+
+for d in DATA_OUT_DIRS:
+    os.makedirs(d, exist_ok=True)
 
 DRIVE_DIR = r"G:\Mi unidad"
 HEVY_CSV = os.path.join(DRIVE_DIR, "Panel_de_Vida", "Hevy", "2026-10-05_hevy_workouts.csv")
@@ -304,16 +310,18 @@ unified_health_state = {
     ]
 }
 
-# Guardar en C:\Users\Luis\AndroidStudioProjects\VYFITH\data\
-out_sessions_path = os.path.join(DATA_OUT_DIR, "real_hevy_workouts.json")
-out_health_path = os.path.join(DATA_OUT_DIR, "real_health_state.json")
+# Guardar en todos los directorios destino
+for out_dir in DATA_OUT_DIRS:
+    out_sessions_path = os.path.join(out_dir, "real_hevy_workouts.json")
+    out_health_path = os.path.join(out_dir, "real_health_state.json")
 
-with open(out_sessions_path, "w", encoding="utf-8") as f:
-    json.dump(sessions, f, indent=2, ensure_ascii=False)
+    with open(out_sessions_path, "w", encoding="utf-8") as f:
+        json.dump(sessions, f, indent=2, ensure_ascii=False)
 
-with open(out_health_path, "w", encoding="utf-8") as f:
-    json.dump(unified_health_state, f, indent=2, ensure_ascii=False)
+    with open(out_health_path, "w", encoding="utf-8") as f:
+        json.dump(unified_health_state, f, indent=2, ensure_ascii=False)
 
-print(f"[OK] Guardadas {len(sessions)} sesiones de Hevy en: {out_sessions_path}")
-print(f"[OK] Guardado estado de Google Health en: {out_health_path}")
+    print(f"[OK] Guardadas {len(sessions)} sesiones de Hevy en: {out_sessions_path}")
+    print(f"[OK] Guardado estado de Google Health en: {out_health_path}")
+
 print(f"[OK] Readiness Score Calculado: {readiness_score} ({readiness_cat})")

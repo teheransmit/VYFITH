@@ -3,9 +3,9 @@
   "deviceId": "santiago-pixel-8-pro",
   "deviceName": "Google Pixel 8 Pro (Google Health / Health Sync)",
   "pairingToken": "MEGA-HC-8924",
-  "lastSyncTime": "2026-10-13T16:32:26.231797",
+  "lastSyncTime": "2026-10-16T14:28:16.258951",
   "syncCount": 206,
-  "changesToken": "token_health_sync_1791927146",
+  "changesToken": "token_health_sync_1792178896",
   "currentMetrics": {
     "steps": 4525,
     "hrv": 76,
@@ -17,7 +17,7 @@
     "appName": "Google Health Sync & Hevy App",
     "readinessScore": 93,
     "readinessCategory": "Vitalidad Óptima",
-    "lastSyncTimestamp": "2026-10-13T16:32:26.231804",
+    "lastSyncTimestamp": "2026-10-16T14:28:16.258959",
     "geminiAnalysis": {
       "diagnostico": "Análisis biométrico unificado: Descanso nocturno de 8.0h con 2.71h de fase profunda. Frecuencia cardíaca basal estable en 57 bpm. Volumen de carga absorbido de forma óptima.",
       "recomendacionMuscular": "Condiciones óptimas para sesión de fuerza e hipertrofia. Mantener progresión de sobrecarga en básicos multiarticulares.",
@@ -48,7 +48,7 @@
   },
   "recentObservations": [
     {
-      "id": "obs-steps-1791927146",
+      "id": "obs-steps-1792178896",
       "resourceType": "Observation",
       "status": "final",
       "code": {
@@ -64,11 +64,11 @@
         "value": 4525,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-10-13T16:32:26.231816",
+      "effectiveDateTime": "2026-10-16T14:28:16.258974",
       "category": "Google Health - Actividad"
     },
     {
-      "id": "obs-hr-1791927146",
+      "id": "obs-hr-1792178896",
       "resourceType": "Observation",
       "status": "final",
       "code": {
@@ -84,11 +84,11 @@
         "value": 57,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-10-13T16:32:26.231819",
+      "effectiveDateTime": "2026-10-16T14:28:16.258977",
       "category": "Google Health - Cardiovascular"
     },
     {
-      "id": "obs-sleep-1791927146",
+      "id": "obs-sleep-1792178896",
       "resourceType": "Observation",
       "status": "final",
       "code": {
@@ -104,7 +104,7 @@
         "value": 8.0,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-10-13T16:32:26.231821",
+      "effectiveDateTime": "2026-10-16T14:28:16.258979",
       "category": "Google Health - Sueño"
     }
   ]
