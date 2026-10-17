@@ -93,11 +93,11 @@ export default function FinanceSection() {
   const totalWeeklyExpenses = (finance.weeklyFlow?.weeklyFixedExpenses || []).reduce((acc, curr) => acc + curr.amount, 0);
   const netWeeklySavings = totalWeeklyIncome - totalWeeklyExpenses;
 
-  // Cálculos Deuda Yessin ($580.000 COP)
-  const yessinTotal = finance.yessinDebt?.totalAmount ?? 580000;
-  const yessinPaid = finance.yessinDebt?.paidAmount ?? 0;
-  const yessinRemaining = Math.max(0, yessinTotal - yessinPaid);
-  const debtProgress = Math.min(100, Math.round((yessinPaid / yessinTotal) * 100));
+  // Cálculos Deuda Yessid ($580.000 COP)
+  const yessidTotal = finance.yessidDebt?.totalAmount ?? 580000;
+  const yessidPaid = finance.yessidDebt?.paidAmount ?? 0;
+  const yessidRemaining = Math.max(0, yessidTotal - yessidPaid);
+  const debtProgress = Math.min(100, Math.round((yessidPaid / yessidTotal) * 100));
 
   // Cálculos Meta iPhone 15 Pro Bodega Mayorista ($1.950.000 COP)
   const iphoneCost = finance.iphoneGoal?.price ?? 1950000;
@@ -106,31 +106,31 @@ export default function FinanceSection() {
   const iphoneProgress = Math.min(100, Math.round((iphoneSaved / iphoneCost) * 100));
 
   // Proyecciones de semanas
-  const weeksToPayDebt = netWeeklySavings > 0 ? Math.ceil(yessinRemaining / netWeeklySavings) : 0;
+  const weeksToPayDebt = netWeeklySavings > 0 ? Math.ceil(yessidRemaining / netWeeklySavings) : 0;
   const weeksToBuyIphone = netWeeklySavings > 0 ? Math.ceil(iphoneRemaining / netWeeklySavings) : 0;
 
   const handlePayDebt = (amount: number) => {
     if (amount <= 0) return;
     setFinance((prev) => {
-      const currentPaid = prev.yessinDebt?.paidAmount || 0;
-      const total = prev.yessinDebt?.totalAmount || 580000;
+      const currentPaid = prev.yessidDebt?.paidAmount || 0;
+      const total = prev.yessidDebt?.totalAmount || 580000;
       const newPaid = Math.min(total, currentPaid + amount);
       const remaining = total - newPaid;
       return {
         ...prev,
-        yessinDebt: {
-          ...prev.yessinDebt,
+        yessidDebt: {
+          ...prev.yessidDebt,
           paidAmount: newPaid,
           remainingAmount: remaining,
         },
       };
     });
-    showNotice(`🤝 +${formatCurrency(amount)} abonados a la deuda de Yessin. Saldo pendiente: ${formatCurrency(Math.max(0, yessinRemaining - amount))}`);
+    showNotice(`🤝 +${formatCurrency(amount)} abonados a la deuda de Yessid. Saldo pendiente: ${formatCurrency(Math.max(0, yessidRemaining - amount))}`);
   };
 
   const handleSaveIPhone = (amount: number) => {
-    if (yessinRemaining > 0) {
-      showNotice(`⚠️ Regla Innegociable: Primero salda la deuda de $580.000 COP con tu mejor amigo Yessin.`);
+    if (yessidRemaining > 0) {
+      showNotice(`⚠️ Regla Innegociable: Primero salda la deuda de $580.000 COP con tu mejor amigo Yessid.`);
       return;
     }
     if (amount <= 0) return;
@@ -342,7 +342,7 @@ export default function FinanceSection() {
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            🎯 Deuda Yessin & iPhone 15 Pro
+            🎯 Deuda Yessid & iPhone 15 Pro
           </button>
           <button
             onClick={() => setActiveTab('weekly-flow')}
@@ -401,7 +401,7 @@ export default function FinanceSection() {
       )}
 
       {/* ======================================================== */}
-      {/* VISTA 0A: DEUDA YESSIN & META IPHONE 15 PRO */}
+      {/* VISTA 0A: DEUDA YESSID & META IPHONE 15 PRO */}
       {/* ======================================================== */}
       {activeTab === 'goals-debt' && (
         <div className="mt-6 space-y-6 animate-fadeIn">
@@ -414,9 +414,9 @@ export default function FinanceSection() {
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Plan de Saneamiento y Capitalización • Montería 2026</span>
                 </div>
-                <h3 className="text-2xl font-black tracking-tight">Deuda Yessin ➡️ Compra iPhone 15 Pro</h3>
+                <h3 className="text-2xl font-black tracking-tight">Deuda Yessid ➡️ Compra iPhone 15 Pro</h3>
                 <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
-                  Regla de oro: liquidar primero el 100% de la deuda moral con tu mejor amigo Yessin (<strong>$580.000 COP</strong>) antes de desbloquear el fondo para el iPhone 15 Pro (<strong>$1.950.000 COP</strong>) en la bodega mayorista de Montería.
+                  Regla de oro: liquidar primero el 100% de la deuda moral con tu mejor amigo Yessid (<strong>$580.000 COP</strong>) antes de desbloquear el fondo para el iPhone 15 Pro (<strong>$1.950.000 COP</strong>) en la bodega mayorista de Montería.
                 </p>
               </div>
 
@@ -428,9 +428,9 @@ export default function FinanceSection() {
             </div>
           </div>
 
-          {/* Dos Columnas: Tarjeta 1 (Deuda Yessin) y Tarjeta 2 (iPhone 15 Pro) */}
+          {/* Dos Columnas: Tarjeta 1 (Deuda Yessid) y Tarjeta 2 (iPhone 15 Pro) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 1. TARJETA DEUDA YESSIN (PRIORIDAD #1) */}
+            {/* 1. TARJETA DEUDA YESSID (PRIORIDAD #1) */}
             <div className="p-6 rounded-3xl bg-white border-2 border-rose-200 shadow-sm flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -444,9 +444,9 @@ export default function FinanceSection() {
                 </div>
 
                 <div className="mt-4">
-                  <h4 className="text-xl font-bold text-slate-900">Deuda con mi Mejor Amigo (Yessin)</h4>
+                  <h4 className="text-xl font-bold text-slate-900">Deuda con mi Mejor Amigo (Yessid)</h4>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Total adeudado: <strong className="text-slate-900">{formatCurrency(yessinTotal)}</strong>. Se debe extinguir antes de cualquier gasto de ocio o tecnología.
+                    Total adeudado: <strong className="text-slate-900">{formatCurrency(yessidTotal)}</strong>. Se debe extinguir antes de cualquier gasto de ocio o tecnología.
                   </p>
                 </div>
 
@@ -454,13 +454,13 @@ export default function FinanceSection() {
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Abonado hasta hoy</span>
-                    <span className="text-lg font-black text-emerald-600">{formatCurrency(yessinPaid)}</span>
+                    <span className="text-lg font-black text-emerald-600">{formatCurrency(yessidPaid)}</span>
                     <span className="text-[10px] text-slate-400">{debtProgress}% saldado</span>
                   </div>
                   <div className="p-3 bg-rose-50/70 rounded-2xl border border-rose-100">
                     <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Saldo Pendiente</span>
-                    <span className="text-lg font-black text-rose-700">{formatCurrency(yessinRemaining)}</span>
-                    <span className="text-[10px] text-rose-500 font-medium">{yessinRemaining === 0 ? '¡Deuda 100% pagada!' : 'Por transferir a Yessin'}</span>
+                    <span className="text-lg font-black text-rose-700">{formatCurrency(yessidRemaining)}</span>
+                    <span className="text-[10px] text-rose-500 font-medium">{yessidRemaining === 0 ? '¡Deuda 100% pagada!' : 'Por transferir a Yessid'}</span>
                   </div>
                 </div>
 
@@ -468,14 +468,14 @@ export default function FinanceSection() {
                 <div className="mt-4">
                   <div className="flex justify-between items-center text-xs font-semibold mb-1">
                     <span className="text-slate-600">Progreso de Pago</span>
-                    <span className={yessinRemaining === 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>
-                      {yessinRemaining === 0 ? 'COMPLETADO ✅' : `${formatCurrency(yessinRemaining)} restantes`}
+                    <span className={yessidRemaining === 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>
+                      {yessidRemaining === 0 ? 'COMPLETADO ✅' : `${formatCurrency(yessidRemaining)} restantes`}
                     </span>
                   </div>
                   <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden">
                     <div
                       className={`h-full transition-all duration-500 ${
-                        yessinRemaining === 0 ? 'bg-emerald-500' : 'bg-gradient-to-r from-rose-500 to-amber-500'
+                        yessidRemaining === 0 ? 'bg-emerald-500' : 'bg-gradient-to-r from-rose-500 to-amber-500'
                       }`}
                       style={{ width: `${debtProgress}%` }}
                     />
@@ -496,25 +496,25 @@ export default function FinanceSection() {
 
               {/* Controles de Abono Interactivo */}
               <div className="mt-6 pt-4 border-t border-slate-100">
-                <span className="text-xs font-bold text-slate-700 block mb-2">Registrar abono a Yessin:</span>
+                <span className="text-xs font-bold text-slate-700 block mb-2">Registrar abono a Yessid:</span>
                 <div className="grid grid-cols-3 gap-2 mb-2">
                   <button
                     onClick={() => handlePayDebt(50000)}
-                    disabled={yessinRemaining === 0}
+                    disabled={yessidRemaining === 0}
                     className="cursor-pointer py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all disabled:opacity-40"
                   >
                     +$50.000
                   </button>
                   <button
                     onClick={() => handlePayDebt(100000)}
-                    disabled={yessinRemaining === 0}
+                    disabled={yessidRemaining === 0}
                     className="cursor-pointer py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all disabled:opacity-40"
                   >
                     +$100.000
                   </button>
                   <button
-                    onClick={() => handlePayDebt(yessinRemaining)}
-                    disabled={yessinRemaining === 0}
+                    onClick={() => handlePayDebt(yessidRemaining)}
+                    disabled={yessidRemaining === 0}
                     className="cursor-pointer py-1.5 px-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all disabled:opacity-40"
                   >
                     Saldar Todo
@@ -524,7 +524,7 @@ export default function FinanceSection() {
             </div>
 
             {/* 2. TARJETA META IPHONE 15 PRO (BODEGA MAYORISTA MONTERÍA) */}
-            <div className={`p-6 rounded-3xl bg-white border-2 shadow-sm flex flex-col justify-between ${yessinRemaining > 0 ? 'border-slate-200 opacity-95' : 'border-indigo-300'}`}>
+            <div className={`p-6 rounded-3xl bg-white border-2 shadow-sm flex flex-col justify-between ${yessidRemaining > 0 ? 'border-slate-200 opacity-95' : 'border-indigo-300'}`}>
               <div>
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div className="flex items-center gap-2">
@@ -575,13 +575,13 @@ export default function FinanceSection() {
                 </div>
 
                 {/* Candado de advertencia o habilitación */}
-                {yessinRemaining > 0 ? (
+                {yessidRemaining > 0 ? (
                   <div className="mt-4 p-3 rounded-2xl bg-slate-100 border border-slate-200 text-xs text-slate-600 flex items-start gap-2">
                     <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <strong className="text-slate-800">Fondo de compra bloqueado temporalmente:</strong>
                       <p className="text-[11px] text-slate-500 mt-0.5">
-                        Por disciplina financiera, este fondo se activará apenas los <strong>{formatCurrency(yessinRemaining)}</strong> de Yessin queden totalmente pagados.
+                        Por disciplina financiera, este fondo se activará apenas los <strong>{formatCurrency(yessidRemaining)}</strong> de Yessid queden totalmente pagados.
                       </p>
                     </div>
                   </div>
@@ -617,7 +617,7 @@ export default function FinanceSection() {
                     <th className="px-4 py-3 font-bold">Escenario Laboral</th>
                     <th className="px-4 py-3 font-bold">Ingreso Semanal Estimado</th>
                     <th className="px-4 py-3 font-bold">Ahorro Neto Semanal</th>
-                    <th className="px-4 py-3 font-bold text-rose-600">Tiempo Deuda Yessin</th>
+                    <th className="px-4 py-3 font-bold text-rose-600">Tiempo Deuda Yessid</th>
                     <th className="px-4 py-3 font-bold text-indigo-600">Tiempo iPhone 15 Pro</th>
                   </tr>
                 </thead>
@@ -667,7 +667,7 @@ export default function FinanceSection() {
             <div className="p-5 rounded-3xl bg-emerald-50 border border-emerald-100">
               <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Ingresos Semanales Totales</span>
               <span className="text-2xl font-black text-emerald-700 mt-1 block">{formatCurrency(totalWeeklyIncome)}</span>
-              <span className="text-xs text-emerald-600">Paseos Frida, Molly, Sienna + Ahorro UPB</span>
+              <span className="text-xs text-emerald-600">Paseos Sienna, Frida + Aporte Pasajes Papá + Trabajos U</span>
             </div>
             <div className="p-5 rounded-3xl bg-rose-50 border border-rose-100">
               <span className="text-xs font-bold text-rose-800 uppercase tracking-wider block">Gastos Fijos Semanales</span>
@@ -719,11 +719,19 @@ export default function FinanceSection() {
                   ))}
                   <tr className="bg-indigo-50/40">
                     <td className="px-4 py-3 font-bold text-indigo-900">
-                      Ahorro Pasajes UPB
+                      Aporte Pasajes Papá (Tarjeta Estudiantil Gratis)
                     </td>
-                    <td className="px-4 py-3 text-slate-600">5 días hábiles</td>
-                    <td className="px-4 py-3 text-slate-600">Tarjeta / Ruta Eficiente</td>
+                    <td className="px-4 py-3 text-slate-600">Lunes a Viernes (5 días)</td>
+                    <td className="px-4 py-3 text-slate-600">$7.000/día ($3.500 ida + $3.500 venida) — Gasto $0 COP</td>
                     <td className="px-4 py-3 font-bold text-indigo-600">+{formatCurrency(finance.weeklyFlow?.upbTransportSavings || 35000)}</td>
+                  </tr>
+                  <tr className="bg-purple-50/40">
+                    <td className="px-4 py-3 font-bold text-purple-900">
+                      Trabajos Universitarios de Ingeniería
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">Periódicos en semestre</td>
+                    <td className="px-4 py-3 text-slate-600">Rango $50k - $200k (~$120.000 COP/mes)</td>
+                    <td className="px-4 py-3 font-bold text-purple-600">+{formatCurrency(finance.weeklyFlow?.otherWeeklyIncome || 27500)}</td>
                   </tr>
                 </tbody>
               </table>

@@ -1,6 +1,6 @@
 export interface ExpenseItem {
   id: string;
-  category: 'Nutrición y Proteína' | 'Gimnasio & Salud' | 'Universidad & Libros' | 'Transporte' | 'Ocio y Café' | 'Viaje Medellín' | 'Deuda Yessin' | 'Ahorro iPhone';
+  category: 'Nutrición y Proteína' | 'Gimnasio & Salud' | 'Universidad & Libros' | 'Transporte' | 'Ocio y Café' | 'Viaje Medellín' | 'Deuda Yessid' | 'Ahorro iPhone';
   title: string;
   amount: number;
   date: string;
@@ -102,7 +102,7 @@ export interface FinanceSummary {
   savingsRate: number;
   expenses: ExpenseItem[];
   medellinTrip: MedellinTripBudget;
-  yessinDebt: DebtPriorityItem;
+  yessidDebt: DebtPriorityItem;
   iphoneGoal: AssetGoalItem;
   weeklyFlow: WeeklyCashFlow;
 }
@@ -112,16 +112,16 @@ export const initialFinanceData: FinanceSummary = {
   monthlyBudget: 2400000,
   totalExpenses: 1845000,
   savingsRate: 42.3,
-  yessinDebt: {
-    id: 'debt-yessin',
-    creditor: 'Yessin',
+  yessidDebt: {
+    id: 'debt-yessid',
+    creditor: 'Yessid',
     relationship: 'Mejor Amigo',
     totalAmount: 580000,
     paidAmount: 0,
     remainingAmount: 580000,
     priority: 1,
     targetPaymentDate: 'Noviembre 2026 (Prioridad Absoluta #1)',
-    notes: 'Deuda de palabra con mi mejor amigo Yessin. Regla de oro financiera: pagar el 100% de esta deuda antes de gastar en el iPhone.',
+    notes: 'Deuda de palabra con mi mejor amigo Yessid. Regla de oro financiera: pagar el 100% de esta deuda antes de gastar en el iPhone.',
   },
   iphoneGoal: {
     id: 'goal-iphone-15-pro',
@@ -137,12 +137,11 @@ export const initialFinanceData: FinanceSummary = {
   },
   weeklyFlow: {
     dogWalksIncome: [
-      { id: 'walk-1', client: 'Laura', dogName: 'Frida', walksPerWeek: 5, ratePerWalk: 10000, weeklyTotal: 50000 },
-      { id: 'walk-2', client: 'Familia Gómez', dogName: 'Molly', walksPerWeek: 4, ratePerWalk: 9000, weeklyTotal: 36000 },
-      { id: 'walk-3', client: 'Carlos', dogName: 'Sienna', walksPerWeek: 4, ratePerWalk: 10000, weeklyTotal: 40000 },
+      { id: 'walk-1', client: 'Carlos', dogName: 'Sienna', walksPerWeek: 5, ratePerWalk: 9000, weeklyTotal: 45000 },
+      { id: 'walk-2', client: 'Laura', dogName: 'Frida', walksPerWeek: 5.5, ratePerWalk: 5000, weeklyTotal: 27500 },
     ],
-    upbTransportSavings: 35000, // Ahorro semanal pasajes UPB
-    otherWeeklyIncome: 0,
+    upbTransportSavings: 35000, // Aporte pasajes papá ($7.000/día x 5 días) — Tarjeta Estudiantil Gratis ($0 gasto) = $35.000 neto
+    otherWeeklyIncome: 27500, // Trabajos universitarios periódicos (~$120.000 COP/mes)
     weeklyFixedExpenses: [
       { id: 'fix-1', concept: 'Almuerzos & Nutrición UPB', amount: 55000, category: 'Nutrición' },
       { id: 'fix-2', concept: 'SmartFit Prorrateado Semanal', amount: 28000, category: 'Gimnasio' },
