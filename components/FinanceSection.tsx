@@ -87,9 +87,10 @@ export default function FinanceSection() {
   const remainingBudget = finance.monthlyBudget - finance.totalExpenses;
   const budgetPercentUsed = Math.min(100, Math.round((finance.totalExpenses / finance.monthlyBudget) * 100));
 
-  // Cálculos dinámicos de Flujo Semanal (Paseos de perros y pasajes UPB)
+  // Cálculos dinámicos de Flujo Semanal (Paseos de perros, pasajes UPB, Rappi con Andrés Bello y trabajos U)
   const weeklyDogIncome = (finance.weeklyFlow?.dogWalksIncome || []).reduce((acc, curr) => acc + curr.weeklyTotal, 0);
-  const totalWeeklyIncome = weeklyDogIncome + (finance.weeklyFlow?.upbTransportSavings || 0) + (finance.weeklyFlow?.otherWeeklyIncome || 0);
+  const weeklyRappiIncome = finance.weeklyFlow?.rappiIncome?.myNetWeeklyTotal ?? 107100;
+  const totalWeeklyIncome = weeklyDogIncome + (finance.weeklyFlow?.upbTransportSavings || 0) + weeklyRappiIncome + (finance.weeklyFlow?.otherWeeklyIncome || 0);
   const totalWeeklyExpenses = (finance.weeklyFlow?.weeklyFixedExpenses || []).reduce((acc, curr) => acc + curr.amount, 0);
   const netWeeklySavings = totalWeeklyIncome - totalWeeklyExpenses;
 
@@ -423,7 +424,7 @@ export default function FinanceSection() {
               <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 text-right self-start md:self-center">
                 <span className="text-[11px] text-slate-300 uppercase tracking-wider block font-semibold">Excedente Semanal Actual</span>
                 <span className="text-2xl font-black text-emerald-400">+{formatCurrency(netWeeklySavings)}</span>
-                <span className="text-[11px] text-slate-400 block font-medium">Paseos de perros + Ahorro UPB</span>
+                <span className="text-[11px] text-slate-400 block font-medium">Paseos + Ahorro UPB + Rappi Andrés Bello</span>
               </div>
             </div>
           </div>
@@ -489,7 +490,7 @@ export default function FinanceSection() {
                     <span>Tiempo estimado para salir de la deuda:</span>
                   </p>
                   <p className="text-[11px] text-amber-800/90 mt-1 leading-relaxed">
-                    Con tu excedente semanal actual de <strong>{formatCurrency(netWeeklySavings)}</strong> (paseos + pasajes UPB), la liquidas en <strong>{weeksToPayDebt} semanas</strong>. Si sumas un empleo de temporada o apoyo virtual, ¡la pagas en <strong>menos de 2 semanas</strong>!
+                    Con tu nuevo excedente semanal de <strong>{formatCurrency(netWeeklySavings)}</strong> (paseos + pasajes UPB + Rappi dupla Andrés Bello), liquidas a Yessid en solo <strong>{weeksToPayDebt} semanas</strong> (¡apenas 1 mes!). Si además sumas empleo de temporada, ¡la pagas en <strong>menos de 2 semanas</strong>!
                   </p>
                 </div>
               </div>
@@ -624,12 +625,12 @@ export default function FinanceSection() {
                 <tbody className="divide-y divide-slate-100">
                   <tr className="hover:bg-slate-50">
                     <td className="px-4 py-3 font-semibold text-slate-900">
-                      1. Situación Actual (Paseos Caninos + Ahorro UPB)
+                      1. Situación Actual (Paseos + Pasajes Papá + Rappi Dupla Andrés + Trabajos U)
                     </td>
                     <td className="px-4 py-3 text-slate-600">{formatCurrency(totalWeeklyIncome)}</td>
                     <td className="px-4 py-3 font-bold text-emerald-600">{formatCurrency(netWeeklySavings)}</td>
-                    <td className="px-4 py-3 font-bold text-rose-600">9 semanas</td>
-                    <td className="px-4 py-3 font-bold text-indigo-600">31 semanas</td>
+                    <td className="px-4 py-3 font-bold text-rose-600">4 semanas (¡1 mes!)</td>
+                    <td className="px-4 py-3 font-bold text-indigo-600">14 semanas</td>
                   </tr>
                   <tr className="hover:bg-slate-50 bg-emerald-50/30">
                     <td className="px-4 py-3 font-bold text-slate-900 flex items-center gap-1.5">
@@ -667,7 +668,7 @@ export default function FinanceSection() {
             <div className="p-5 rounded-3xl bg-emerald-50 border border-emerald-100">
               <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Ingresos Semanales Totales</span>
               <span className="text-2xl font-black text-emerald-700 mt-1 block">{formatCurrency(totalWeeklyIncome)}</span>
-              <span className="text-xs text-emerald-600">Paseos Sienna, Frida + Aporte Pasajes Papá + Trabajos U</span>
+              <span className="text-xs text-emerald-600">Paseos Sienna, Frida + Pasajes Papá + Rappi Andrés Bello + Trabajos U</span>
             </div>
             <div className="p-5 rounded-3xl bg-rose-50 border border-rose-100">
               <span className="text-xs font-bold text-rose-800 uppercase tracking-wider block">Gastos Fijos Semanales</span>
@@ -724,6 +725,15 @@ export default function FinanceSection() {
                     <td className="px-4 py-3 text-slate-600">Lunes a Viernes (5 días)</td>
                     <td className="px-4 py-3 text-slate-600">$7.000/día ($3.500 ida + $3.500 venida) — Gasto $0 COP</td>
                     <td className="px-4 py-3 font-bold text-indigo-600">+{formatCurrency(finance.weeklyFlow?.upbTransportSavings || 35000)}</td>
+                  </tr>
+                  <tr className="bg-amber-50/50">
+                    <td className="px-4 py-3 font-bold text-amber-950 flex items-center gap-1.5">
+                      <span>🛵 Rappi Dupla con Andrés Bello</span>
+                      <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 font-bold">50% Mitad</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">Fines de semana (V-S-D)</td>
+                    <td className="px-4 py-3 text-slate-600">Neto dupla: $214.200 (Bruto $255.200 - Gasolina/Datos $41k)</td>
+                    <td className="px-4 py-3 font-bold text-amber-700">+{formatCurrency(weeklyRappiIncome)}</td>
                   </tr>
                   <tr className="bg-purple-50/40">
                     <td className="px-4 py-3 font-bold text-purple-900">

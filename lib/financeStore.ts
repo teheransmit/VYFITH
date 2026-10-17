@@ -27,10 +27,27 @@ export interface DogWalkIncomeItem {
   weeklyTotal: number;
 }
 
+export interface RappiPartnerIncome {
+  partner: string;
+  days: string;
+  grossWeekendTotal: number;
+  operatingCosts: {
+    gasoline: number;
+    mobileData: number;
+    total: number;
+  };
+  netWeekendTotal: number;
+  splitPercentage: number;
+  myNetWeeklyTotal: number;
+  ordersCompleted: number;
+  notes: string;
+}
+
 export interface WeeklyCashFlow {
   dogWalksIncome: DogWalkIncomeItem[];
-  upbTransportSavings: number; // Ahorro de pasajes UPB semanal
-  otherWeeklyIncome: number;
+  upbTransportSavings: number; // Aporte pasajes papá ($7.000/día x 5 días) — Tarjeta Estudiantil Gratis ($0 gasto)
+  rappiIncome?: RappiPartnerIncome; // Rappi fines de semana con Andrés Bello (50/50)
+  otherWeeklyIncome: number; // Trabajos universitarios periódicos
   weeklyFixedExpenses: {
     id: string;
     concept: string;
@@ -141,6 +158,21 @@ export const initialFinanceData: FinanceSummary = {
       { id: 'walk-2', client: 'Laura', dogName: 'Frida', walksPerWeek: 5.5, ratePerWalk: 5000, weeklyTotal: 27500 },
     ],
     upbTransportSavings: 35000, // Aporte pasajes papá ($7.000/día x 5 días) — Tarjeta Estudiantil Gratis ($0 gasto) = $35.000 neto
+    rappiIncome: {
+      partner: 'Andrés Bello',
+      days: 'Fines de semana (Viernes noche, Sábado y Domingo almuerzo/cena)',
+      grossWeekendTotal: 255200, // ~44 pedidos x $5.800 tarifa integral promedio
+      operatingCosts: {
+        gasoline: 35600, // ~2.2 galones en moto urbana (~260 km de recorridos)
+        mobileData: 5400, // Paquete datos 3 días app Soy Rappi + Waze
+        total: 41000,
+      },
+      netWeekendTotal: 214200, // Ganancia neta fin de semana
+      splitPercentage: 50, // 50% Santiago / 50% Andrés Bello
+      myNetWeeklyTotal: 107100, // Mitad limpia para Santiago (~$107.100 COP/fin de semana)
+      ordersCompleted: 44,
+      notes: 'Dupla en moto con Andrés Bello en horas pico de fin de semana en Montería (El Recreo, Pasatiempo, Alamedas, Buenavista). Ganancia 100% dividida en mitades.',
+    },
     otherWeeklyIncome: 27500, // Trabajos universitarios periódicos (~$120.000 COP/mes)
     weeklyFixedExpenses: [
       { id: 'fix-1', concept: 'Almuerzos & Nutrición UPB', amount: 55000, category: 'Nutrición' },
