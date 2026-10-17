@@ -663,6 +663,66 @@ export default function FinanceSection() {
       {/* ======================================================== */}
       {activeTab === 'weekly-flow' && (
         <div className="mt-6 space-y-6 animate-fadeIn">
+          {/* Tarjeta Destacada: Modelo de Volatilidad (Semanas Buenas vs Semanas Malas) */}
+          <div className="p-6 rounded-3xl bg-linear-to-br from-indigo-950 via-slate-900 to-indigo-950 text-white shadow-md relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-indigo-900/60">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 mb-2">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  Modelo Estadístico Ponderado (PERT) • Volatilidad Real
+                </span>
+                <h3 className="text-xl font-bold tracking-tight">Tu Promedio Real Mensual Ponderado</h3>
+                <p className="text-xs text-slate-300 mt-0.5 max-w-xl">
+                  Considera semanas flojas (parciales/lluvias), semanas normales y semanas pico de Rappi con Andrés Bello y trabajos de la U.
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10 text-right self-start md:self-center">
+                <span className="text-[10px] text-slate-300 uppercase tracking-wider block font-semibold">Promedio Mensual Real</span>
+                <span className="text-2xl font-black text-emerald-400">~$773.000 COP/mes</span>
+                <span className="text-[10px] text-slate-400 block font-medium">~$178.000 COP/semana promedio</span>
+              </div>
+            </div>
+
+            {/* Cuadrícula de 3 Escenarios */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-rose-400/40 transition-all">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-rose-300">🔴 Mes Malo / Lluvias</span>
+                  <span className="text-[10px] bg-rose-500/20 text-rose-200 px-2 py-0.5 rounded-full font-mono">Piso Seguro</span>
+                </div>
+                <span className="text-lg font-black text-white block">$467.000 COP/mes</span>
+                <span className="text-[11px] text-slate-400 block mb-2">~$108.000 COP/semana</span>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Solo paseos y pasajes papá. Sin Rappi ni trabajos U por parciales o mal clima. Cubre tus gastos fijos y deja <strong>+$45k/mes</strong> de colchón.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-indigo-500/15 border-2 border-indigo-400/40 shadow-xs">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-emerald-300">🟡 Mes Normal (Más Probable)</span>
+                  <span className="text-[10px] bg-emerald-500/20 text-emerald-200 px-2 py-0.5 rounded-full font-mono font-bold">Promedio Real</span>
+                </div>
+                <span className="text-lg font-black text-emerald-400 block">$773.000 COP/mes</span>
+                <span className="text-[11px] text-emerald-200/80 block mb-2">~$178.000 COP/semana</span>
+                <p className="text-[11px] text-slate-200 leading-relaxed">
+                  Paseos continuos, pasajes papá, 2-3 fines de semana de Rappi (~$67k/sem para ti) y 1 trabajo U mediano. Ahorro neto: <strong>+$351.000 COP/mes</strong>. Deuda Yessid en <strong>7 semanas</strong>.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-400/40 transition-all">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-teal-300">🟢 Mes Excelente / Picos</span>
+                  <span className="text-[10px] bg-teal-500/20 text-teal-200 px-2 py-0.5 rounded-full font-mono">Techo Fuerte</span>
+                </div>
+                <span className="text-lg font-black text-teal-300 block">$1.087.000 COP/mes</span>
+                <span className="text-[11px] text-slate-400 block mb-2">~$251.000 COP/semana</span>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  4 fines de semana de Rappi a tope (V-S-D), 2 entregas de ingeniería y paseos al 100%. Ahorro neto: <strong>+$665.000 COP/mes</strong>. Deuda Yessid en <strong>4 semanas</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Tarjetas de Resumen Semanal */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-5 rounded-3xl bg-emerald-50 border border-emerald-100">

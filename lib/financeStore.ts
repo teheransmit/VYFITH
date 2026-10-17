@@ -43,11 +43,31 @@ export interface RappiPartnerIncome {
   notes: string;
 }
 
+export interface RealisticScenario {
+  id: string;
+  scenarioName: '🔴 Mes Malo (Parciales / Lluvias)' | '🟡 Mes Típico (Promedio Real)' | '🟢 Mes Excelente (Pico / Quincenas)';
+  weeklyIncome: number;
+  monthlyIncome: number;
+  fixedExpensesWeekly: number;
+  netSavingsWeekly: number;
+  netSavingsMonthly: number;
+  weeksToPayDebt: number;
+  description: string;
+}
+
+export interface IncomeVolatilityModel {
+  pertMonthlyAverage: number; // $773.000 COP/mes
+  pertWeeklyAverage: number; // $178.000 COP/semana
+  pertNetSavingsMonthly: number; // $351.000 COP/mes libres
+  scenarios: RealisticScenario[];
+}
+
 export interface WeeklyCashFlow {
   dogWalksIncome: DogWalkIncomeItem[];
   upbTransportSavings: number; // Aporte pasajes papá ($7.000/día x 5 días) — Tarjeta Estudiantil Gratis ($0 gasto)
   rappiIncome?: RappiPartnerIncome; // Rappi fines de semana con Andrés Bello (50/50)
   otherWeeklyIncome: number; // Trabajos universitarios periódicos
+  volatilityModel?: IncomeVolatilityModel; // Modelo de volatilidad (Mes Malo vs Típico vs Excelente)
   weeklyFixedExpenses: {
     id: string;
     concept: string;
@@ -174,6 +194,46 @@ export const initialFinanceData: FinanceSummary = {
       notes: 'Dupla en moto con Andrés Bello en horas pico de fin de semana en Montería (El Recreo, Pasatiempo, Alamedas, Buenavista). Ganancia 100% dividida en mitades.',
     },
     otherWeeklyIncome: 27500, // Trabajos universitarios periódicos (~$120.000 COP/mes)
+    volatilityModel: {
+      pertMonthlyAverage: 773000,
+      pertWeeklyAverage: 178000,
+      pertNetSavingsMonthly: 351000,
+      scenarios: [
+        {
+          id: 'scen-pessimistic',
+          scenarioName: '🔴 Mes Malo (Parciales / Lluvias)',
+          weeklyIncome: 107800,
+          monthlyIncome: 467000,
+          fixedExpensesWeekly: 98000,
+          netSavingsWeekly: 9800,
+          netSavingsMonthly: 44700,
+          weeksToPayDebt: 59,
+          description: 'Semanas de exámenes o lluvias torrenciales. Sin Rappi ni trabajos U; solo base asegurada de paseos y pasajes papá.',
+        },
+        {
+          id: 'scen-realistic',
+          scenarioName: '🟡 Mes Típico (Promedio Real)',
+          weeklyIncome: 178000,
+          monthlyIncome: 773000,
+          fixedExpensesWeekly: 98000,
+          netSavingsWeekly: 80000,
+          netSavingsMonthly: 351000,
+          weeksToPayDebt: 7,
+          description: 'Mes normal en Montería. Paseos regulares, pasajes de papá, 2 a 3 salidas de fin de semana en Rappi con Andrés (~$67k/sem) y 1 trabajo universitario mediano.',
+        },
+        {
+          id: 'scen-optimistic',
+          scenarioName: '🟢 Mes Excelente (Pico / Quincenas)',
+          weeklyIncome: 250800,
+          monthlyIncome: 1087000,
+          fixedExpensesWeekly: 98000,
+          netSavingsWeekly: 152800,
+          netSavingsMonthly: 664700,
+          weeksToPayDebt: 4,
+          description: 'Fines de semana con clima favorable y alta demanda de Rappi (4 salidas de V-S-D a tope), 2 trabajos universitarios y paseos al 100%.',
+        },
+      ],
+    },
     weeklyFixedExpenses: [
       { id: 'fix-1', concept: 'Almuerzos & Nutrición UPB', amount: 55000, category: 'Nutrición' },
       { id: 'fix-2', concept: 'SmartFit Prorrateado Semanal', amount: 28000, category: 'Gimnasio' },
