@@ -2328,6 +2328,26 @@ export default function FinanceSection() {
                     <span className="text-xs font-bold font-mono text-slate-900 dark:text-white">{formatCurrency(exp.amount)}</span>
                   </div>
                 ))}
+
+                {/* Matrícula UPB Cubierta 100% por Papá */}
+                <div className="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200/70 dark:border-emerald-800/50 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">Matrícula Universitaria UPB (Semestre 2026-II)</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 font-bold">100% Cubierta por Papá</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100/80 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-medium">
+                        Universidad & Libros
+                      </span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Aporte familiar directo • Costo personal de Santiago: $0 COP</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">$0 COP</span>
+                    <span className="text-[9px] text-slate-400 block line-through">$500.000</span>
+                  </div>
+                </div>
               </div>
             </div>
 

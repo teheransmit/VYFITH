@@ -146,9 +146,9 @@ export interface FinanceSummary {
 
 export const initialFinanceData: FinanceSummary = {
   monthlyIncome: 773000,
-  monthlyBudget: 550000,
-  totalExpenses: 527100,
-  savingsRate: 31.8,
+  monthlyBudget: 100000,
+  totalExpenses: 27200,
+  savingsRate: 96.5,
   yessidDebt: {
     id: 'debt-yessid',
     creditor: 'Yessid',
@@ -241,27 +241,27 @@ export const initialFinanceData: FinanceSummary = {
   expenses: [
     {
       id: 'exp-1',
-      category: 'Universidad & Libros',
-      title: 'Matrícula Universitaria UPB (Semestre 2026-II)',
-      amount: 500000,
-      date: '2026-08-01',
-      paymentMethod: 'Transferencia',
+      category: 'Ocio y Café',
+      title: 'Suscripción Mensual Spotify',
+      amount: 5100,
+      date: '2026-10-05',
+      paymentMethod: 'Tarjeta Débito',
     },
     {
       id: 'exp-2',
+      category: 'Ocio y Café',
+      title: 'Suscripción Mensual Crunchyroll',
+      amount: 5100,
+      date: '2026-10-06',
+      paymentMethod: 'Tarjeta Débito',
+    },
+    {
+      id: 'exp-3',
       category: 'Gimnasio & Salud',
       title: 'Imprevistos & Recargas Móviles',
       amount: 15000,
       date: '2026-10-15',
       paymentMethod: 'Nequi',
-    },
-    {
-      id: 'exp-3',
-      category: 'Ocio y Café',
-      title: 'Suscripción Mensual Spotify',
-      amount: 10100,
-      date: '2026-10-05',
-      paymentMethod: 'Tarjeta Débito',
     },
     {
       id: 'exp-4',
