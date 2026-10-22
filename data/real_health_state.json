@@ -1,52 +1,112 @@
 {
   "isPaired": true,
-  "deviceId": "santiago-pixel-8-pro",
-  "deviceName": "Google Pixel 8 Pro (Google Health / Health Sync)",
+  "deviceId": "Santiago-Mobile-Test",
+  "deviceName": "FitSync AI Mobile",
   "pairingToken": "MEGA-HC-8924",
-  "lastSyncTime": "2026-10-16T14:28:16.258951",
-  "syncCount": 206,
-  "changesToken": "token_health_sync_1792178896",
+  "lastSyncTime": "2026-10-22T16:51:21.126Z",
+  "syncCount": 207,
+  "changesToken": "vyfith_sync_1792687881127",
   "currentMetrics": {
-    "steps": 4525,
+    "steps": 12480,
     "hrv": 76,
-    "heartRate": 57,
-    "sleepHours": 8.0
+    "heartRate": 56,
+    "sleepHours": 8.2
   },
   "vyfithData": {
     "connected": true,
-    "appName": "Google Health Sync & Hevy App",
-    "readinessScore": 93,
+    "appName": "VYFITH_APP (FitSync AI Android)",
+    "readinessScore": 95,
     "readinessCategory": "Vitalidad Óptima",
-    "lastSyncTimestamp": "2026-10-16T14:28:16.258959",
+    "lastSyncTimestamp": "2026-10-22T16:51:21.126Z",
     "geminiAnalysis": {
-      "diagnostico": "Análisis biométrico unificado: Descanso nocturno de 8.0h con 2.71h de fase profunda. Frecuencia cardíaca basal estable en 57 bpm. Volumen de carga absorbido de forma óptima.",
-      "recomendacionMuscular": "Condiciones óptimas para sesión de fuerza e hipertrofia. Mantener progresión de sobrecarga en básicos multiarticulares.",
+      "diagnostico": "Evaluación médica deportiva completada.",
+      "recomendacionMuscular": "Continuar progresión planificada.",
       "gruposPriorizar": [
-        "Dorsales",
-        "Pectoral",
-        "Hombros"
+        "Espalda / Dorsales",
+        "Bíceps",
+        "Core"
       ],
       "gruposDescanso": [
-        "Tren Inferior"
+        "Piernas / Cuádriceps"
       ],
       "tiempoRecuperacionHoras": 0
     },
     "roomMetrics": {
-      "steps": 4525,
-      "deepSleepHours": 2.71,
-      "totalSleepHours": 8.0,
-      "restingHeartRate": 57,
+      "steps": 12480,
+      "deepSleepHours": 2.4,
+      "totalSleepHours": 8.2,
+      "restingHeartRate": 56,
       "spo2": 99,
-      "caloriesBurned": 2450
+      "caloriesBurned": 2600
     },
     "hevySummary": {
-      "lastWorkoutName": "Full Legs",
-      "totalVolumeKg": 6402.4,
-      "setsCompleted": 18,
-      "date": "30 sept 2026, 16:08"
+      "lastWorkoutName": "Pull Day B - Hipertrofia",
+      "totalVolumeKg": 15420,
+      "setsCompleted": 20,
+      "date": "2026-10-22"
     }
   },
   "recentObservations": [
+    {
+      "id": "vyfith-readiness-1792687881126",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Recuperación / Readiness AI",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "77202-0",
+            "display": "Athlete Readiness Score (0-100)"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 95,
+        "unit": "score"
+      },
+      "effectiveDateTime": "2026-10-22T16:51:21.126Z"
+    },
+    {
+      "id": "vyfith-steps-1792687881127",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Health Connect - Pasos",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "55423-8",
+            "display": "Number of steps"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 12480,
+        "unit": "steps"
+      },
+      "effectiveDateTime": "2026-10-22T16:51:21.126Z"
+    },
+    {
+      "id": "vyfith-hr-1792687881127",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Cardiovascular - Reposo",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8867-4",
+            "display": "Resting Heart Rate"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 56,
+        "unit": "bpm"
+      },
+      "effectiveDateTime": "2026-10-22T16:51:21.126Z"
+    },
     {
       "id": "obs-steps-1792178896",
       "resourceType": "Observation",
@@ -101,7 +161,7 @@
         ]
       },
       "valueQuantity": {
-        "value": 8.0,
+        "value": 8,
         "unit": "hours"
       },
       "effectiveDateTime": "2026-10-16T14:28:16.258979",

@@ -19,38 +19,13 @@ export default function GoogleHealthConnector() {
   const [copiedToken, setCopiedToken] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const localSyncEndpoint = 'http://192.168.1.8:3000/api/sync/health';
 
-    async function loadData() {
-      try {
-        setIsLoading(true);
-        const res = await fetch('/api/sync/health');
-        const data = await res.json();
-        if (isMounted && data.success && data.data) {
-          setSyncState(data.data);
-        }
-      } catch (err) {
-        console.error('Error fetching health sync state:', err);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadData();
-    const interval = setInterval(loadData, 20000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  const handleManualRefresh = async () => {
+  const loadData = React.useCallback(async (silent = false) => {
     try {
-      setIsLoading(true);
-      const res = await fetch('/api/sync/health');
+      if (!silent) setIsLoading(true);
+      const res = await fetch(`/api/sync/health?t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success && data.data) {
         setSyncState(data.data);
@@ -58,8 +33,59 @@ export default function GoogleHealthConnector() {
     } catch (err) {
       console.error('Error fetching health sync state:', err);
     } finally {
+      if (!silent) setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // 1. Carga inmediata
+    loadData(false);
+
+    // 2. Sondeo en tiempo real cada 3 segundos si la pestaña está activa
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        loadData(true);
+      }
+    }, 3000);
+
+    // 3. Refrescar de inmediato en cuanto Santiago vuelve a la pestaña del navegador
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        loadData(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [loadData]);
+
+  const handleManualRefresh = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/sync/health?t=${Date.now()}`, { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setSyncState(data.data);
+        const steps = data.data.currentMetrics?.steps || 0;
+        const hr = data.data.currentMetrics?.heartRate || 0;
+        setNotificationMsg(`✅ Sincronizado en tiempo real: ${steps.toLocaleString('es-CO')} pasos • ${hr} bpm FC • Estado recibido.`);
+        setTimeout(() => setNotificationMsg(null), 4000);
+      }
+    } catch (err) {
+      console.error('Error fetching health sync state:', err);
+    } finally {
       setIsLoading(false);
     }
+  };
+
+  const copyEndpointUrl = () => {
+    navigator.clipboard.writeText(localSyncEndpoint);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2500);
   };
 
   // Recargar datos reales procesados de Google Health & Hevy
@@ -102,12 +128,19 @@ export default function GoogleHealthConnector() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Puente Activo con Google Health Connect
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              Sincronización en Tiempo Real (3s)
             </span>
             <span className="text-xs font-mono text-slate-400">VYFITH_APP (FitSync AI) ➔ MegaProyecto</span>
+            <button
+              onClick={copyEndpointUrl}
+              className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-mono font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-300 transition-colors"
+              title="Copiar URL de recepción directa a tu app móvil"
+            >
+              <span>{copiedUrl ? '✅ ¡Copiado!' : '📡 Copiar IP LAN: 192.168.1.8:3000'}</span>
+            </button>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             Salud Biométrica & Conexión Google Health

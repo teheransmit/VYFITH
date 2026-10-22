@@ -1,12 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHealthSyncState, updateHealthSyncState, HealthObservation } from '@/lib/healthStore';
+import fs from 'fs';
+import path from 'path';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-device-id',
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+}
+
+function persistStateToDisk(state: any) {
+  try {
+    const jsonPath = path.join(process.cwd(), 'data', 'real_health_state.json');
+    fs.writeFileSync(jsonPath, JSON.stringify(state, null, 2), 'utf8');
+  } catch (err) {
+    console.error('Error persisting health state to disk:', err);
+  }
+}
+
+function loadStateFromDisk() {
+  try {
+    const jsonPath = path.join(process.cwd(), 'data', 'real_health_state.json');
+    if (fs.existsSync(jsonPath)) {
+      const raw = fs.readFileSync(jsonPath, 'utf8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.error('Error loading health state from disk:', err);
+  }
+  return null;
+}
 
 export async function GET() {
-  const state = getHealthSyncState();
-  return NextResponse.json({
-    success: true,
-    data: state,
-  });
+  const diskData = loadStateFromDisk();
+  let state = getHealthSyncState();
+  if (diskData && diskData.currentMetrics) {
+    state = updateHealthSyncState((s) => {
+      Object.assign(s, diskData);
+    });
+  }
+
+  return NextResponse.json(
+    {
+      success: true,
+      data: state,
+      timestamp: new Date().toISOString(),
+    },
+    { headers: corsHeaders }
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -27,24 +81,23 @@ export async function POST(req: NextRequest) {
 
     // Caso 0: Recargar datos reales desde data/real_health_state.json (Google Health & Hevy)
     if (body.source === 'RELOAD_REAL_DATA' || body.reloadReal) {
-      const fs = await import('fs');
-      const path = await import('path');
-      const jsonPath = path.join(process.cwd(), 'data', 'real_health_state.json');
-      if (fs.existsSync(jsonPath)) {
-        const raw = fs.readFileSync(jsonPath, 'utf8');
-        const realData = JSON.parse(raw);
+      const diskData = loadStateFromDisk();
+      if (diskData) {
         const updated = updateHealthSyncState((state) => {
-          Object.assign(state, realData);
+          Object.assign(state, diskData);
         });
-        return NextResponse.json({
-          success: true,
-          message: '¡Datos de Google Health y Hevy sincronizados exitosamente desde disco!',
-          data: updated,
-        });
+        return NextResponse.json(
+          {
+            success: true,
+            message: '¡Datos de Google Health y Hevy sincronizados exitosamente desde disco!',
+            data: updated,
+          },
+          { headers: corsHeaders }
+        );
       }
     }
 
-    // Caso A: Simulación o Envío real desde VYFITH_APP
+    // Caso A: Simulación o Envío real desde VYFITH_APP (FitSync AI Android)
     if (body.source === 'VYFITH_APP' || body.simulateVyfith) {
       const isSimulated = Boolean(body.simulateVyfith);
 
@@ -179,13 +232,19 @@ export async function POST(req: NextRequest) {
         state.recentObservations = [...incomingObservations, ...state.recentObservations].slice(0, 20);
       });
 
-      return NextResponse.json({
-        success: true,
-        message: '¡Datos recibidos exitosamente desde VYFITH_APP!',
-        nextChangesToken: nextToken,
-        syncedRecords: incomingObservations.length,
-        data: updated,
-      });
+      // Persistir inmediatamente a disco en tiempo real
+      persistStateToDisk(updated);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: '¡Datos recibidos exitosamente desde VYFITH_APP y guardados en tiempo real!',
+          nextChangesToken: nextToken,
+          syncedRecords: incomingObservations.length,
+          data: updated,
+        },
+        { headers: corsHeaders }
+      );
     }
 
     // Caso B: Simulación genérica de Worker de segundo plano
@@ -282,20 +341,29 @@ export async function POST(req: NextRequest) {
       state.recentObservations = [...incomingObservations, ...state.recentObservations].slice(0, 20);
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Sincronización procesada exitosamente en formato HL7 FHIR R4',
-      nextChangesToken: nextToken,
-      syncedRecords: incomingObservations.length,
-      data: updated,
-    });
+    // Persistir inmediatamente a disco
+    persistStateToDisk(updated);
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: 'Sincronización procesada exitosamente en formato HL7 FHIR R4 y guardada en tiempo real',
+        nextChangesToken: nextToken,
+        syncedRecords: incomingObservations.length,
+        data: updated,
+      },
+      { headers: corsHeaders }
+    );
   } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
         error: error?.message || 'Error al procesar el lote de salud',
       },
-      { status: 500 }
+      {
+        status: 500,
+        headers: corsHeaders,
+      }
     );
   }
 }
