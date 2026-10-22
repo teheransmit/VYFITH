@@ -72,26 +72,26 @@ export default function HevyWorkoutsSection() {
 
       {/* Métricas Principales de Hevy */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 my-6">
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">Volumen Semanal</span>
-          <div className="text-xl font-extrabold text-slate-900 mt-0.5">
-            {totalWeeklyVolume.toLocaleString()} <span className="text-xs font-normal text-slate-500">kg</span>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Volumen Semanal</span>
+          <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">
+            {totalWeeklyVolume.toLocaleString()} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">kg</span>
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">Series Efectivas</span>
-          <div className="text-xl font-extrabold text-slate-900 mt-0.5">
-            {totalWeeklySets} <span className="text-xs font-normal text-slate-500">sets</span>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Series Efectivas</span>
+          <div className="text-xl font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">
+            {totalWeeklySets} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">sets</span>
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">RPE Promedio</span>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">RPE Promedio</span>
           <div className="text-xl font-extrabold text-amber-600 mt-0.5">
-            8.4 <span className="text-xs font-normal text-slate-500">/ 10</span>
+            8.4 <span className="text-xs font-normal text-slate-500 dark:text-slate-400">/ 10</span>
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">Sobrecarga Progresiva</span>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Sobrecarga Progresiva</span>
           <div className="text-xl font-extrabold text-emerald-600 mt-0.5 flex items-center gap-1">
             <TrendingUp className="w-4 h-4" /> +4.8%
           </div>
@@ -102,7 +102,7 @@ export default function HevyWorkoutsSection() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Lista de Sesiones Recientes */}
         <div className="space-y-3 max-h-[650px] overflow-y-auto pr-1.5 scrollbar-thin">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Historial de Sesiones ({sessions.length})</span>
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Historial de Sesiones ({sessions.length})</span>
           {sessions.map((sess) => {
             const isSelected = sess.id === selectedSession.id;
             return (
@@ -111,15 +111,15 @@ export default function HevyWorkoutsSection() {
                 onClick={() => setSelectedSessionId(sess.id)}
                 className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                   isSelected
-                    ? 'bg-rose-50/70 border-rose-300 ring-2 ring-rose-200'
-                    : 'bg-slate-50/60 border-slate-100 hover:border-slate-200'
+                    ? 'bg-rose-50/70 dark:bg-rose-950/40 border-rose-300 dark:border-rose-700/80 ring-2 ring-rose-200 dark:ring-rose-900/50'
+                    : 'bg-slate-50/60 dark:bg-slate-900/70 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-slate-900">{sess.name}</h4>
-                  <ChevronRight className={`w-4 h-4 ${isSelected ? 'text-rose-600' : 'text-slate-400'}`} />
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{sess.name}</h4>
+                  <ChevronRight className={`w-4 h-4 ${isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400 dark:text-slate-500'}`} />
                 </div>
-                <div className="flex items-center gap-3 text-xs text-slate-500 mt-2">
+                <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-2">
                   <span className="flex items-center gap-1 font-mono">
                     <Clock className="w-3.5 h-3.5 text-slate-400" /> {sess.durationMinutes} min
                   </span>
@@ -134,23 +134,23 @@ export default function HevyWorkoutsSection() {
         </div>
 
         {/* Desglose de Ejercicios de la Sesión Seleccionada */}
-        <div className="lg:col-span-2 bg-slate-50/60 border border-slate-100 rounded-2xl p-5">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+        <div className="lg:col-span-2 bg-slate-50/60 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-4">
             <div>
-              <h4 className="text-sm font-bold text-slate-900">{selectedSession.name}</h4>
-              <span className="text-xs text-slate-500">Desglose de series efectivas y esfuerzo (RPE)</span>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{selectedSession.name}</h4>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Desglose de series efectivas y esfuerzo (RPE)</span>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">
+            <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/80 dark:border dark:border-rose-800/60 text-rose-700 dark:text-rose-300">
               {selectedSession.totalVolumeKg.toLocaleString()} kg levantados
             </span>
           </div>
 
           <div className="space-y-4">
             {selectedSession.exercises.map((ex, idx) => (
-              <div key={idx} className="bg-white p-3.5 rounded-xl border border-slate-100">
+              <div key={idx} className="bg-white dark:bg-slate-800/80 p-3.5 rounded-xl border border-slate-100 dark:border-slate-700/80">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-xs text-slate-900">{ex.name}</span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                  <span className="font-bold text-xs text-slate-900 dark:text-slate-100">{ex.name}</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300">
                     {ex.muscleGroup}
                   </span>
                 </div>
@@ -159,11 +159,11 @@ export default function HevyWorkoutsSection() {
                   {ex.sets.map((s) => (
                     <div
                       key={s.setNumber}
-                      className="px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-mono"
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-100 dark:border-slate-700 text-[11px] font-mono"
                     >
-                      <span className="text-slate-400">Set {s.setNumber}:</span>{' '}
-                      <strong className="text-slate-900">{s.weightKg}kg</strong> x {s.reps} reps{' '}
-                      <span className="text-amber-600 font-semibold">@{s.rpe}</span>
+                      <span className="text-slate-400 dark:text-slate-500">Set {s.setNumber}:</span>{' '}
+                      <strong className="text-slate-900 dark:text-slate-100">{s.weightKg}kg</strong> x {s.reps} reps{' '}
+                      <span className="text-amber-600 dark:text-amber-400 font-semibold">@{s.rpe}</span>
                     </div>
                   ))}
                 </div>

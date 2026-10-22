@@ -162,29 +162,29 @@ export default function GoogleCalendarSection() {
       )}
 
       {/* Tarjeta de Correlación Inteligente con la Agenda */}
-      <div className="my-6 p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/70 border border-blue-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="my-6 p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-indigo-50/60 to-purple-50/70 dark:from-blue-950/70 dark:via-indigo-950/60 dark:to-purple-950/70 border border-blue-100 dark:border-blue-900/60 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+            <div className="text-xs font-bold text-blue-950 dark:text-blue-200 uppercase tracking-wider">
               Diagnóstico de Agenda & Disponibilidad de Entrenamiento
             </div>
-            <p className="text-xs text-blue-800/80 mt-0.5">
+            <p className="text-xs text-blue-800/80 dark:text-blue-300/90 mt-0.5">
               Hoy tienes <strong>3 bloques de clase y estudio</strong> programados. Tu ventana ideal para entrenar en el gimnasio con energía óptima es entre las <strong>17:30 y 19:00</strong>.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <div className="text-center px-3 py-1.5 bg-white/80 rounded-xl border border-blue-200/60">
-            <span className="text-[10px] text-slate-500 uppercase block font-semibold">Carga del Día</span>
-            <span className="text-xs font-bold text-blue-900">Moderada (4.5h)</span>
+          <div className="text-center px-3 py-1.5 bg-white/80 dark:bg-slate-900/80 rounded-xl border border-blue-200/60 dark:border-blue-900/60">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block font-semibold">Carga del Día</span>
+            <span className="text-xs font-bold text-blue-900 dark:text-blue-300">Moderada (4.5h)</span>
           </div>
-          <div className="text-center px-3 py-1.5 bg-white/80 rounded-xl border border-blue-200/60">
-            <span className="text-[10px] text-slate-500 uppercase block font-semibold">Ventana Gym</span>
-            <span className="text-xs font-bold text-emerald-700">Libre 17:30</span>
+          <div className="text-center px-3 py-1.5 bg-white/80 dark:bg-slate-900/80 rounded-xl border border-blue-200/60 dark:border-blue-900/60">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase block font-semibold">Ventana Gym</span>
+            <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">Libre 17:30</span>
           </div>
         </div>
       </div>
@@ -202,10 +202,10 @@ export default function GoogleCalendarSection() {
               key={evt.id}
               className={`p-4 rounded-2xl border transition-all ${
                 isExam
-                  ? 'bg-rose-50/50 border-rose-200'
+                  ? 'bg-rose-50/50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/50'
                   : isGym
-                  ? 'bg-emerald-50/50 border-emerald-200'
-                  : 'bg-slate-50/70 border-slate-100 hover:border-slate-200'
+                  ? 'bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50'
+                  : 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
@@ -214,24 +214,24 @@ export default function GoogleCalendarSection() {
                   {startTime}
                 </span>
                 {isExam ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/80 dark:border dark:border-rose-800/60 text-rose-700 dark:text-rose-300">
                     Examen / Parcial
                   </span>
                 ) : isGym ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 dark:border dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300">
                     Entrenamiento
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200/70 text-slate-700">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200/70 dark:bg-slate-800 dark:border dark:border-slate-700/80 text-slate-700 dark:text-slate-300">
                     Universidad
                   </span>
                 )}
               </div>
 
-              <h4 className="text-sm font-bold text-slate-900 leading-snug line-clamp-1">{evt.summary}</h4>
+              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug line-clamp-1">{evt.summary}</h4>
 
               {evt.location && (
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-2 truncate">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 truncate">
                   <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   <span className="truncate">{evt.location}</span>
                 </div>

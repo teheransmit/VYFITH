@@ -45,38 +45,34 @@ html.dark body {
   background-color: #0f172a !important;
 }
 
-/* 3. Pozos y Contenedores Secundarios (Nivel 2) */
-.dark .bg-slate-50,
-.dark .bg-slate-50\/70,
-.dark .bg-slate-50\/50,
-.dark .bg-slate-50\/80 {
+/* 3. Pozos y Contenedores Secundarios - TODAS las variantes de slate con opacidades */
+.dark [class*="bg-slate-50"] {
   background-color: #141d2e !important;
+  border-color: #1e293b !important;
 }
 
-.dark .bg-slate-100,
-.dark .bg-slate-100\/90,
-.dark .bg-slate-100\/70,
-.dark .bg-slate-100\/60 {
+.dark [class*="bg-slate-100"] {
   background-color: #1a2436 !important;
+  border-color: #1e293b !important;
 }
 
-/* 4. Sub-tarjetas e Items anidados dentro de contenedores secundarios (Nivel 3) */
+/* 4. Sub-tarjetas con opacidades de blanco o slate-200 que producían el color gris cemento */
+.dark [class*="bg-white/"],
+.dark [class*="bg-slate-200"] {
+  background-color: #182234 !important;
+  border-color: #1e293b !important;
+  color: #cbd5e1 !important;
+}
+
+/* 5. Sub-tarjetas e Items anidados dentro de contenedores secundarios (Nivel 3) */
 .dark .bg-slate-50 .bg-white,
 .dark .bg-slate-50\/50 .bg-white,
+.dark .bg-slate-50\/60 .bg-white,
 .dark .bg-slate-50\/70 .bg-white,
 .dark .bg-slate-100 .bg-white,
 .dark .bg-slate-100\/90 .bg-white {
   background-color: #1e293b !important;
   border-color: #334155 !important;
-}
-
-/* 5. Corrección de Opacidades y Tarjetas Desactivadas (Sienna, etc.) */
-.dark .bg-white\/60,
-.dark .bg-white\/70,
-.dark .bg-white\/80 {
-  background-color: #141d2e !important;
-  border-color: #1e293b !important;
-  color: #cbd5e1 !important;
 }
 
 /* 6. Píldoras y Botones Activos dentro de Barras de Navegación */
@@ -161,8 +157,14 @@ html.dark body {
 }
 
 /* ==========================================================================
-   ELIMINACIÓN DE BLOQUES GRISES / PASTELES DESLAVADOS EN MODO OSCURO
+   ELIMINACIÓN DEFINITIVA DE BLOQUES GRISES Y GRADIENTES DESLAVADOS
    ========================================================================== */
+
+/* Gradientes de Diagnóstico en Dark Mode (Google Calendar, etc.) */
+.dark [class*="bg-gradient-to-r"] {
+  background-image: linear-gradient(to right, rgba(30, 58, 138, 0.4), rgba(49, 46, 129, 0.4), rgba(76, 29, 149, 0.4)) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
 
 /* Esmeralda (Nu / Paseos / Metas) */
 .dark [class*="bg-emerald-50"],

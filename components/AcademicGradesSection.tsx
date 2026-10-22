@@ -71,30 +71,30 @@ export default function AcademicGradesSection() {
 
       {/* Métricas Rápidas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 my-6">
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">Período Académico</span>
-          <div className="text-base font-bold text-slate-900 mt-0.5">{initialAcademicData.period}</div>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Período Académico</span>
+          <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{initialAcademicData.period}</div>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">Créditos Inscritos</span>
-          <div className="text-base font-bold text-slate-900 mt-0.5">{totalCredits} Créditos</div>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Créditos Inscritos</span>
+          <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{totalCredits} Créditos</div>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">Materias Activas</span>
-          <div className="text-base font-bold text-slate-900 mt-0.5">{courses.length} Asignaturas</div>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Materias Activas</span>
+          <div className="text-base font-bold text-slate-900 dark:text-slate-100 mt-0.5">{courses.length} Asignaturas</div>
         </div>
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-          <span className="text-xs text-slate-500 font-medium">Materia Foco Prioritaria</span>
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Materia Foco Prioritaria</span>
           <div className="text-base font-bold text-amber-600 mt-0.5">Análisis de Estructuras</div>
         </div>
       </div>
 
       {/* Alerta Estratégica Académica */}
-      <div className="my-6 p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-blue-50/80 border border-blue-200/80 flex items-start gap-3">
+      <div className="my-6 p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-blue-50/80 dark:from-blue-950/60 dark:via-indigo-950/50 dark:to-blue-950/60 border border-blue-200/80 dark:border-blue-900/60 flex items-start gap-3">
         <div className="p-2 bg-blue-600 text-white rounded-xl shrink-0 mt-0.5">
           <Sparkles className="w-4 h-4" />
         </div>
-        <div className="text-xs text-slate-800 leading-relaxed">
+        <div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
           <strong>Diagnóstico Estratégico de Exámenes Finales:</strong> En <strong>Análisis de Estructuras</strong>, con el <strong>3.70</strong> del Avance 5 tu acumulado sube a <strong>2.11 / 5.00</strong> (70% evaluado). <strong>Necesitas 2.97 (un 3.0 pelado) en el Examen Final (30%)</strong> para pasar la materia y habilitar Concreto I. En <strong>Mecánica de Suelos</strong> la tienes casi aprobada con 2.45 acumulados (solo requieres 1.53 en lo restante).
         </div>
       </div>
@@ -111,7 +111,7 @@ export default function AcademicGradesSection() {
               className={`border rounded-2xl transition-all duration-200 overflow-hidden ${
                 isCritical
                   ? 'border-amber-300 bg-amber-50/20 shadow-xs'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
+                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/70 hover:border-slate-300 dark:hover:border-slate-700'
               }`}
             >
               {/* Fila Principal de la Materia */}
@@ -198,7 +198,7 @@ export default function AcademicGradesSection() {
 
               {/* Detalle Desplegable de Actividades */}
               {isExpanded && (
-                <div className="px-5 pb-5 pt-2 border-t border-slate-100 bg-slate-50/50">
+                <div className="px-5 pb-5 pt-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40">
                   <div className="text-xs font-semibold text-slate-600 mb-2.5 flex items-center justify-between">
                     <span>Desglose de Calificaciones en SIGAA:</span>
                     <span className="text-slate-500 font-normal">

@@ -288,7 +288,7 @@ export default function DashboardOverview() {
       {/* KPI Cards Dinámicas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 my-6">
         {/* Pasos */}
-        <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 flex flex-col justify-between">
+        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium">Pasos Diarios Prom.</span>
             <div className="p-2 bg-blue-100/60 text-blue-600 rounded-lg">
@@ -307,7 +307,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Gasto Total Filtrado */}
-        <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 flex flex-col justify-between">
+        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium">Gasto ({selectedRange} Días)</span>
             <div className="p-2 bg-emerald-100/60 text-emerald-600 rounded-lg">
@@ -324,7 +324,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* VFC / HRV */}
-        <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 flex flex-col justify-between">
+        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium">Recuperación (HRV Prom.)</span>
             <div className="p-2 bg-rose-100/60 text-rose-600 rounded-lg">
@@ -343,7 +343,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Volumen Hevy */}
-        <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 flex flex-col justify-between">
+        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
             <span className="text-xs font-medium">Volumen Total Hevy</span>
             <div className="p-2 bg-purple-100/60 text-purple-600 rounded-lg">
@@ -363,7 +363,7 @@ export default function DashboardOverview() {
       </div>
 
       {/* Gráfico Recharts Principal */}
-      <div className="mt-4 bg-slate-50/50 rounded-2xl p-4 sm:p-6 border border-slate-100">
+      <div className="mt-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl p-4 sm:p-6 border border-slate-100 dark:border-slate-800">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-indigo-600" />
