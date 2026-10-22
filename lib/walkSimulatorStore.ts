@@ -51,7 +51,7 @@ export const initialDogs: DogProfile[] = [
     breed: 'Raza grande activa',
     defaultDurationMin: 40,
     ratePerWalk: 9000,
-    owner: 'Directo',
+    owner: 'Elena',
     energyLevel: 'Alto',
     colorTag: 'indigo',
   },

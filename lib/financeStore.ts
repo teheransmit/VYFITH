@@ -174,7 +174,7 @@ export const initialFinanceData: FinanceSummary = {
   },
   weeklyFlow: {
     dogWalksIncome: [
-      { id: 'walk-1', client: 'Carlos', dogName: 'Sienna', walksPerWeek: 5, ratePerWalk: 9000, weeklyTotal: 45000 },
+      { id: 'walk-1', client: 'Elena', dogName: 'Sienna', walksPerWeek: 5, ratePerWalk: 9000, weeklyTotal: 45000 },
       { id: 'walk-2', client: 'Laura', dogName: 'Frida', walksPerWeek: 5.5, ratePerWalk: 5000, weeklyTotal: 27500 },
     ],
     upbTransportSavings: 35000, // Aporte pasajes papá ($7.000/día x 5 días) — Tarjeta Estudiantil Gratis ($0 gasto) = $35.000 neto
@@ -377,12 +377,12 @@ export const initialFinanceData: FinanceSummary = {
       },
       {
         id: 'rec-3',
-        client: 'Sienna',
-        concept: 'Paseos caninos directos',
+        client: 'Elena',
+        concept: 'Paseos caninos de Sienna',
         amount: 0,
         status: 'Cobrado',
         dogName: 'Sienna',
-        notes: '100% liquidado antes del viaje.',
+        notes: '100% liquidado y cobrado a Elena.',
       },
       {
         id: 'rec-4',

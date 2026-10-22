@@ -254,11 +254,11 @@ export default function FinanceSection() {
       }));
       showNotice(`👨‍👩‍👦 +$150.000 COP recibidos de padres e ingresados a Cajita Medayork de Nu (9.35% E.A.).`);
     } else if (type === 'frida') {
-      showNotice(`✅ Cartera de Frida ya liquidada ($0.00 COP pendientes).`);
+      showNotice(`✅ Cartera de Frida (Laura) ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'molly') {
       showNotice(`✅ Cartera de Molly ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'sienna') {
-      showNotice(`✅ Cartera de Sienna ya liquidada ($0.00 COP pendientes).`);
+      showNotice(`✅ Cartera de Sienna (Elena) ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'papa') {
       showNotice(`✅ Pasajes ya liquidados en el modelo general.`);
     }
@@ -788,7 +788,7 @@ export default function FinanceSection() {
             <div className="p-5 rounded-3xl bg-emerald-50 border border-emerald-100">
               <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Ingresos Semanales Totales</span>
               <span className="text-2xl font-black text-emerald-700 mt-1 block">{formatCurrency(totalWeeklyIncome)}</span>
-              <span className="text-xs text-emerald-600">Paseos Sienna, Frida + Pasajes Papá + Rappi Andrés Bello + Trabajos U</span>
+              <span className="text-xs text-emerald-600">Paseos Sienna (Elena) & Frida (Laura) + Pasajes Papá + Rappi Andrés + Trabajos U</span>
             </div>
             <div className="p-5 rounded-3xl bg-rose-50 border border-rose-100">
               <span className="text-xs font-bold text-rose-800 uppercase tracking-wider block">Gastos Fijos Semanales</span>
@@ -1172,7 +1172,7 @@ export default function FinanceSection() {
                     </tr>
                     <tr className="hover:bg-slate-100/50">
                       <td className="py-2 text-slate-600">
-                        Cuentas por cobrar en calle (Rappi, Frida, Sienna, Andrés)
+                        Cuentas por cobrar en calle (Rappi, Frida de Laura, Sienna de Elena, Andrés)
                       </td>
                       <td className="py-2 text-right font-bold text-emerald-600 font-mono">
                         $0.00 COP ✅
