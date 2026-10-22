@@ -332,12 +332,14 @@ export default function GoogleCalendarSection() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'university' | 'dog-walk' | 'gym' | 'health'>('all');
   const [viewMode, setViewMode] = useState<'grouped' | 'grid'>('grouped');
+  const [refreshNotice, setRefreshNotice] = useState<string | null>(null);
 
-  const loadEvents = useCallback(async () => {
+  const loadEvents = useCallback(async (isManualRefresh: boolean = false) => {
     try {
       setIsLoading(true);
       setErrorMsg(null);
-      const res = await fetch('/api/calendar/events');
+      const url = `/api/calendar/events?t=${Date.now()}${isManualRefresh ? '&refresh=true' : ''}`;
+      const res = await fetch(url, { cache: 'no-store' });
       const data = await res.json();
       if (data.success && Array.isArray(data.events) && data.events.length > 0) {
         setEvents(data.events);
@@ -346,6 +348,12 @@ export default function GoogleCalendarSection() {
             displayName: 'Santiago Smith Terán',
             email: data.account,
           });
+        }
+        if (isManualRefresh) {
+          setRefreshNotice(
+            `✅ Google Calendar sincronizado en vivo exitosamente (${data.events.length} eventos actualizados).`
+          );
+          setTimeout(() => setRefreshNotice(null), 4000);
         }
       } else {
         setEvents(STATIC_SAMPLE_EVENTS);
@@ -364,7 +372,7 @@ export default function GoogleCalendarSection() {
   }, [loadEvents]);
 
   const handleRefresh = async () => {
-    await loadEvents();
+    await loadEvents(true);
   };
 
   const handleLogout = async () => {
@@ -505,10 +513,11 @@ export default function GoogleCalendarSection() {
               <button
                 onClick={handleRefresh}
                 disabled={isLoading}
-                className="cursor-pointer p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
-                title="Recargar eventos de Google Calendar"
+                className="cursor-pointer px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900 border border-blue-200 dark:border-blue-800 transition-all flex items-center gap-1.5 text-xs font-bold"
+                title="Sincronizar y descargar eventos en vivo de tu Google Calendar real"
               >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+                <span>{isLoading ? 'Sincronizando...' : 'Refrescar en vivo'}</span>
               </button>
               <button
                 onClick={handleLogout}
@@ -530,6 +539,13 @@ export default function GoogleCalendarSection() {
           )}
         </div>
       </div>
+
+      {refreshNotice && (
+        <div className="mt-4 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-2 shadow-xs transition-all animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+          <span className="font-semibold">{refreshNotice}</span>
+        </div>
+      )}
 
       {errorMsg && (
         <div className="mt-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-xs text-amber-800 dark:text-amber-200 flex items-center gap-2">
