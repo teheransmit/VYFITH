@@ -221,7 +221,7 @@ export default function FinanceSection() {
   const tripCoveragePercent = Math.min(100, Math.round((totalTripSecuredCapital / med.targetBudget) * 100)); // 100% Cobertura asegurada
 
   // Registrar un cobro, gasto o ingreso rápido
-  const handleQuickAdd = (type: 'barber' | 'preShopping' | 'familySync' | 'frida' | 'molly' | 'sienna' | 'papa') => {
+  const handleQuickAdd = (type: 'barber' | 'preShopping' | 'familySync' | 'frida' | 'sienna' | 'papa') => {
     if (type === 'barber') {
       const cost = 12000;
       setFinance((prev) => ({
@@ -256,8 +256,6 @@ export default function FinanceSection() {
       showNotice(`👨‍👩‍👦 +$150.000 COP recibidos de padres e ingresados a Cajita Medayork de Nu (9.35% E.A.).`);
     } else if (type === 'frida') {
       showNotice(`✅ Cartera de Frida (Laura) ya liquidada ($0.00 COP pendientes).`);
-    } else if (type === 'molly') {
-      showNotice(`✅ Cartera de Molly ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'sienna') {
       showNotice(`✅ Cartera de Sienna (Elena) ya liquidada ($0.00 COP pendientes).`);
     } else if (type === 'papa') {

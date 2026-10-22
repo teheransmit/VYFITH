@@ -23,7 +23,7 @@ import {
 } from '@/lib/walkSimulatorStore';
 
 export default function UpbWalkSimulatorSection() {
-  const [selectedDogIds, setSelectedDogIds] = useState<string[]>(['dog-frida', 'dog-molly']);
+  const [selectedDogIds, setSelectedDogIds] = useState<string[]>(['dog-frida', 'dog-sienna']);
   const [classTime, setClassTime] = useState<string>('07:00');
   const [commuteTime, setCommuteTime] = useState<number>(25); // 25 min to UPB Km 8
   const [prepTime, setPrepTime] = useState<number>(20); // Ducha y mochila
@@ -54,7 +54,7 @@ export default function UpbWalkSimulatorSection() {
             Optimizador de Paseos Caninos & Puntualidad UPB
           </h2>
           <p className="text-sm text-slate-500 max-w-2xl mt-1">
-            Calcula la hora exacta de salida matutina según los perros que pasees hoy (Frida, Molly, Sienna), cuidando sus patas del calor de Montería y garantizando tu llegada puntual a clases.
+            Calcula la hora exacta de salida matutina según los perros que pasees hoy (Frida, Sienna), cuidando sus patas del calor de Montería y garantizando tu llegada puntual a clases.
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export default function UpbWalkSimulatorSection() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {initialDogs.map((dog) => {
               const isSelected = selectedDogIds.includes(dog.id);
               return (

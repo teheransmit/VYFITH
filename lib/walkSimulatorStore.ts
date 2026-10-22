@@ -36,16 +36,6 @@ export const initialDogs: DogProfile[] = [
     colorTag: 'emerald',
   },
   {
-    id: 'dog-molly',
-    name: 'Molly',
-    breed: 'Compañera fiel',
-    defaultDurationMin: 25,
-    ratePerWalk: 5000,
-    owner: 'Vecinos del sector',
-    energyLevel: 'Tranquilo',
-    colorTag: 'amber',
-  },
-  {
     id: 'dog-sienna',
     name: 'Sienna',
     breed: 'Raza grande activa',
