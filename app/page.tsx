@@ -13,6 +13,7 @@ import {
   BookOpen,
   Sun,
   Moon,
+  User,
 } from 'lucide-react';
 import DashboardOverview from '@/components/DashboardOverview';
 import GoogleHealthConnector from '@/components/GoogleHealthConnector';
@@ -23,6 +24,8 @@ import FinanceSection from '@/components/FinanceSection';
 import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
 import ScientificNotesSection from '@/components/ScientificNotesSection';
 import MobileTravelDashboard from '@/components/MobileTravelDashboard';
+import ScheduleManagerSection from '@/components/ScheduleManagerSection';
+import PersonalBioAssistant from '@/components/PersonalBioAssistant';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
 
@@ -170,6 +173,28 @@ function HomeDashboard() {
                 <span>Vista General</span>
               </button>
               <button
+                onClick={() => setActiveTab('bio')}
+                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  activeTab === 'bio'
+                    ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <User className={`w-3.5 h-3.5 ${activeTab === 'bio' ? 'text-white' : 'text-indigo-500'}`} />
+                <span>Bio & Portafolio IA</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('horario')}
+                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  activeTab === 'horario'
+                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-600/20'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Calendar className={`w-3.5 h-3.5 ${activeTab === 'horario' ? 'text-white' : 'text-blue-500'}`} />
+                <span>Horario UPB (Notion)</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('health')}
                 className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                   activeTab === 'health'
@@ -253,6 +278,18 @@ function HomeDashboard() {
               {activeTab === 'overview' && (
                 <div className="animate-fadeIn">
                   <DashboardOverview />
+                </div>
+              )}
+
+              {activeTab === 'bio' && (
+                <div className="animate-fadeIn">
+                  <PersonalBioAssistant />
+                </div>
+              )}
+
+              {activeTab === 'horario' && (
+                <div className="animate-fadeIn">
+                  <ScheduleManagerSection />
                 </div>
               )}
 
