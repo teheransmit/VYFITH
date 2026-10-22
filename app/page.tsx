@@ -166,7 +166,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'overview' ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
                 <span>Vista General</span>
               </button>
               <button
@@ -177,7 +177,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Activity className="w-3.5 h-3.5 text-indigo-500" />
+                <Activity className={`w-3.5 h-3.5 ${activeTab === 'health' ? 'text-white' : 'text-indigo-500'}`} />
                 <span>Salud & VYFITH_APP</span>
               </button>
               <button
@@ -188,7 +188,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Dumbbell className="w-3.5 h-3.5 text-rose-500" />
+                <Dumbbell className={`w-3.5 h-3.5 ${activeTab === 'hevy' ? 'text-white' : 'text-rose-500'}`} />
                 <span>Hevy Workouts</span>
               </button>
               <button
@@ -199,7 +199,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                <Calendar className={`w-3.5 h-3.5 ${activeTab === 'calendar' ? 'text-white' : 'text-blue-500'}`} />
                 <span>Google Calendar</span>
               </button>
               <button
@@ -210,7 +210,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <GraduationCap className="w-3.5 h-3.5 text-amber-500" />
+                <GraduationCap className={`w-3.5 h-3.5 ${activeTab === 'grades' ? 'text-white' : 'text-amber-500'}`} />
                 <span>Notas del Semestre</span>
               </button>
               <button
@@ -221,7 +221,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5 text-violet-500" />
+                <BookOpen className={`w-3.5 h-3.5 ${activeTab === 'science' ? 'text-white' : 'text-violet-500'}`} />
                 <span>Notas & Referencias</span>
               </button>
               <button
@@ -232,7 +232,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Footprints className="w-3.5 h-3.5 text-amber-600" />
+                <Footprints className={`w-3.5 h-3.5 ${activeTab === 'walks' ? 'text-white' : 'text-amber-600'}`} />
                 <span>Paseos & Rutina UPB</span>
               </button>
               <button
@@ -243,7 +243,7 @@ function HomeDashboard() {
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <CreditCard className="w-3.5 h-3.5 text-emerald-500" />
+                <CreditCard className={`w-3.5 h-3.5 ${activeTab === 'finance' ? 'text-white' : 'text-emerald-500'}`} />
                 <span>Finanzas & iPhone</span>
               </button>
             </nav>

@@ -15,44 +15,101 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Reglas adaptativas de Modo Oscuro para componentes */
+/* ==========================================================================
+   ARQUITECTURA DE COLOR Y ELEVACIÓN EN MODO OSCURO (SLATE / OBSIDIAN)
+   ==========================================================================
+   Nivel 0 (Lienzo principal / body / main): #030712 (Dark Slate / Obsidian)
+   Nivel 1 (Secciones / Cards principales):  #0f172a (Slate 900)
+   Nivel 2 (Pozos / Áreas expandidas):       #141d2e (Slate 850 inset)
+   Nivel 3 (Sub-tarjetas / Items / Inputs):  #1e293b (Slate 800)
+   Nivel 4 (Pestañas activas / Botones):     #334155 (Slate 700) o Accent
+   ========================================================================== */
+
 .dark {
   --tw-ring-offset-color: #0f172a;
 }
 
-.dark body {
-  background-color: #020617;
-  color: #f8fafc;
+/* 1. Lienzo Base */
+html.dark body {
+  background-color: #030712 !important;
+  color: #f3f4f6 !important;
 }
 
-/* Adaptación de fondos y superficies claras a tonos Slate profundos */
+.dark main {
+  background-color: #030712 !important;
+}
+
+/* 2. Tarjetas y Secciones Principales (Nivel 1) */
+.dark section,
 .dark .bg-white {
   background-color: #0f172a !important;
 }
 
+/* 3. Pozos y Contenedores Secundarios (Nivel 2) */
 .dark .bg-slate-50,
 .dark .bg-slate-50\/70,
 .dark .bg-slate-50\/50,
 .dark .bg-slate-50\/80 {
-  background-color: #1e293b !important;
+  background-color: #141d2e !important;
 }
 
 .dark .bg-slate-100,
-.dark .bg-slate-100\/60,
-.dark .bg-slate-100\/70 {
-  background-color: #334155 !important;
+.dark .bg-slate-100\/90,
+.dark .bg-slate-100\/70,
+.dark .bg-slate-100\/60 {
+  background-color: #1a2436 !important;
 }
 
-/* Bordes en Modo Oscuro */
+/* 4. Sub-tarjetas e Items anidados dentro de contenedores secundarios (Nivel 3) */
+.dark .bg-slate-50 .bg-white,
+.dark .bg-slate-50\/50 .bg-white,
+.dark .bg-slate-50\/70 .bg-white,
+.dark .bg-slate-100 .bg-white,
+.dark .bg-slate-100\/90 .bg-white {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* 5. Píldoras y Botones Activos dentro de Barras de Navegación */
+.dark .bg-slate-100 .bg-white,
+.dark .bg-slate-100\/90 .bg-white,
+.dark [role="region"] .bg-white {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+/* 6. Botón de Google Sign-In (Excepción: Preservar Blanco Oficial con Texto Oscuro) */
+.dark .google-signin-btn {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.dark .google-signin-btn span {
+  color: #0f172a !important;
+}
+
+.dark .google-signin-btn:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 7. Bordes Limpios de Contraste Suave */
 .dark .border-slate-100,
 .dark .border-slate-200,
 .dark .border-slate-200\/80,
-.dark .border-slate-200\/90,
+.dark .border-slate-200\/90 {
+  border-color: #1e293b !important;
+}
+
 .dark .border-slate-300 {
   border-color: #334155 !important;
 }
 
-/* Textos en Modo Oscuro */
+/* 8. Tipografía y Jerarquía de Texto */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
 .dark .text-slate-900 {
   color: #f8fafc !important;
 }
@@ -62,11 +119,11 @@ body {
 }
 
 .dark .text-slate-700 {
-  color: #cbd5e1 !important;
+  color: #e2e8f0 !important;
 }
 
 .dark .text-slate-600 {
-  color: #94a3b8 !important;
+  color: #cbd5e1 !important;
 }
 
 .dark .text-slate-500 {
@@ -77,7 +134,7 @@ body {
   color: #64748b !important;
 }
 
-/* Estados Hover en Modo Oscuro */
+/* 9. Hover States Suaves */
 .dark .hover\:bg-slate-50:hover {
   background-color: #1e293b !important;
 }
@@ -91,39 +148,109 @@ body {
 }
 
 .dark .hover\:border-slate-300:hover {
-  border-color: #64748b !important;
+  border-color: #475569 !important;
 }
 
-/* Cajas coloreadas y badges adaptados a dark mode */
+/* 10. Badges y Cajas Temáticas con Contraste Luminoso */
+.dark .bg-emerald-50,
+.dark .bg-emerald-100 {
+  background-color: rgba(6, 78, 59, 0.45) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+.dark .text-emerald-700,
+.dark .text-emerald-800 {
+  color: #34d399 !important;
+}
+
 .dark .bg-blue-50,
-.dark .bg-blue-50\/80 {
-  background-color: rgba(30, 58, 138, 0.25) !important;
+.dark .bg-blue-100 {
+  background-color: rgba(30, 58, 138, 0.45) !important;
   border-color: rgba(59, 130, 246, 0.4) !important;
 }
-.dark .text-blue-700 {
-  color: #93c5fd !important;
+.dark .text-blue-700,
+.dark .text-blue-800 {
+  color: #60a5fa !important;
 }
 
-.dark .bg-indigo-50 {
-  background-color: rgba(49, 46, 129, 0.25) !important;
+.dark .bg-indigo-50,
+.dark .bg-indigo-100,
+.dark .bg-indigo-50\/80 {
+  background-color: rgba(49, 46, 129, 0.45) !important;
   border-color: rgba(99, 102, 241, 0.4) !important;
 }
-.dark .text-indigo-700 {
+.dark .text-indigo-700,
+.dark .text-indigo-800 {
   color: #a5b4fc !important;
 }
 
-.dark .bg-emerald-50 {
-  background-color: rgba(6, 78, 59, 0.25) !important;
-  border-color: rgba(16, 185, 129, 0.4) !important;
+.dark .bg-amber-50,
+.dark .bg-amber-100,
+.dark .bg-amber-50\/20 {
+  background-color: rgba(120, 53, 15, 0.4) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
 }
-.dark .text-emerald-700 {
-  color: #6ee7b7 !important;
+.dark .text-amber-700,
+.dark .text-amber-800 {
+  color: #fbbf24 !important;
 }
 
-.dark .bg-amber-50,
-.dark .bg-amber-50\/20 {
-  background-color: rgba(120, 53, 15, 0.2) !important;
+.dark .bg-rose-50,
+.dark .bg-rose-100 {
+  background-color: rgba(136, 19, 55, 0.45) !important;
+  border-color: rgba(244, 63, 94, 0.4) !important;
 }
-.dark .border-amber-300 {
-  border-color: rgba(245, 158, 11, 0.4) !important;
+.dark .text-rose-700,
+.dark .text-rose-800 {
+  color: #fb7185 !important;
+}
+
+.dark .bg-violet-50,
+.dark .bg-violet-100 {
+  background-color: rgba(76, 29, 149, 0.45) !important;
+  border-color: rgba(139, 92, 246, 0.4) !important;
+}
+.dark .text-violet-700,
+.dark .text-violet-800 {
+  color: #c4b5fd !important;
+}
+
+/* 11. Adaptación de Gráficos Recharts en Dark Mode */
+.dark .recharts-cartesian-grid line {
+  stroke: #1e293b !important;
+  opacity: 0.8;
+}
+
+.dark .recharts-text,
+.dark .recharts-cartesian-axis-tick-value {
+  fill: #94a3b8 !important;
+}
+
+.dark .recharts-legend-item-text {
+  color: #cbd5e1 !important;
+}
+
+/* 12. Inputs y Campos de Formulario en Dark Mode */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: #0b1329 !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder {
+  color: #64748b !important;
+}
+
+/* 13. Scrollbars Suaves */
+.dark ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-track {
+  background-color: #030712;
 }

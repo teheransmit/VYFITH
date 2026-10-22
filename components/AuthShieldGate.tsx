@@ -191,7 +191,7 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
             <button
               onClick={handleGoogleSignIn}
               disabled={isAuthenticating}
-              className="w-full cursor-pointer py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm transition-all shadow-md hover:shadow-indigo-500/10 flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-60"
+              className="google-signin-btn w-full cursor-pointer py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm transition-all shadow-md hover:shadow-indigo-500/10 flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-60"
             >
               {/* Logo SVG Oficial de Google */}
               <svg className="w-5 h-5" viewBox="0 0 24 24">
