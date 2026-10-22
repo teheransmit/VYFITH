@@ -23,8 +23,19 @@ import FinanceSection from '@/components/FinanceSection';
 import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
 import ScientificNotesSection from '@/components/ScientificNotesSection';
 import MobileTravelDashboard from '@/components/MobileTravelDashboard';
+import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
+import UserSessionBadge from '@/components/UserSessionBadge';
 
 export default function Home() {
+  return (
+    <AuthShieldGate>
+      <HomeDashboard />
+    </AuthShieldGate>
+  );
+}
+
+function HomeDashboard() {
+  const { session, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<string>('overview');
   // Por defecto en PC: inicia directamente en el Centro de Mando completo (8 pilares)
   const [viewMode, setViewMode] = useState<'travel' | 'full'>('full');
@@ -62,12 +73,16 @@ export default function Home() {
         {viewMode === 'travel' && (
           <div className="animate-fadeIn">
             {/* Barra superior de retorno al Centro de Mando PC */}
-            <div className="mb-6 flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs">
+            <div className="mb-6 flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex-wrap gap-2">
               <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-semibold">
                 <Plane className="w-4 h-4 text-emerald-500" />
                 <span>Modo Viaje (Móvil) Activo — Optimizado para smartphone</span>
               </div>
               <div className="flex items-center gap-2">
+                {/* Badge de Sesión */}
+                <UserSessionBadge session={session} onLogout={logout} />
+
+                {/* Alternar Tema */}
                 <button
                   onClick={toggleTheme}
                   aria-label="Alternar tema"
@@ -91,7 +106,7 @@ export default function Home() {
         {/* VISTA 2: CENTRO DE MANDO COMPLETO (Desktop Ejecutivo de 8 Pilares) */}
         {viewMode === 'full' && (
           <div className="animate-fadeIn">
-            {/* Header Superior Ejecutivo con Botón de Modo Oscuro y Accesos */}
+            {/* Header Superior Ejecutivo con Botón de Modo Oscuro, Sesión y Accesos */}
             <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-slate-800">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 mb-2">
@@ -106,8 +121,11 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Botones de Acción Superior: Modo Oscuro / Claro y Estado */}
+              {/* Botones de Acción Superior: Sesión de Usuario, Modo Oscuro / Claro y Estado */}
               <div className="flex items-center gap-2.5 self-start md:self-center flex-wrap">
+                {/* Badge de Sesión de Usuario con Botón de Cerrar Sesión */}
+                <UserSessionBadge session={session} onLogout={logout} />
+
                 {/* Switcher Modo Oscuro / Claro */}
                 <button
                   onClick={toggleTheme}
