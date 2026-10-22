@@ -87,10 +87,70 @@ export default function FinanceSection() {
   const remainingBudget = finance.monthlyBudget - finance.totalExpenses;
   const budgetPercentUsed = Math.min(100, Math.round((finance.totalExpenses / finance.monthlyBudget) * 100));
 
+  // Ingresos Ocasionales (Rappi con Andrés y Trabajos Universitarios - esporádicos)
+  const [didRappi, setDidRappi] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vyfith_did_rappi');
+      return saved !== null ? saved === 'true' : false;
+    }
+    return false;
+  });
+  const [rappiAmount, setRappiAmount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vyfith_rappi_amount');
+      return saved ? Number(saved) : 107100;
+    }
+    return 107100;
+  });
+
+  const [didHomework, setDidHomework] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vyfith_did_homework');
+      return saved !== null ? saved === 'true' : false;
+    }
+    return false;
+  });
+  const [homeworkAmount, setHomeworkAmount] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vyfith_homework_amount');
+      return saved ? Number(saved) : 50000;
+    }
+    return 50000;
+  });
+
+  const handleToggleRappi = (val: boolean) => {
+    setDidRappi(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_did_rappi', String(val));
+    }
+  };
+
+  const handleRappiAmountChange = (val: number) => {
+    setRappiAmount(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_rappi_amount', String(val));
+    }
+  };
+
+  const handleToggleHomework = (val: boolean) => {
+    setDidHomework(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_did_homework', String(val));
+    }
+  };
+
+  const handleHomeworkAmountChange = (val: number) => {
+    setHomeworkAmount(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_homework_amount', String(val));
+    }
+  };
+
   // Cálculos dinámicos de Flujo Semanal (Paseos de perros, pasajes UPB, Rappi con Andrés Bello y trabajos U)
   const weeklyDogIncome = (finance.weeklyFlow?.dogWalksIncome || []).reduce((acc, curr) => acc + curr.weeklyTotal, 0);
-  const weeklyRappiIncome = finance.weeklyFlow?.rappiIncome?.myNetWeeklyTotal ?? 107100;
-  const totalWeeklyIncome = weeklyDogIncome + (finance.weeklyFlow?.upbTransportSavings || 0) + weeklyRappiIncome + (finance.weeklyFlow?.otherWeeklyIncome || 0);
+  const weeklyRappiIncome = didRappi ? rappiAmount : 0;
+  const weeklyHomeworkIncome = didHomework ? homeworkAmount : 0;
+  const totalWeeklyIncome = weeklyDogIncome + (finance.weeklyFlow?.upbTransportSavings || 0) + weeklyRappiIncome + weeklyHomeworkIncome;
   const totalWeeklyExpenses = (finance.weeklyFlow?.weeklyFixedExpenses || []).reduce((acc, curr) => acc + curr.amount, 0);
   const netWeeklySavings = totalWeeklyIncome - totalWeeklyExpenses;
 
@@ -733,12 +793,162 @@ export default function FinanceSection() {
             <div className="p-5 rounded-3xl bg-rose-50 border border-rose-100">
               <span className="text-xs font-bold text-rose-800 uppercase tracking-wider block">Gastos Fijos Semanales</span>
               <span className="text-2xl font-black text-rose-700 mt-1 block">-{formatCurrency(totalWeeklyExpenses)}</span>
-              <span className="text-xs text-rose-600">Almuerzos UPB + SmartFit + Varios</span>
+              <span className="text-xs text-rose-600">Imprevistos & Recargas Móviles (Almuerzos y SmartFit eliminados)</span>
             </div>
             <div className="p-5 rounded-3xl bg-slate-900 text-white shadow-sm">
               <span className="text-xs font-bold text-slate-300 uppercase tracking-wider block">Excedente Neto Disponible</span>
               <span className="text-2xl font-black text-emerald-400 mt-1 block">+{formatCurrency(netWeeklySavings)}</span>
               <span className="text-xs text-slate-400">Saldo libre semanal para pagar deuda y ahorrar</span>
+            </div>
+          </div>
+
+          {/* Configuración de Ingresos Ocasionales: Rappi con Andrés & Trabajos Universitarios */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  Ingresos Ocasionales de la Semana (De Vez en Cuando)
+                </h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Marca si esta semana hiciste Rappi con Andrés o algún trabajo universitario, e indica cuánto ganaste para actualizar el flujo semanal exacto.
+                </p>
+              </div>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800/80">
+                +{formatCurrency(weeklyRappiIncome + weeklyHomeworkIncome)} COP sumados
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+              {/* Opción 1: Rappi con Andrés */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                didRappi
+                  ? 'bg-amber-50/70 border-amber-300 dark:bg-amber-950/30 dark:border-amber-700/60'
+                  : 'bg-slate-50/70 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700/60'
+              }`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🛵</span>
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">Rappi con Andrés</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Dupla de fin de semana en moto</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-0.5 bg-slate-200/80 dark:bg-slate-700 rounded-xl">
+                    <button
+                      onClick={() => handleToggleRappi(true)}
+                      className={`cursor-pointer px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        didRappi
+                          ? 'bg-amber-500 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Sí, salí
+                    </button>
+                    <button
+                      onClick={() => handleToggleRappi(false)}
+                      className={`cursor-pointer px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        !didRappi
+                          ? 'bg-slate-800 dark:bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      No esta vez
+                    </button>
+                  </div>
+                </div>
+
+                {didRappi ? (
+                  <div className="mt-3 pt-3 border-t border-amber-200 dark:border-amber-900/50">
+                    <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block mb-1">
+                      ¿Cuánto ganaste en tu parte limpia? (COP):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-amber-600 dark:text-amber-400 font-mono">$</span>
+                      <input
+                        type="number"
+                        value={rappiAmount}
+                        onChange={(e) => handleRappiAmountChange(Math.max(0, Number(e.target.value)))}
+                        className="w-full px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                        placeholder="107100"
+                      />
+                      <span className="text-xs text-slate-500 font-mono">COP</span>
+                    </div>
+                    <span className="text-[10px] text-amber-700 dark:text-amber-300 mt-1 block">
+                      ✅ Sumando +{formatCurrency(rappiAmount)} COP al ingreso semanal.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 italic">
+                    Esta semana no saliste en Rappi ($0 COP sumados).
+                  </div>
+                )}
+              </div>
+
+              {/* Opción 2: Trabajos Universitarios */}
+              <div className={`p-4 rounded-2xl border transition-all ${
+                didHomework
+                  ? 'bg-purple-50/70 border-purple-300 dark:bg-purple-950/30 dark:border-purple-700/60'
+                  : 'bg-slate-50/70 dark:bg-slate-800/50 border-slate-200/80 dark:border-slate-700/60'
+              }`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">📚</span>
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white block">Trabajo Universitario</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Asesorías, planos o ejercicios</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center p-0.5 bg-slate-200/80 dark:bg-slate-700 rounded-xl">
+                    <button
+                      onClick={() => handleToggleHomework(true)}
+                      className={`cursor-pointer px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        didHomework
+                          ? 'bg-purple-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      Sí, hice
+                    </button>
+                    <button
+                      onClick={() => handleToggleHomework(false)}
+                      className={`cursor-pointer px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        !didHomework
+                          ? 'bg-slate-800 dark:bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      }`}
+                    >
+                      No esta vez
+                    </button>
+                  </div>
+                </div>
+
+                {didHomework ? (
+                  <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-900/50">
+                    <label className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block mb-1">
+                      ¿Cuánto cobraste / ganaste por el trabajo? (COP):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-purple-600 dark:text-purple-400 font-mono">$</span>
+                      <input
+                        type="number"
+                        value={homeworkAmount}
+                        onChange={(e) => handleHomeworkAmountChange(Math.max(0, Number(e.target.value)))}
+                        className="w-full px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                        placeholder="50000"
+                      />
+                      <span className="text-xs text-slate-500 font-mono">COP</span>
+                    </div>
+                    <span className="text-[10px] text-purple-700 dark:text-purple-300 mt-1 block">
+                      ✅ Sumando +{formatCurrency(homeworkAmount)} COP al ingreso semanal.
+                    </span>
+                  </div>
+                ) : (
+                  <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 italic">
+                    Esta semana no realizaste trabajos pagados ($0 COP sumados).
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -786,22 +996,35 @@ export default function FinanceSection() {
                     <td className="px-4 py-3 text-slate-600">$7.000/día ($3.500 ida + $3.500 venida) — Gasto $0 COP</td>
                     <td className="px-4 py-3 font-bold text-indigo-600">+{formatCurrency(finance.weeklyFlow?.upbTransportSavings || 35000)}</td>
                   </tr>
-                  <tr className="bg-amber-50/50">
-                    <td className="px-4 py-3 font-bold text-amber-950 flex items-center gap-1.5">
-                      <span>🛵 Rappi Dupla con Andrés Bello</span>
-                      <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 font-bold">50% Mitad</span>
+                  <tr className={didRappi ? "bg-amber-50/60 dark:bg-amber-950/30" : "bg-slate-50/40 dark:bg-slate-800/30 opacity-70"}>
+                    <td className="px-4 py-3 font-bold text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
+                      <span>🛵 Rappi con Andrés</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${didRappi ? "bg-amber-200 text-amber-900 dark:bg-amber-900/60 dark:text-amber-300" : "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400"}`}>
+                        {didRappi ? "Realizado esta semana" : "No realizado esta semana"}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">Fines de semana (V-S-D)</td>
-                    <td className="px-4 py-3 text-slate-600">Neto dupla: $214.200 (Bruto $255.200 - Gasolina/Datos $41k)</td>
-                    <td className="px-4 py-3 font-bold text-amber-700">+{formatCurrency(weeklyRappiIncome)}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">Ocasional (Fines de semana)</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      {didRappi ? `Ganancia neta registrada: ${formatCurrency(rappiAmount)} COP` : "No salí en moto ($0 COP)"}
+                    </td>
+                    <td className="px-4 py-3 font-bold font-mono text-amber-700 dark:text-amber-400">
+                      {didRappi ? `+${formatCurrency(rappiAmount)}` : "$0 COP"}
+                    </td>
                   </tr>
-                  <tr className="bg-purple-50/40">
-                    <td className="px-4 py-3 font-bold text-purple-900">
-                      Trabajos Universitarios de Ingeniería
+                  <tr className={didHomework ? "bg-purple-50/60 dark:bg-purple-950/30" : "bg-slate-50/40 dark:bg-slate-800/30 opacity-70"}>
+                    <td className="px-4 py-3 font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+                      <span>📚 Trabajos Universitarios</span>
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${didHomework ? "bg-purple-200 text-purple-900 dark:bg-purple-900/60 dark:text-purple-300" : "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-400"}`}>
+                        {didHomework ? "Realizado esta semana" : "No realizado esta semana"}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">Periódicos en semestre</td>
-                    <td className="px-4 py-3 text-slate-600">Rango $50k - $200k (~$120.000 COP/mes)</td>
-                    <td className="px-4 py-3 font-bold text-purple-600">+{formatCurrency(finance.weeklyFlow?.otherWeeklyIncome || 27500)}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">Ocasional en el semestre</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                      {didHomework ? `Cobro registrado: ${formatCurrency(homeworkAmount)} COP` : "Sin asesorías/trabajos ($0 COP)"}
+                    </td>
+                    <td className="px-4 py-3 font-bold font-mono text-purple-600 dark:text-purple-400">
+                      {didHomework ? `+${formatCurrency(homeworkAmount)}` : "$0 COP"}
+                    </td>
                   </tr>
                 </tbody>
               </table>
