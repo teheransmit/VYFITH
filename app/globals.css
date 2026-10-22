@@ -1,1 +1,129 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  color-scheme: light;
+  transition: color-scheme 0.2s ease;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Reglas adaptativas de Modo Oscuro para componentes */
+.dark {
+  --tw-ring-offset-color: #0f172a;
+}
+
+.dark body {
+  background-color: #020617;
+  color: #f8fafc;
+}
+
+/* Adaptación de fondos y superficies claras a tonos Slate profundos */
+.dark .bg-white {
+  background-color: #0f172a !important;
+}
+
+.dark .bg-slate-50,
+.dark .bg-slate-50\/70,
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/80 {
+  background-color: #1e293b !important;
+}
+
+.dark .bg-slate-100,
+.dark .bg-slate-100\/60,
+.dark .bg-slate-100\/70 {
+  background-color: #334155 !important;
+}
+
+/* Bordes en Modo Oscuro */
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-200\/80,
+.dark .border-slate-200\/90,
+.dark .border-slate-300 {
+  border-color: #334155 !important;
+}
+
+/* Textos en Modo Oscuro */
+.dark .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+/* Estados Hover en Modo Oscuro */
+.dark .hover\:bg-slate-50:hover {
+  background-color: #1e293b !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: #334155 !important;
+}
+
+.dark .hover\:text-slate-900:hover {
+  color: #ffffff !important;
+}
+
+.dark .hover\:border-slate-300:hover {
+  border-color: #64748b !important;
+}
+
+/* Cajas coloreadas y badges adaptados a dark mode */
+.dark .bg-blue-50,
+.dark .bg-blue-50\/80 {
+  background-color: rgba(30, 58, 138, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+.dark .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+.dark .bg-indigo-50 {
+  background-color: rgba(49, 46, 129, 0.25) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
+}
+.dark .text-indigo-700 {
+  color: #a5b4fc !important;
+}
+
+.dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.25) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+.dark .text-emerald-700 {
+  color: #6ee7b7 !important;
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-50\/20 {
+  background-color: rgba(120, 53, 15, 0.2) !important;
+}
+.dark .border-amber-300 {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
