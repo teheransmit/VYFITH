@@ -44,9 +44,7 @@ function formatInteger(num: number): string {
 }
 
 function formatMoney(num: number): string {
-  const parts = Number(num).toFixed(2).split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts.join('.');
+  return Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 export interface DailyMetric {
@@ -82,31 +80,31 @@ function generate90DaysData(): DailyMetric[] {
 
     // Preservar exactamente los datos canónicos de los últimos 7 días
     if (i === 6) {
-      result.push({ day: 'Lun', date: '19 Sep', fullDate: '19 Sep 2026', steps: 9240, hrv: 68, workoutVolume: 8400, expense: 57.5, wellnessSpend: 42.5 });
+      result.push({ day: 'Lun', date: '19 Sep', fullDate: '19 Sep 2026', steps: 9240, hrv: 68, workoutVolume: 8400, expense: 57500, wellnessSpend: 42500 });
       continue;
     }
     if (i === 5) {
-      result.push({ day: 'Mar', date: '20 Sep', fullDate: '20 Sep 2026', steps: 11450, hrv: 74, workoutVolume: 11200, expense: 88.0, wellnessSpend: 88.0 });
+      result.push({ day: 'Mar', date: '20 Sep', fullDate: '20 Sep 2026', steps: 11450, hrv: 74, workoutVolume: 11200, expense: 88000, wellnessSpend: 88000 });
       continue;
     }
     if (i === 4) {
-      result.push({ day: 'Mié', date: '21 Sep', fullDate: '21 Sep 2026', steps: 7890, hrv: 58, workoutVolume: 0, expense: 28.5, wellnessSpend: 10.0 });
+      result.push({ day: 'Mié', date: '21 Sep', fullDate: '21 Sep 2026', steps: 7890, hrv: 58, workoutVolume: 0, expense: 28500, wellnessSpend: 10000 });
       continue;
     }
     if (i === 3) {
-      result.push({ day: 'Jue', date: '22 Sep', fullDate: '22 Sep 2026', steps: 12600, hrv: 71, workoutVolume: 9600, expense: 138.0, wellnessSpend: 138.0 });
+      result.push({ day: 'Jue', date: '22 Sep', fullDate: '22 Sep 2026', steps: 12600, hrv: 71, workoutVolume: 9600, expense: 138000, wellnessSpend: 138000 });
       continue;
     }
     if (i === 2) {
-      result.push({ day: 'Vie', date: '23 Sep', fullDate: '23 Sep 2026', steps: 10320, hrv: 65, workoutVolume: 10400, expense: 65.0, wellnessSpend: 25.0 });
+      result.push({ day: 'Vie', date: '23 Sep', fullDate: '23 Sep 2026', steps: 10320, hrv: 65, workoutVolume: 10400, expense: 65000, wellnessSpend: 25000 });
       continue;
     }
     if (i === 1) {
-      result.push({ day: 'Sáb', date: '24 Sep', fullDate: '24 Sep 2026', steps: 14200, hrv: 82, workoutVolume: 2200, expense: 95.0, wellnessSpend: 65.0 });
+      result.push({ day: 'Sáb', date: '24 Sep', fullDate: '24 Sep 2026', steps: 14200, hrv: 82, workoutVolume: 2200, expense: 95000, wellnessSpend: 65000 });
       continue;
     }
     if (i === 0) {
-      result.push({ day: 'Dom', date: '25 Sep', fullDate: '25 Sep 2026', steps: 6400, hrv: 78, workoutVolume: 0, expense: 22.0, wellnessSpend: 22.0 });
+      result.push({ day: 'Dom', date: '25 Sep', fullDate: '25 Sep 2026', steps: 6400, hrv: 78, workoutVolume: 0, expense: 22000, wellnessSpend: 22000 });
       continue;
     }
 
@@ -118,8 +116,8 @@ function generate90DaysData(): DailyMetric[] {
     const steps = isWeekend ? 11000 + (seed % 3500) : isWorkoutDay ? 9400 + (seed % 3100) : 6800 + (seed % 2500);
     const hrv = 58 + (seed % 28);
     const workoutVolume = isWorkoutDay ? 8200 + (seed % 4100) : isWeekend && seed % 2 === 0 ? 2400 + (seed % 1800) : 0;
-    const expense = parseFloat((30 + (seed % 95) + (isWorkoutDay ? 35 : 0)).toFixed(2));
-    const wellnessSpend = workoutVolume > 0 ? parseFloat((28 + (seed % 60)).toFixed(2)) : parseFloat((10 + (seed % 20)).toFixed(2));
+    const expense = Math.round(30000 + (seed % 95000) + (isWorkoutDay ? 35000 : 0));
+    const wellnessSpend = workoutVolume > 0 ? Math.round(28000 + (seed % 60000)) : Math.round(10000 + (seed % 20000));
 
     result.push({
       day: dayName,
@@ -164,7 +162,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
             if (entry.dataKey === 'expense' || entry.dataKey === 'wellnessSpend') {
               labelName = entry.dataKey === 'wellnessSpend' ? 'Gasto Bienestar' : 'Gasto Total';
-              formattedVal = `$${formatMoney(Number(entry.value))}`;
+              formattedVal = `${formatMoney(Number(entry.value))} COP`;
             } else if (entry.dataKey === 'steps') {
               labelName = 'Pasos (FHIR)';
               unit = ' pasos';
@@ -320,7 +318,7 @@ export default function DashboardOverview() {
             <span className="text-2xl font-bold text-slate-900" suppressHydrationWarning>
               ${formatMoney(totalExpense)}
             </span>
-            <span className="text-xs text-slate-500 font-medium">USD</span>
+            <span className="text-xs text-slate-500 font-medium">COP</span>
           </div>
           <span className="text-[11px] text-slate-400 mt-1">Open Banking • Presupuesto OK</span>
         </div>
@@ -419,7 +417,7 @@ export default function DashboardOverview() {
                     tickLine={false}
                     axisLine={false}
                     tick={{ fill: '#10b981', fontSize: 11 }}
-                    tickFormatter={(val) => `$${val}`}
+                    tickFormatter={(val) => `${Math.round(val / 1000)}k`}
                   />
                   <Tooltip content={CustomTooltip} />
                   <Legend verticalAlign="top" height={36} iconType="circle" />
@@ -436,7 +434,7 @@ export default function DashboardOverview() {
                   <Bar
                     yAxisId="right"
                     dataKey="expense"
-                    name="Gasto Financiero ($)"
+                    name="Gasto Financiero (COP)"
                     fill="#10b981"
                     radius={[4, 4, 0, 0]}
                     barSize={selectedRange === 7 ? 20 : selectedRange === 30 ? 10 : 4}
@@ -512,7 +510,7 @@ export default function DashboardOverview() {
                     tickLine={false}
                     axisLine={false}
                     tick={{ fill: '#059669', fontSize: 11 }}
-                    tickFormatter={(val) => `$${val}`}
+                    tickFormatter={(val) => `${Math.round(val / 1000)}k`}
                   />
                   <YAxis
                     yAxisId="right"
@@ -527,7 +525,7 @@ export default function DashboardOverview() {
                   <Bar
                     yAxisId="left"
                     dataKey="wellnessSpend"
-                    name="Inversión en Nutrición/Salud ($)"
+                    name="Inversión en Nutrición/Salud (COP)"
                     fill="#059669"
                     radius={[4, 4, 0, 0]}
                     barSize={selectedRange === 7 ? 20 : selectedRange === 30 ? 10 : 4}
@@ -560,14 +558,14 @@ export default function DashboardOverview() {
           {selectedRange === 7 && (
             <p className="text-indigo-800/90" suppressHydrationWarning>
               En los últimos 7 días se observa una correlación directa entre los días de mayor volumen de fuerza en Hevy (Martes y Jueves, &gt;9.5t)
-              y un incremento del 38% en compras destinadas a nutrición deportiva y recuperación muscular ($88 y $138).
+              y un incremento del 38% en compras destinadas a nutrición deportiva y recuperación muscular ($88.000 y $138.000 COP).
               El HRV nocturno post-entreno se mantuvo estable en 71-74 ms, descartando sobreentrenamiento sistémico.
             </p>
           )}
           {selectedRange === 30 && (
             <p className="text-indigo-800/90" suppressHydrationWarning>
               Durante los últimos 30 días se registraron {workoutSessions} sesiones de entrenamiento con una carga acumulada de {(totalVolumeKg / 1000).toFixed(0)} toneladas.
-              La variabilidad de frecuencia cardíaca (HRV) promedio se situó en un rango óptimo de {avgHrv} ms, demostrando una adecuada periodización del descanso con un gasto total de ${formatMoney(totalExpense)} USD y alta consistencia en metas biométricas.
+              La variabilidad de frecuencia cardíaca (HRV) promedio se situó en un rango óptimo de {avgHrv} ms, demostrando una adecuada periodización del descanso con un gasto total de ${formatMoney(totalExpense)} COP y alta consistencia en metas biométricas.
             </p>
           )}
           {selectedRange === 90 && (
