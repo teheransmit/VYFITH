@@ -576,6 +576,10 @@ export async function fetchFinanceState(): Promise<UnifiedFinanceState> {
 export async function syncFinanceStateWithBackend(
   state?: UnifiedFinanceState
 ): Promise<{ success: boolean; message?: string }> {
+  // Guard para SSR / Node.js: previene intentos de fetch con URL relativa fuera del navegador
+  if (typeof window === 'undefined') {
+    return { success: true, message: 'Entorno Node.js / SSR: estado actualizado en memoria' };
+  }
   const payload = state ? normalizeFinanceState(state) : activeState;
   try {
     const res = await fetch('/api/finance/sync', {
@@ -607,6 +611,24 @@ export async function syncFinanceStateWithBackend(
 }
 
 /**
+ * Resuelve y valida el nombre de la cuenta destino con fallback a 'Nequi' o 'Efectivo'
+ * si la cuenta proporcionada no existe en el catálogo.
+ */
+export function resolveAccountName(
+  accountName?: string | null,
+  accounts: AccountBalance[] = activeState.accounts
+): string {
+  if (accountName && accounts.some((a) => a.name === accountName)) {
+    return accountName;
+  }
+  const fallback =
+    accounts.find((a) => a.name === 'Nequi') ||
+    accounts.find((a) => a.name === 'Efectivo') ||
+    accounts[0];
+  return fallback ? fallback.name : accountName || 'Nequi';
+}
+
+/**
  * Registra un día de ingresos/gastos de forma atómica:
  * - Sienna ($9.000) y Frida ($5.850 / configurable) van a cartera semanal (`pendingWalksWeekly`)
  * - Rappi - Gasto impacta la liquidez de la cuenta inmediatamente
@@ -631,9 +653,11 @@ export function addDailyLog(params: {
 
   const immediateNetChange = Number(params.rappiIncome || 0) - Number(params.dailyExpense || 0);
 
+  const targetAccountName = resolveAccountName(params.targetAccountName, current.accounts);
+
   // 1. Actualizar saldo de la cuenta destino
   const nextAccounts = current.accounts.map((acc) => {
-    if (acc.name === params.targetAccountName) {
+    if (acc.name === targetAccountName) {
       return {
         ...acc,
         balance: acc.balance + immediateNetChange,
@@ -668,7 +692,7 @@ export function addDailyLog(params: {
     rappiIncome: Number(params.rappiIncome || 0),
     dailyExpense: Number(params.dailyExpense || 0),
     netChange: immediateNetChange,
-    targetAccountName: params.targetAccountName,
+    targetAccountName,
     note:
       walksSum > 0
         ? params.note.trim()
@@ -698,7 +722,7 @@ export function addDailyLog(params: {
  * Transfiere pendingWalksWeekly a la cuenta elegida, resetea el contador a $0,
  * y genera un registro de conciliación.
  */
-export function settleWeeklyWalks(targetAccountName: string): {
+export function settleWeeklyWalks(targetAccountName: string = 'Cuenta Nu'): {
   settledAmount: number;
   updatedState: UnifiedFinanceState;
 } {
@@ -708,9 +732,11 @@ export function settleWeeklyWalks(targetAccountName: string): {
     return { settledAmount: 0, updatedState: current };
   }
 
+  const effectiveAccount = resolveAccountName(targetAccountName, current.accounts);
+
   // 1. Acreditar saldo a la cuenta
   const nextAccounts = current.accounts.map((acc) => {
-    if (acc.name === targetAccountName) {
+    if (acc.name === effectiveAccount) {
       return {
         ...acc,
         balance: acc.balance + pending,
@@ -743,7 +769,7 @@ export function settleWeeklyWalks(targetAccountName: string): {
     rappiIncome: 0,
     dailyExpense: 0,
     netChange: pending,
-    targetAccountName,
+    targetAccountName: effectiveAccount,
     note: `Liquidación semanal de paseos cobrados (+${formatCOP(pending)})`,
   };
 
@@ -774,8 +800,9 @@ export function registerDadAbono(
 
   let nextAccounts = current.accounts;
   if (targetAccountName) {
+    const effectiveAccount = resolveAccountName(targetAccountName, current.accounts);
     nextAccounts = current.accounts.map((acc) => {
-      if (acc.name === targetAccountName) {
+      if (acc.name === effectiveAccount) {
         return {
           ...acc,
           balance: acc.balance + amount,
@@ -810,7 +837,7 @@ export function registerDadAbono(
  */
 export function settlePendingDebt(
   debtId: number | string,
-  targetAccountName: string
+  targetAccountName: string = 'Efectivo'
 ): { success: boolean; settledDebt?: PendingDebt; updatedState: UnifiedFinanceState } {
   const current = activeState;
   const targetDebt = current.pendingDebts.find((d) => String(d.id) === String(debtId));
@@ -818,6 +845,8 @@ export function settlePendingDebt(
   if (!targetDebt || targetDebt.isPaid) {
     return { success: false, updatedState: current };
   }
+
+  const effectiveAccount = resolveAccountName(targetAccountName, current.accounts);
 
   const dateStr = new Intl.DateTimeFormat('es-CO', {
     day: 'numeric',
@@ -831,14 +860,14 @@ export function settlePendingDebt(
         ...d,
         isPaid: true,
         paidDate: dateStr,
-        paidToAccount: targetAccountName,
+        paidToAccount: effectiveAccount,
       };
     }
     return d;
   });
 
   const nextAccounts = current.accounts.map((acc) => {
-    if (acc.name === targetAccountName) {
+    if (acc.name === effectiveAccount) {
       return {
         ...acc,
         balance: acc.balance + targetDebt.amount,
@@ -859,7 +888,7 @@ export function settlePendingDebt(
 
   return {
     success: true,
-    settledDebt: { ...targetDebt, isPaid: true, paidDate: dateStr, paidToAccount: targetAccountName },
+    settledDebt: { ...targetDebt, isPaid: true, paidDate: dateStr, paidToAccount: effectiveAccount },
     updatedState: activeState,
   };
 }

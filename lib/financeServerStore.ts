@@ -54,7 +54,19 @@ export function writeStoredFinanceState(state: UnifiedFinanceState): UnifiedFina
   try {
     ensureDataDirectory();
     const payload = JSON.stringify(normalized, null, 2);
-    fs.writeFileSync(STATE_FILE, payload, 'utf8');
+    const tempFile = `${STATE_FILE}.${Date.now()}.${Math.random().toString(36).substring(2)}.tmp`;
+    fs.writeFileSync(tempFile, payload, 'utf8');
+    try {
+      fs.renameSync(tempFile, STATE_FILE);
+    } catch {
+      // Fallback seguro si renameSync encuentra locks en Windows
+      fs.copyFileSync(tempFile, STATE_FILE);
+      try {
+        fs.unlinkSync(tempFile);
+      } catch {
+        // Ignorar si unlink falla temporalmente
+      }
+    }
   } catch (err) {
     console.error('Error persistiendo real_finance_state.json (usando in-memory fallback):', err);
   }
