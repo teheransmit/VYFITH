@@ -345,7 +345,7 @@ export default function GoogleCalendarSection() {
         setEvents(data.events);
         if (data.account) {
           setUser({
-            displayName: 'Santiago Smith Terán',
+            displayName: 'Santiago Smit Teherán Mogollón',
             email: data.account,
           });
         }

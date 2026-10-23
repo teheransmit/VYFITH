@@ -28,13 +28,13 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'assistant',
-    text: '¡Hola! Soy el asistente interactivo de presentación personal de Santiago Smith Terán. Estoy aquí para contarte sobre su perfil como estudiante de Ingeniería Civil e Hidroinformática en la UPB Montería, sus proyectos de software, su rendimiento académico y sus metas. ¿Qué te gustaría conocer?',
+    text: '¡Hola! Soy el asistente interactivo de presentación personal de Santiago Smit Teherán Mogollón. Estoy aquí para contarte sobre su perfil como estudiante de Ingeniería Civil e Hidroinformática en la UPB Montería, sus proyectos de software, su rendimiento académico y sus metas. ¿Qué te gustaría conocer?',
     timestamp: 'Ahora',
   },
 ];
 
 const PREDEFINED_QUESTIONS = [
-  '¿Quién es Santiago Smith Terán y cuál es su pasión?',
+  '¿Quién es Santiago Smit Teherán Mogollón y cuál es su pasión?',
   '¿Cuáles son sus proyectos destacados de software e ingeniería?',
   '¿Cómo va su rendimiento académico en el 6° semestre de la UPB?',
   '¿Cuál es su disciplina deportiva y meta en el gimnasio?',
@@ -48,7 +48,7 @@ export default function PersonalBioAssistant() {
   const generateAnswer = (query: string): string => {
     const q = query.toLowerCase();
     if (q.includes('quién') || q.includes('pasion') || q.includes('perfil') || q.includes('bio')) {
-      return 'Santiago Smith Terán Mogollón tiene 19 años y cursa 6° semestre de Ingeniería Civil en la Universidad Pontificia Bolivariana (Seccional Montería). Destaca por un percentil 97 nacional en Matemáticas (ICFES) y un PGA de 3.93/5.00 con calificaciones perfectas en Ecuaciones Diferenciales (5.00). Su verdadera pasión es la intersección entre la física civil y la computación: la Hidroinformática, el modelado matemático, la automatización y el desarrollo de software.';
+      return 'Santiago Smit Teherán Mogollón tiene 19 años y cursa 6° semestre de Ingeniería Civil en la Universidad Pontificia Bolivariana (Seccional Montería). Destaca por un percentil 97 nacional en Matemáticas (ICFES) y un PGA de 3.93/5.00 con calificaciones perfectas en Ecuaciones Diferenciales (5.00). Su verdadera pasión es la intersección entre la física civil y la computación: la Hidroinformática, el modelado matemático, la automatización y el desarrollo de software.';
     }
     if (q.includes('proyecto') || q.includes('software') || q.includes('github') || q.includes('repositorio')) {
       return 'Entre sus proyectos clave destacan:\n1. colouring-monteria: Plataforma open-source para cartografía de atributos constructivos de edificaciones en Montería.\n2. Horario- (GitHub Pages): Gestor de horarios universitarios publicado y embebido en su Notion Site oficial.\n3. VYFITH: Plataforma integral de salud biométrica HL7 FHIR, entrenamientos Hevy y finanzas personales.\n4. Guías técnicas: Documentación del proceso constructivo de zapatas y columnas.';
@@ -101,7 +101,7 @@ export default function PersonalBioAssistant() {
               Asistente de Presentación Personal (Notion AGENDA)
             </span>
             <span className="text-xs font-mono text-slate-400 dark:text-slate-500">
-              Perfil Ejecutivo • Santiago Smith Terán
+              Perfil Ejecutivo • Santiago Smit Teherán Mogollón
             </span>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -145,7 +145,7 @@ export default function PersonalBioAssistant() {
                 ST
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">Santiago Smith Terán</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Santiago Smit Teherán Mogollón</h3>
                 <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold block">
                   19 años • Ing. Civil Computacional
                 </span>

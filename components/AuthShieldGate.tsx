@@ -89,7 +89,7 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
       if (isEmailAuthorized(email)) {
         const newSession: UserSession = {
           email,
-          name: 'Santiago Terán',
+          name: 'Santiago Smit Teherán Mogollón',
           authenticatedAt: Date.now(),
           authMethod: 'google',
         };
@@ -117,7 +117,7 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
     if (verifyMasterPasskey(passkeyInput)) {
       const newSession: UserSession = {
         email: 'santiagosmitttt@gmail.com',
-        name: 'Santiago Terán (Master)',
+        name: 'Santiago Smit Teherán Mogollón (Master)',
         authenticatedAt: Date.now(),
         authMethod: 'passkey',
       };
@@ -164,7 +164,7 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
               Acceso Restringido
             </h1>
             <p className="mt-2 text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md mx-auto">
-              Este Centro de Mando contiene registros confidenciales de <strong>Santiago Smith Terán Mogollón</strong> (Calificaciones UPB SIGAA, Cédula, Finanzas Nu Bank, Biometría y Rutinas).
+              Este Centro de Mando contiene registros confidenciales de <strong>Santiago Smit Teherán Mogollón</strong> (Calificaciones UPB SIGAA, Cédula, Finanzas Nu Bank, Biometría y Rutinas).
             </p>
           </div>
 

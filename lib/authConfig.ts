@@ -38,6 +38,13 @@ export function getStoredSession(): UserSession | null {
     
     // Verificación estricta de lista blanca
     if (session && session.email && isEmailAuthorized(session.email)) {
+      // Normalización del nombre oficial de Santiago
+      if (!session.name || session.name.includes('Terán') || session.name.includes('Teran') || session.name.includes('Smith') || !session.name.includes('Teherán')) {
+        session.name = 'Santiago Smit Teherán Mogollón';
+        try {
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+        } catch (_) {}
+      }
       return session;
     }
     
