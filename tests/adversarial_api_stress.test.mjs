@@ -18,19 +18,14 @@ import { fileURLToPath } from 'node:url';
 import { NextRequest } from 'next/server';
 
 import {
+  readStoredFinanceState,
+  writeStoredFinanceState,
+} from '../lib/financeServerStore.ts';
+
+import {
   GET as getFinanceState,
   OPTIONS as optionsFinanceState,
 } from '../app/api/finance/state/route.ts';
-
-import {
-  POST as postDailyLog,
-  OPTIONS as optionsDailyLog,
-} from '../app/api/finance/daily-log/route.ts';
-
-import {
-  POST as postSettleWalks,
-  OPTIONS as optionsSettleWalks,
-} from '../app/api/finance/settle-walks/route.ts';
 
 import {
   POST as postSync,
@@ -41,9 +36,17 @@ import {
   GET as getFinanceMultiplexer,
   POST as postFinanceMultiplexer,
   OPTIONS as optionsFinanceMultiplexer,
-  readStoredFinanceState,
-  writeStoredFinanceState,
 } from '../app/api/finance/route.ts';
+
+import {
+  POST as postDailyLog,
+  OPTIONS as optionsDailyLog,
+} from '../app/api/finance/daily-log/route.ts';
+
+import {
+  POST as postSettleWalks,
+  OPTIONS as optionsSettleWalks,
+} from '../app/api/finance/settle-walks/route.ts';
 
 import {
   normalizeFinanceState,
@@ -103,7 +106,7 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
   // SUITE 1: GET /api/finance/state against data/real_finance_state.json
   // ==========================================================================
   describe('Suite 1: GET /api/finance/state vs data/real_finance_state.json', () => {
-    it('1.1 Response Contract: returns HTTP 200, CORS headers, success=true, valid ISO timestamp', async () => {
+    it('1.1 Sub-route GET /api/finance/state: returns HTTP 200, CORS headers, success=true, valid ISO timestamp', async () => {
       const res = await getFinanceState();
       assert.equal(res.status, 200, 'GET /api/finance/state must return 200');
 
@@ -157,6 +160,7 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       const nu = json.data.accounts.find((a) => a.name === 'Cuenta Nu');
       assert.ok(nu);
       // Empirical verification: 320,000 * ((1 + 0.093)^(1/365) - 1) = 77.9722... -> 77.97
+      // In disk file: worker seeded 77.91, but normalization corrects it to 77.97
       assert.equal(nu.dailyYieldCOP, 77.97, 'Nu daily yield must be dynamically normalized to 77.97 COP');
     });
 
@@ -432,7 +436,7 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       assert.equal(typeof nequi.balance, 'number');
     });
 
-    it('2.10 Adversarial: Target account not found leaves all account balances untouched', async () => {
+    it('2.10 Adversarial Edge Case: Target account not found leaves all account balances untouched', async () => {
       const stateBefore = readStoredFinanceState();
       const balancesBefore = stateBefore.accounts.map((a) => a.balance);
 
@@ -612,8 +616,20 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
   // SUITE 4: JSON Import/Export Roundtrip & Data Persistence Verification
   // ==========================================================================
   describe('Suite 4: JSON Roundtrip & State Persistence', () => {
-    it('4.1 Full Roundtrip: GET state -> JSON serialize -> sync POST -> GET state yields 0 data loss', async () => {
-      const get1 = await getFinanceState();
+    it('4.1 Sub-route POST /api/finance/sync: validates payload, persists state, returns 200', async () => {
+      const stateOriginal = readStoredFinanceState();
+      const req = createNextRequest('/api/finance/sync', 'POST', { state: stateOriginal });
+      const res = await postSync(req);
+      assert.equal(res.status, 200);
+
+      const json = await res.json();
+      assert.equal(json.success, true);
+      assert.ok(json.message.includes('sincronizado'));
+      assert.ok(json.timestamp);
+    });
+
+    it('4.2 Multiplexer Full Roundtrip: GET state -> JSON serialize -> sync POST -> GET state yields 0 data loss', async () => {
+      const get1 = await getFinanceMultiplexer();
       assert.equal(get1.status, 200);
       const stateOriginal = (await get1.json()).data;
 
@@ -621,13 +637,13 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       const serialized = JSON.stringify(stateOriginal, null, 2);
       const deserialized = JSON.parse(serialized);
 
-      // Post back to sync
-      const syncReq = createNextRequest('/api/finance/sync', 'POST', { state: deserialized });
-      const syncRes = await postSync(syncReq);
+      // Post back to multiplexer with action: sync
+      const syncReq = createNextRequest('/api/finance', 'POST', { action: 'sync', state: deserialized });
+      const syncRes = await postFinanceMultiplexer(syncReq);
       assert.equal(syncRes.status, 200);
 
       // Read back again
-      const get2 = await getFinanceState();
+      const get2 = await getFinanceMultiplexer();
       assert.equal(get2.status, 200);
       const stateRestored = (await get2.json()).data;
 
@@ -668,7 +684,7 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       }
     });
 
-    it('4.2 File Persistence: writeStoredFinanceState actually writes to data/real_finance_state.json', () => {
+    it('4.3 File Persistence: writeStoredFinanceState actually writes to data/real_finance_state.json', () => {
       const getRes = readStoredFinanceState();
       assert.ok(getRes);
 
@@ -681,7 +697,7 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       assert.ok(fileData.dailyLogs.length >= 6);
     });
 
-    it('4.3 Dad Abono Flow: adding 60,000 COP abono adjusts dadPaid to 200k, reduces pending to 250k', async () => {
+    it('4.4 Dad Abono Flow: adding 60,000 COP abono adjusts dadPaid to 200k, reduces pending to 250k', async () => {
       const payload = {
         action: 'dad-abono',
         addedAmount: 60000,
@@ -698,7 +714,7 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       assert.equal(trip.dadPendingAmount, 250000); // 450,000 - 200,000
     });
 
-    it('4.4 Settle Debt Flow: settling Camilo debt marks isPaid=true and credits Efectivo', async () => {
+    it('4.5 Settle Debt Flow: settling Camilo debt marks isPaid=true and credits Efectivo', async () => {
       const stateBefore = readStoredFinanceState();
       const efectivoBefore = stateBefore.accounts.find((a) => a.name === 'Efectivo').balance;
 
@@ -731,7 +747,7 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       assert.equal((await retryRes.json()).success, false);
     });
 
-    it('4.5 Normalization Idempotency: normalizeFinanceState is an exact fixed point', () => {
+    it('4.6 Normalization Idempotency: normalizeFinanceState is an exact fixed point', () => {
       const state = readStoredFinanceState();
       const pass1 = normalizeFinanceState(state);
       const pass2 = normalizeFinanceState(pass1);
@@ -740,6 +756,15 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
       assert.deepEqual(pass2.tripSettings, pass1.tripSettings);
       assert.deepEqual(pass2.fixedExpenses, pass1.fixedExpenses);
       assert.deepEqual(pass2.pendingDebts, pass1.pendingDebts);
+    });
+
+    it('4.7 Adversarial Sync Payload: Null body to POST /api/finance/sync returns HTTP 400 Bad Request', async () => {
+      const req = createNextRequest('/api/finance/sync', 'POST', 'null');
+      const res = await postSync(req);
+      assert.equal(res.status, 400);
+      const json = await res.json();
+      assert.equal(json.success, false);
+      assert.ok(json.error.includes('inválido'));
     });
   });
 
@@ -768,8 +793,8 @@ describe('CHALLENGER M1-2: Adversarial REST API & Data Integrity Stress Tests', 
         ],
       };
 
-      const syncReq = createNextRequest('/api/finance/sync', 'POST', maliciousState);
-      const res = await postSync(syncReq);
+      const syncReq = createNextRequest('/api/finance', 'POST', { action: 'sync', state: maliciousState });
+      const res = await postFinanceMultiplexer(syncReq);
       assert.equal(res.status, 200);
 
       const json = await res.json();
