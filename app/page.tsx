@@ -5,23 +5,19 @@ import {
   Activity,
   Calendar,
   CreditCard,
-  Dumbbell,
   GraduationCap,
   Sparkles,
   Footprints,
   Plane,
-  BookOpen,
   Sun,
   Moon,
   User,
 } from 'lucide-react';
 import DashboardOverview from '@/components/DashboardOverview';
-import GoogleHealthConnector from '@/components/GoogleHealthConnector';
-import HevyWorkoutsSection from '@/components/HevyWorkoutsSection';
 import FinanceSection from '@/components/FinanceSection';
 import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
 import MobileTravelDashboard from '@/components/MobileTravelDashboard';
-import UnifiedGymHevySection from '@/components/UnifiedGymHevySection';
+import UnifiedHealthFitnessSection from '@/components/UnifiedHealthFitnessSection';
 import UnifiedScheduleCalendarSection from '@/components/UnifiedScheduleCalendarSection';
 import UnifiedAcademicSection from '@/components/UnifiedAcademicSection';
 import PersonalBioAssistant from '@/components/PersonalBioAssistant';
@@ -190,15 +186,15 @@ function HomeDashboard() {
                 <span>Bio & Portafolio IA</span>
               </button>
               <button
-                onClick={() => setActiveTab('gym')}
+                onClick={() => setActiveTab('health')}
                 className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'gym' || activeTab === 'hevy'
+                  activeTab === 'health' || activeTab === 'gym' || activeTab === 'hevy'
                     ? 'bg-rose-600 text-white shadow-md ring-2 ring-rose-600/20'
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Dumbbell className={`w-3.5 h-3.5 ${activeTab === 'gym' || activeTab === 'hevy' ? 'text-white' : 'text-rose-500'}`} />
-                <span>Gimnasio UPB & Hevy</span>
+                <Activity className={`w-3.5 h-3.5 ${activeTab === 'health' || activeTab === 'gym' || activeTab === 'hevy' ? 'text-white' : 'text-rose-500'}`} />
+                <span>Salud, Biometría & Fitness</span>
               </button>
               <button
                 onClick={() => setActiveTab('horario')}
@@ -210,17 +206,6 @@ function HomeDashboard() {
               >
                 <Calendar className={`w-3.5 h-3.5 ${activeTab === 'horario' || activeTab === 'calendar' ? 'text-white' : 'text-blue-500'}`} />
                 <span>Agenda & Horario UPB</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('health')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'health'
-                    ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Activity className={`w-3.5 h-3.5 ${activeTab === 'health' ? 'text-white' : 'text-indigo-500'}`} />
-                <span>Salud & VYFITH_APP</span>
               </button>
               <button
                 onClick={() => setActiveTab('grades')}
@@ -271,20 +256,14 @@ function HomeDashboard() {
                 </div>
               )}
 
-              {(activeTab === 'gym' || activeTab === 'hevy') && (
+              {(activeTab === 'health' || activeTab === 'gym' || activeTab === 'hevy') && (
                 <div className="animate-fadeIn">
-                  <UnifiedGymHevySection />
+                  <UnifiedHealthFitnessSection />
                 </div>
               )}
               {(activeTab === 'horario' || activeTab === 'calendar') && (
                 <div className="animate-fadeIn">
                   <UnifiedScheduleCalendarSection />
-                </div>
-              )}
-
-              {activeTab === 'health' && (
-                <div className="animate-fadeIn">
-                  <GoogleHealthConnector />
                 </div>
               )}
 

@@ -31,7 +31,15 @@ import {
 } from '@/lib/upbGymStore';
 import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
 
-export default function UnifiedGymHevySection() {
+export interface UnifiedGymHevyProps {
+  initialSubTab?: 'all' | 'schedule' | 'hevy';
+  hideHeader?: boolean;
+}
+
+export default function UnifiedGymHevySection({
+  initialSubTab = 'all',
+  hideHeader = false,
+}: UnifiedGymHevyProps = {}) {
   // Estado del Gimnasio UPB
   const [liveStatus, setLiveStatus] = useState<GymLiveStatus | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(1);
@@ -46,7 +54,11 @@ export default function UnifiedGymHevySection() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   // Sub-vista activa dentro de la sección unificada
-  const [subTab, setSubTab] = useState<'all' | 'schedule' | 'hevy'>('all');
+  const [subTab, setSubTab] = useState<'all' | 'schedule' | 'hevy'>(initialSubTab);
+
+  useEffect(() => {
+    setSubTab(initialSubTab);
+  }, [initialSubTab]);
 
   const selectedSession = sessions.find((s) => s.id === selectedSessionId) || sessions[0];
   const totalWeeklyVolume = sessions.reduce((acc, s) => acc + s.totalVolumeKg, 0);
@@ -101,7 +113,8 @@ export default function UnifiedGymHevySection() {
   return (
     <section id="unified-gym-hevy-section" className="space-y-8 animate-fadeIn">
       {/* 1. HERO PRINCIPAL UNIFICADO */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 text-white p-6 sm:p-8 shadow-xl">
+      {!hideHeader && (
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 border border-indigo-900/40 text-white p-6 sm:p-8 shadow-xl">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -227,6 +240,7 @@ export default function UnifiedGymHevySection() {
           </button>
         </div>
       </div>
+      )}
 
       {uploadSuccess && (
         <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800/60 text-xs text-emerald-800 dark:text-emerald-200 flex items-center gap-2.5 animate-fadeIn">
