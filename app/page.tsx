@@ -25,6 +25,7 @@ import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
 import ScientificNotesSection from '@/components/ScientificNotesSection';
 import MobileTravelDashboard from '@/components/MobileTravelDashboard';
 import ScheduleManagerSection from '@/components/ScheduleManagerSection';
+import UpbGymSection from '@/components/UpbGymSection';
 import PersonalBioAssistant from '@/components/PersonalBioAssistant';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
@@ -184,6 +185,17 @@ function HomeDashboard() {
                 <span>Bio & Portafolio IA</span>
               </button>
               <button
+                onClick={() => setActiveTab('gym')}
+                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                  activeTab === 'gym'
+                    ? 'bg-rose-600 text-white shadow-md ring-2 ring-rose-600/20'
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Dumbbell className={`w-3.5 h-3.5 ${activeTab === 'gym' ? 'text-white' : 'text-rose-500'}`} />
+                <span>Gimnasio UPB</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('horario')}
                 className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                   activeTab === 'horario'
@@ -287,6 +299,11 @@ function HomeDashboard() {
                 </div>
               )}
 
+              {activeTab === 'gym' && (
+                <div className="animate-fadeIn">
+                  <UpbGymSection />
+                </div>
+              )}
               {activeTab === 'horario' && (
                 <div className="animate-fadeIn">
                   <ScheduleManagerSection />
