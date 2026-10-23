@@ -17,14 +17,13 @@ import {
 } from 'lucide-react';
 import DashboardOverview from '@/components/DashboardOverview';
 import GoogleHealthConnector from '@/components/GoogleHealthConnector';
-import AcademicGradesSection from '@/components/AcademicGradesSection';
 import HevyWorkoutsSection from '@/components/HevyWorkoutsSection';
 import FinanceSection from '@/components/FinanceSection';
 import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
-import ScientificNotesSection from '@/components/ScientificNotesSection';
 import MobileTravelDashboard from '@/components/MobileTravelDashboard';
 import UnifiedGymHevySection from '@/components/UnifiedGymHevySection';
 import UnifiedScheduleCalendarSection from '@/components/UnifiedScheduleCalendarSection';
+import UnifiedAcademicSection from '@/components/UnifiedAcademicSection';
 import PersonalBioAssistant from '@/components/PersonalBioAssistant';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
@@ -226,24 +225,13 @@ function HomeDashboard() {
               <button
                 onClick={() => setActiveTab('grades')}
                 className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'grades'
+                  activeTab === 'grades' || activeTab === 'science'
                     ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-600/20'
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <GraduationCap className={`w-3.5 h-3.5 ${activeTab === 'grades' ? 'text-white' : 'text-amber-500'}`} />
-                <span>Notas del Semestre</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('science')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'science'
-                    ? 'bg-violet-600 text-white shadow-md ring-2 ring-violet-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <BookOpen className={`w-3.5 h-3.5 ${activeTab === 'science' ? 'text-white' : 'text-violet-500'}`} />
-                <span>Notas & Referencias</span>
+                <GraduationCap className={`w-3.5 h-3.5 ${activeTab === 'grades' || activeTab === 'science' ? 'text-white' : 'text-amber-500'}`} />
+                <span>Academia & Literatura UPB</span>
               </button>
               <button
                 onClick={() => setActiveTab('walks')}
@@ -300,15 +288,9 @@ function HomeDashboard() {
                 </div>
               )}
 
-              {activeTab === 'grades' && (
+              {(activeTab === 'grades' || activeTab === 'science') && (
                 <div className="animate-fadeIn">
-                  <AcademicGradesSection />
-                </div>
-              )}
-
-              {activeTab === 'science' && (
-                <div className="animate-fadeIn">
-                  <ScientificNotesSection />
+                  <UnifiedAcademicSection />
                 </div>
               )}
 
