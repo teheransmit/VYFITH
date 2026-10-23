@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "clean": "next clean"
+    "clean": "next clean",
+    "test": "node tests/run_all_tests.mjs",
+    "test:all": "node tests/run_all_tests.mjs && node tests/adversarial_empirical_challenge.mjs && npx tsx tests/adversarial_api_stress.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
