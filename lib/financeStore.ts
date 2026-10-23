@@ -1,6 +1,927 @@
+/**
+ * VYFITH - Módulo Unificado de Finanzas Personales & Viaje a Medellín
+ * lib/financeStore.ts
+ *
+ * Consolida los modelos oficiales, motor de cálculo financiero (Cajita Nu 9.30% E.A.,
+ * Excedente Real, Simulador Medellín, abonos de papá, paseos Sienna/Frida sin Molly),
+ * tienda reactiva local-first y sincronización bidireccional con Antigravity.
+ */
+
+// ============================================================================
+// 1. CONSTANTES FINANCIERAS Y REGLAS DE NEGOCIO
+// ============================================================================
+
+/** Tasa Efectiva Anual oficial de la Cajita Nu (9.30% E.A.) */
+export const NU_ANNUAL_EFFECTIVE_RATE = 0.0930;
+
+/** Tarifa por paseo de Sienna: $9.000 COP */
+export const SIENNA_WALK_RATE = 9000;
+
+/** Tarifa oficial por paseo de Frida: $5.850 COP */
+export const FRIDA_WALK_RATE = 5850;
+
+/** Tarifa base previa por paseo de Frida (para compatibilidad de formularios): $5.000 COP */
+export const FRIDA_WALK_RATE_BASE = 5000;
+
+/** Tarifa de Molly: DEPRECADA / EXCLUIDA ($0 COP) */
+export const MOLLY_WALK_RATE = 0;
+
+/** Costo Total Estimado del Viaje a Medellín (Suma de rubros fijos): $584.549 COP */
+export const DEFAULT_MEDELLIN_COST = 584549;
+
+/** Fondo inicial disponible asignado a Medellín: $550.000 COP */
+export const DEFAULT_AVAILABLE_FUND = 550000;
+
+/** Compromiso Total de Papá pactado para el viaje: $450.000 COP */
+export const DEFAULT_DAD_COMMITTED = 450000;
+
+/** Abonos reales ya entregados por Papá: $140.000 COP */
+export const DEFAULT_DAD_PAID = 140000;
+
+/** Saldo de cartera acumulada de paseos semanal por defecto: $48.700 COP */
+export const DEFAULT_PENDING_WALKS_WEEKLY = 48700;
+
+// ============================================================================
+// 2. TIPOS Y DTOs OFICIALES (UNIFICACIÓN WEB & ROOM DB)
+// ============================================================================
+
+export type AccountType = 'CASH' | 'NU' | 'NEQUI';
+export type ExpenseCategory = 'DEBT' | 'SUBSCRIPTION' | 'GENERAL';
+
+/**
+ * Entidad 1: Saldos de Cuentas Líquidas
+ * Espejo de Room Entity `accounts` en Android
+ */
+export interface AccountBalance {
+  id: number | string;
+  name: string; // "Efectivo", "Cuenta Nu", "Nequi"
+  balance: number; // Saldo en COP
+  type: AccountType; // "CASH", "NU", "NEQUI"
+  dailyYieldCOP?: number; // Calculado diariamente para Nu al 9.30% E.A.
+}
+export type AccountBalanceDTO = AccountBalance;
+
+/**
+ * Entidad 2: Gastos Fijos, Deudas de Honor y Suscripciones
+ * Espejo de Room Entity `fixed_expenses` en Android
+ */
+export interface FixedExpense {
+  id: number | string;
+  title: string; // Ej: "Vuelos", "Suscripciones", "Motilada", "Deuda Yessid"
+  amount: number; // Valor mensual o total del compromiso
+  category: ExpenseCategory; // "DEBT", "SUBSCRIPTION", "GENERAL"
+  dueDate?: string;
+  isPaid?: boolean;
+}
+export type FixedExpenseDTO = FixedExpense;
+
+/**
+ * Entidad 3: Registro Diario de Ingresos y Gastos
+ * Espejo de Room Entity `daily_logs` en Android
+ * Regla estricta: mollyWalk = false (Molly purgada)
+ */
+export interface DailyLog {
+  id: number | string;
+  timestamp: number;
+  dateDisplay: string; // Ej: "28 de agosto, 2026"
+  walksIncome: number; // Valor total de paseos del día (por cobrar)
+  siennaWalk: boolean; // Tarifa: $9.000 COP
+  fridaWalk: boolean; // Tarifa: $5.850 COP / $5.000 COP
+  mollyWalk: false; // STRICT: siempre false, excluida de la lógica
+  rappiIncome: number; // Ingreso líquido inmediato de Rappi
+  dailyExpense: number; // Gasto del día
+  netChange: number; // Variación líquida inmediata (rappiIncome - dailyExpense)
+  targetAccountName: string; // Cuenta a debitar o acreditar
+  note: string; // Observaciones del día
+}
+export type DailyLogDTO = DailyLog;
+
+/**
+ * Entidad 4: Configuración y Presupuesto del Viaje a Medellín
+ * Espejo de Room Entity `trip_settings` en Android (ID singleton = 1)
+ */
+export interface TripSettings {
+  id: number;
+  availableFund: number; // Fondo actual asignado ($550.000 COP)
+  dadTotalCommitted: number; // Compromiso de papá ($450.000 COP)
+  dadPaidAmount: number; // Entregado por papá ($140.000 COP)
+  dadPendingAmount: number; // Restante de papá ($310.000 COP)
+  pendingWalksWeekly: number; // Cartera acumulada semanal de paseos
+  totalEstimatedCost: number; // Meta fija de Medellín ($584.549 COP)
+  balanceParaLujos: number; // availableFund - totalEstimatedCost (-$34.549 COP)
+  personalRemainingTarget: number; // max(0, totalEstimatedCost - dadTotalCommitted) = $134.549 COP
+  projectedFundWithDad: number; // availableFund + dadPendingAmount ($860.000 COP)
+  projectedSurplusWithDad: number; // projectedFundWithDad - totalEstimatedCost (+$275.451 COP)
+}
+export type TripSettingsDTO = TripSettings;
+
+/**
+ * Entidad 5: Cuentas por Cobrar a Terceros (Gente que me debe plata)
+ * Espejo de Room Entity `pending_debts` en Android
+ */
+export interface PendingDebt {
+  id: number | string;
+  debtorName: string; // Nombre del deudor (ej: "Camilo", "Mateo")
+  amount: number; // Monto adeudado en COP
+  description: string; // Concepto del préstamo
+  dateCreated: string; // Fecha de registro
+  isPaid: boolean; // Estado de pago
+  paidDate?: string | null; // Fecha de liquidación
+  paidToAccount?: string | null; // Cuenta destino donde ingresó
+}
+export type PendingDebtDTO = PendingDebt;
+
+/**
+ * Desglose de Rubros Fijos del Viaje a Medellín
+ */
+export interface TripFixedItem {
+  id: string;
+  title: string;
+  amount: number;
+  category: 'HOTEL' | 'TRANSIT' | 'FOOD' | 'TAXI' | 'ACTIVITIES' | 'EMERGENCY' | string;
+}
+
+/**
+ * Estado Financiero Unificado Completo (Local-First & Sync Contract)
+ */
+export interface UnifiedFinanceState {
+  accounts: AccountBalance[];
+  fixedExpenses: FixedExpense[];
+  dailyLogs: DailyLog[];
+  tripSettings: TripSettings;
+  pendingDebts: PendingDebt[];
+  lastSynced: string;
+}
+
+// ============================================================================
+// 3. FÓRMULAS MATEMÁTICAS RIGUROSAS
+// ============================================================================
+
+/**
+ * Calcula el rendimiento diario compuesto de la Cajita Nu sobre la tasa E.A.
+ * Fórmula: i_diario = (1 + EA)^(1/365) - 1
+ * Sobre $320.000 COP da exactamente $77.91 COP/día.
+ */
+export function calculateDailyNuYield(balance: number, rateEA: number = NU_ANNUAL_EFFECTIVE_RATE): number {
+  if (balance <= 0) return 0;
+  const dailyCompoundRate = Math.pow(1 + rateEA, 1 / 365) - 1;
+  const dailyYield = balance * dailyCompoundRate;
+  return Number(dailyYield.toFixed(2));
+}
+
+/**
+ * Proyección mensual compuesta (30 días) de la Cajita Nu
+ */
+export function calculateMonthlyNuYield(balance: number, rateEA: number = NU_ANNUAL_EFFECTIVE_RATE): number {
+  if (balance <= 0) return 0;
+  const monthlyCompoundRate = Math.pow(1 + rateEA, 30 / 365) - 1;
+  const monthlyYield = balance * monthlyCompoundRate;
+  return Number(monthlyYield.toFixed(2));
+}
+
+/**
+ * Proyección a N días con capitalización diaria en Nu
+ */
+export function calculateNuProjection(balance: number, days: number, rateEA: number = NU_ANNUAL_EFFECTIVE_RATE): number {
+  if (balance <= 0 || days <= 0) return balance;
+  const dailyCompoundRate = Math.pow(1 + rateEA, 1 / 365) - 1;
+  const finalBalance = balance * Math.pow(1 + dailyCompoundRate, days);
+  return Number(finalBalance.toFixed(2));
+}
+
+/**
+ * Calcula el Excedente Líquido Libre Patrimonial:
+ * Excedente = Total Balances en Cuentas - Total Gastos Fijos y Deudas
+ */
+export function calculateRealFreeSurplus(
+  accounts: AccountBalance[],
+  fixedExpenses: FixedExpense[]
+): number {
+  const totalBalances = accounts.reduce((acc, a) => acc + (Number(a.balance) || 0), 0);
+  const totalFixed = fixedExpenses.reduce((acc, f) => acc + (Number(f.amount) || 0), 0);
+  return totalBalances - totalFixed;
+}
+
+/**
+ * Calcula el Balance para Lujos de Medellín y el Pronóstico Familiar
+ */
+export function calculateMedellinBalance(
+  settings: Partial<TripSettings>,
+  totalCost: number = DEFAULT_MEDELLIN_COST
+) {
+  const availableFund = Number(settings.availableFund ?? DEFAULT_AVAILABLE_FUND);
+  const dadTotalCommitted = Number(settings.dadTotalCommitted ?? DEFAULT_DAD_COMMITTED);
+  const dadPaidAmount = Number(settings.dadPaidAmount ?? DEFAULT_DAD_PAID);
+
+  const dadPendingAmount = Math.max(0, dadTotalCommitted - dadPaidAmount);
+  const personalRemainingTarget = Math.max(0, totalCost - dadTotalCommitted);
+  const balanceParaLujos = availableFund - totalCost;
+  const isDeficit = balanceParaLujos < 0;
+  const deficitAmount = isDeficit ? Math.abs(balanceParaLujos) : 0;
+  const surplusAmount = isDeficit ? 0 : balanceParaLujos;
+
+  const projectedFundWithDad = availableFund + dadPendingAmount;
+  const projectedSurplusWithDad = projectedFundWithDad - totalCost;
+  const siennaWalksNeeded = Math.ceil(personalRemainingTarget / SIENNA_WALK_RATE);
+  const dadProgressPercent = Math.min(100, (dadPaidAmount / (dadTotalCommitted || 1)) * 100);
+
+  return {
+    availableFund,
+    totalCost,
+    balanceParaLujos,
+    isDeficit,
+    deficitAmount,
+    surplusAmount,
+    dadTotalCommitted,
+    dadPaidAmount,
+    dadPendingAmount,
+    dadProgressPercent: Number(dadProgressPercent.toFixed(1)),
+    personalRemainingTarget,
+    projectedFundWithDad,
+    projectedSurplusWithDad,
+    siennaWalksNeeded,
+  };
+}
+
+/**
+ * Formateador de moneda colombiana en COP sin decimales
+ */
+export function formatCOP(amount: number): String {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
+
+// ============================================================================
+// 4. RUBROS FIJOS DE MEDELLÍN Y ESTADO POR DEFECTO
+// ============================================================================
+
+export const DEFAULT_MEDELLIN_ITEMS: TripFixedItem[] = [
+  { id: '1', title: 'Alojamiento', amount: 164550, category: 'HOTEL' },
+  { id: '2', title: 'Bus Aeropuerto (Combuses)', amount: 40000, category: 'TRANSIT' },
+  { id: '3', title: 'Alimentación (5 Días)', amount: 225000, category: 'FOOD' },
+  { id: '4', title: 'Transporte Local (Metro/Taxi)', amount: 35000, category: 'TAXI' },
+  { id: '5', title: 'Actividades & Tours', amount: 70000, category: 'ACTIVITIES' },
+  { id: '6', title: 'Fondo de Imprevistos', amount: 50000, category: 'EMERGENCY' },
+];
+
+export const initialUnifiedFinanceState: UnifiedFinanceState = {
+  accounts: [
+    { id: 1, name: 'Efectivo', balance: 85000, type: 'CASH' },
+    { id: 2, name: 'Cuenta Nu', balance: 320000, type: 'NU', dailyYieldCOP: 77.91 },
+    { id: 3, name: 'Nequi', balance: 245000, type: 'NEQUI' },
+  ],
+  fixedExpenses: [
+    { id: 1, title: 'Vuelos', amount: 140000, category: 'DEBT' },
+    { id: 2, title: 'Suscripciones (Spotify/Crunchyroll)', amount: 10200, category: 'SUBSCRIPTION' },
+    { id: 3, title: 'Motilada', amount: 25000, category: 'GENERAL' },
+  ],
+  tripSettings: {
+    id: 1,
+    availableFund: 550000,
+    dadTotalCommitted: 450000,
+    dadPaidAmount: 140000,
+    dadPendingAmount: 310000,
+    pendingWalksWeekly: 48700,
+    totalEstimatedCost: 584549,
+    balanceParaLujos: -34549,
+    personalRemainingTarget: 134549,
+    projectedFundWithDad: 860000,
+    projectedSurplusWithDad: 275451,
+  },
+  pendingDebts: [
+    {
+      id: 1,
+      debtorName: 'Camilo',
+      amount: 35000,
+      description: 'Préstamo salida fin de semana',
+      dateCreated: '28 de agosto, 2026',
+      isPaid: false,
+      paidDate: null,
+      paidToAccount: null,
+    },
+    {
+      id: 2,
+      debtorName: 'Mateo',
+      amount: 20000,
+      description: 'Mitad de la cuenta del almuerzo',
+      dateCreated: '30 de agosto, 2026',
+      isPaid: false,
+      paidDate: null,
+      paidToAccount: null,
+    },
+  ],
+  dailyLogs: [
+    {
+      id: 1,
+      timestamp: 1787664000000,
+      dateDisplay: '26 de agosto, 2026',
+      walksIncome: 9000,
+      siennaWalk: true,
+      fridaWalk: false,
+      mollyWalk: false,
+      rappiIncome: 25000,
+      dailyExpense: 0,
+      netChange: 25000,
+      targetAccountName: 'Nequi',
+      note: 'Paseo Sienna mañana + 2 horas Rappi tarde',
+    },
+    {
+      id: 2,
+      timestamp: 1787750400000,
+      dateDisplay: '27 de agosto, 2026',
+      walksIncome: 5850,
+      siennaWalk: false,
+      fridaWalk: true,
+      mollyWalk: false,
+      rappiIncome: 0,
+      dailyExpense: 3500,
+      netChange: -3500,
+      targetAccountName: 'Efectivo',
+      note: 'Paseo Frida',
+    },
+    {
+      id: 3,
+      timestamp: 1787836800000,
+      dateDisplay: '28 de agosto, 2026',
+      walksIncome: 14850,
+      siennaWalk: true,
+      fridaWalk: true,
+      mollyWalk: false,
+      rappiIncome: 18000,
+      dailyExpense: 0,
+      netChange: 18000,
+      targetAccountName: 'Cuenta Nu',
+      note: 'Sienna + Frida + Turno Rappi viernes',
+    },
+    {
+      id: 4,
+      timestamp: 1787923200000,
+      dateDisplay: '29 de agosto, 2026',
+      walksIncome: 0,
+      siennaWalk: false,
+      fridaWalk: false,
+      mollyWalk: false,
+      rappiIncome: 32000,
+      dailyExpense: 6000,
+      netChange: 26000,
+      targetAccountName: 'Nequi',
+      note: 'Turno Rappi noche de sábado',
+    },
+    {
+      id: 5,
+      timestamp: 1788009600000,
+      dateDisplay: '30 de agosto, 2026',
+      walksIncome: 14850,
+      siennaWalk: true,
+      fridaWalk: true,
+      mollyWalk: false,
+      rappiIncome: 22000,
+      dailyExpense: 0,
+      netChange: 22000,
+      targetAccountName: 'Cuenta Nu',
+      note: 'Paseos Sienna y Frida + Rappi domingo',
+    },
+    {
+      id: 6,
+      timestamp: 1788096000000,
+      dateDisplay: '31 de agosto, 2026',
+      walksIncome: 9000,
+      siennaWalk: true,
+      fridaWalk: false,
+      mollyWalk: false,
+      rappiIncome: 0,
+      dailyExpense: 0,
+      netChange: 0,
+      targetAccountName: 'Efectivo',
+      note: 'Paseo Sienna',
+    },
+  ],
+  lastSynced: '2026-10-23T18:00:00.000Z',
+};
+
+// ============================================================================
+// 5. TIENDA REACTIVA LOCAL-FIRST (IN-MEMORY & LOCALSTORAGE)
+// ============================================================================
+
+const LOCAL_STORAGE_KEY = 'vyfith_unified_finance_state';
+type FinanceSubscriber = (state: UnifiedFinanceState) => void;
+
+let activeState: UnifiedFinanceState = { ...initialUnifiedFinanceState };
+const subscribers: Set<FinanceSubscriber> = new Set();
+
+/**
+ * Normaliza y recalcula valores derivados de estado financiero
+ */
+export function normalizeFinanceState(state: UnifiedFinanceState): UnifiedFinanceState {
+  // 1. Recalcular rendimiento Nu para cada cuenta
+  const normalizedAccounts = state.accounts.map((acc) => {
+    if (acc.type === 'NU' || acc.name.toLowerCase().includes('nu')) {
+      return {
+        ...acc,
+        dailyYieldCOP: calculateDailyNuYield(acc.balance),
+      };
+    }
+    return acc;
+  });
+
+  // 2. Recalcular tripSettings
+  const medellinCalc = calculateMedellinBalance(state.tripSettings);
+  const normalizedTrip: TripSettings = {
+    ...state.tripSettings,
+    availableFund: medellinCalc.availableFund,
+    dadTotalCommitted: medellinCalc.dadTotalCommitted,
+    dadPaidAmount: medellinCalc.dadPaidAmount,
+    dadPendingAmount: medellinCalc.dadPendingAmount,
+    pendingWalksWeekly: Number(state.tripSettings.pendingWalksWeekly) || 0,
+    totalEstimatedCost: medellinCalc.totalCost,
+    balanceParaLujos: medellinCalc.balanceParaLujos,
+    personalRemainingTarget: medellinCalc.personalRemainingTarget,
+    projectedFundWithDad: medellinCalc.projectedFundWithDad,
+    projectedSurplusWithDad: medellinCalc.projectedSurplusWithDad,
+  };
+
+  // 3. Asegurar mollyWalk = false en dailyLogs
+  const normalizedLogs = state.dailyLogs.map((log) => ({
+    ...log,
+    mollyWalk: false as const,
+  }));
+
+  return {
+    ...state,
+    accounts: normalizedAccounts,
+    tripSettings: normalizedTrip,
+    dailyLogs: normalizedLogs,
+    lastSynced: state.lastSynced || new Date().toISOString(),
+  };
+}
+
+/**
+ * Obtiene el estado actual en memoria
+ */
+export function getFinanceState(): UnifiedFinanceState {
+  return activeState;
+}
+
+/**
+ * Notifica a todos los suscriptores reactivos
+ */
+function notifySubscribers(): void {
+  subscribers.forEach((sub) => {
+    try {
+      sub(activeState);
+    } catch (e) {
+      console.error('Error en suscriptor de FinanceStore:', e);
+    }
+  });
+}
+
+/**
+ * Establece el nuevo estado, lo persiste localmente y notifica a los suscriptores
+ */
+export function setFinanceState(nextState: UnifiedFinanceState): void {
+  activeState = normalizeFinanceState(nextState);
+  saveFinanceState(activeState);
+  notifySubscribers();
+}
+
+/**
+ * Suscripción reactiva para componentes de React
+ */
+export function subscribeFinanceState(listener: FinanceSubscriber): () => void {
+  subscribers.add(listener);
+  return () => {
+    subscribers.delete(listener);
+  };
+}
+
+/**
+ * Carga el estado financiero desde localStorage (en navegador) o inicial
+ */
+export function loadFinanceState(): UnifiedFinanceState {
+  if (typeof window === 'undefined') {
+    return activeState;
+  }
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.accounts)) {
+        activeState = normalizeFinanceState(parsed);
+        return activeState;
+      }
+    }
+  } catch (err) {
+    console.warn('No se pudo leer estado de localStorage, usando estado base:', err);
+  }
+  activeState = normalizeFinanceState(initialUnifiedFinanceState);
+  return activeState;
+}
+
+/**
+ * Persiste el estado financiero en localStorage
+ */
+export function saveFinanceState(state: UnifiedFinanceState): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+  } catch (err) {
+    console.error('Error persistiendo en localStorage:', err);
+  }
+}
+
+/**
+ * Consulta el estado financiero en el backend (/api/finance/state o /api/finance)
+ */
+export async function fetchFinanceState(): Promise<UnifiedFinanceState> {
+  try {
+    const res = await fetch('/api/finance/state', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        setFinanceState(json.data);
+        return activeState;
+      }
+    }
+  } catch (err) {
+    console.warn('Fallo fetch a /api/finance/state, intentando /api/finance:', err);
+    try {
+      const resFallback = await fetch('/api/finance', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (resFallback.ok) {
+        const json = await resFallback.json();
+        if (json.success && json.data) {
+          setFinanceState(json.data);
+          return activeState;
+        }
+      }
+    } catch (e) {
+      console.error('No se pudo conectar al endpoint de finanzas:', e);
+    }
+  }
+  return loadFinanceState();
+}
+
+/**
+ * Sincroniza el estado actual con el backend vía POST
+ */
+export async function syncFinanceStateWithBackend(
+  state?: UnifiedFinanceState
+): Promise<{ success: boolean; message?: string }> {
+  const payload = state ? normalizeFinanceState(state) : activeState;
+  try {
+    const res = await fetch('/api/finance/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      return { success: true, message: json.message || 'Sincronizado' };
+    }
+  } catch (err) {
+    console.warn('Fallo sync a /api/finance/sync, intentando fallback /api/finance:', err);
+    try {
+      const resFallback = await fetch('/api/finance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync', state: payload }),
+      });
+      if (resFallback.ok) {
+        const json = await resFallback.json();
+        return { success: true, message: json.message || 'Sincronizado' };
+      }
+    } catch (e) {
+      console.error('Fallo en sincronización con backend:', e);
+    }
+  }
+  return { success: false, message: 'Operando en modo local (sin conexión al backend)' };
+}
+
+/**
+ * Registra un día de ingresos/gastos de forma atómica:
+ * - Sienna ($9.000) y Frida ($5.850 / configurable) van a cartera semanal (`pendingWalksWeekly`)
+ * - Rappi - Gasto impacta la liquidez de la cuenta inmediatamente
+ * - Inserta el log histórico
+ */
+export function addDailyLog(params: {
+  siennaWalk: boolean;
+  fridaWalk: boolean;
+  rappiIncome: number;
+  dailyExpense: number;
+  targetAccountName: string;
+  note: string;
+  fridaRate?: number;
+  dateDisplay?: string;
+}): { netChange: number; walksSum: number; updatedState: UnifiedFinanceState } {
+  const current = activeState;
+
+  const siennaVal = params.siennaWalk ? SIENNA_WALK_RATE : 0;
+  const fridaRate = params.fridaRate ?? FRIDA_WALK_RATE;
+  const fridaVal = params.fridaWalk ? fridaRate : 0;
+  const walksSum = siennaVal + fridaVal;
+
+  const immediateNetChange = Number(params.rappiIncome || 0) - Number(params.dailyExpense || 0);
+
+  // 1. Actualizar saldo de la cuenta destino
+  const nextAccounts = current.accounts.map((acc) => {
+    if (acc.name === params.targetAccountName) {
+      return {
+        ...acc,
+        balance: acc.balance + immediateNetChange,
+      };
+    }
+    return acc;
+  });
+
+  // 2. Acumular cartera de paseos semanales
+  const nextTrip: TripSettings = {
+    ...current.tripSettings,
+    pendingWalksWeekly: current.tripSettings.pendingWalksWeekly + walksSum,
+  };
+
+  // 3. Formatear fecha
+  const dateStr =
+    params.dateDisplay ||
+    new Intl.DateTimeFormat('es-CO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date());
+
+  const newLog: DailyLog = {
+    id: Date.now(),
+    timestamp: Date.now(),
+    dateDisplay: dateStr,
+    walksIncome: walksSum,
+    siennaWalk: params.siennaWalk,
+    fridaWalk: params.fridaWalk,
+    mollyWalk: false,
+    rappiIncome: Number(params.rappiIncome || 0),
+    dailyExpense: Number(params.dailyExpense || 0),
+    netChange: immediateNetChange,
+    targetAccountName: params.targetAccountName,
+    note:
+      walksSum > 0
+        ? params.note.trim()
+          ? `${params.note.trim()} (Paseos por cobrar: +${formatCOP(walksSum)})`
+          : `Paseos por cobrar: +${formatCOP(walksSum)}`
+        : params.note.trim(),
+  };
+
+  const nextState: UnifiedFinanceState = {
+    ...current,
+    accounts: nextAccounts,
+    tripSettings: nextTrip,
+    dailyLogs: [newLog, ...current.dailyLogs],
+    lastSynced: new Date().toISOString(),
+  };
+
+  setFinanceState(nextState);
+
+  // Disparo en segundo plano para sincronizar con backend
+  syncFinanceStateWithBackend(nextState).catch(() => {});
+
+  return { netChange: immediateNetChange, walksSum, updatedState: activeState };
+}
+
+/**
+ * Liquida la cartera semanal acumulada de paseos:
+ * Transfiere pendingWalksWeekly a la cuenta elegida, resetea el contador a $0,
+ * y genera un registro de conciliación.
+ */
+export function settleWeeklyWalks(targetAccountName: string): {
+  settledAmount: number;
+  updatedState: UnifiedFinanceState;
+} {
+  const current = activeState;
+  const pending = Number(current.tripSettings.pendingWalksWeekly) || 0;
+  if (pending <= 0) {
+    return { settledAmount: 0, updatedState: current };
+  }
+
+  // 1. Acreditar saldo a la cuenta
+  const nextAccounts = current.accounts.map((acc) => {
+    if (acc.name === targetAccountName) {
+      return {
+        ...acc,
+        balance: acc.balance + pending,
+      };
+    }
+    return acc;
+  });
+
+  // 2. Resetear contador semanal
+  const nextTrip: TripSettings = {
+    ...current.tripSettings,
+    pendingWalksWeekly: 0,
+  };
+
+  // 3. Crear log de conciliación
+  const dateStr = new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
+
+  const settlementLog: DailyLog = {
+    id: Date.now(),
+    timestamp: Date.now(),
+    dateDisplay: dateStr,
+    walksIncome: pending,
+    siennaWalk: false,
+    fridaWalk: false,
+    mollyWalk: false,
+    rappiIncome: 0,
+    dailyExpense: 0,
+    netChange: pending,
+    targetAccountName,
+    note: `Liquidación semanal de paseos cobrados (+${formatCOP(pending)})`,
+  };
+
+  const nextState: UnifiedFinanceState = {
+    ...current,
+    accounts: nextAccounts,
+    tripSettings: nextTrip,
+    dailyLogs: [settlementLog, ...current.dailyLogs],
+    lastSynced: new Date().toISOString(),
+  };
+
+  setFinanceState(nextState);
+  syncFinanceStateWithBackend(nextState).catch(() => {});
+
+  return { settledAmount: pending, updatedState: activeState };
+}
+
+/**
+ * Registra un abono entregado por el papá con ingreso opcional a cuenta líquida
+ */
+export function registerDadAbono(
+  addedAmount: number,
+  targetAccountName?: string
+): { updatedState: UnifiedFinanceState } {
+  const current = activeState;
+  const amount = Number(addedAmount) || 0;
+  if (amount <= 0) return { updatedState: current };
+
+  let nextAccounts = current.accounts;
+  if (targetAccountName) {
+    nextAccounts = current.accounts.map((acc) => {
+      if (acc.name === targetAccountName) {
+        return {
+          ...acc,
+          balance: acc.balance + amount,
+        };
+      }
+      return acc;
+    });
+  }
+
+  const newPaid = current.tripSettings.dadPaidAmount + amount;
+  const nextTrip: TripSettings = {
+    ...current.tripSettings,
+    dadPaidAmount: newPaid,
+  };
+
+  const nextState: UnifiedFinanceState = {
+    ...current,
+    accounts: nextAccounts,
+    tripSettings: nextTrip,
+    lastSynced: new Date().toISOString(),
+  };
+
+  setFinanceState(nextState);
+  syncFinanceStateWithBackend(nextState).catch(() => {});
+
+  return { updatedState: activeState };
+}
+
+/**
+ * Liquida una deuda pendiente por cobrar (amigo/tercero):
+ * Marca isPaid = true y acredita el monto a la cuenta seleccionada.
+ */
+export function settlePendingDebt(
+  debtId: number | string,
+  targetAccountName: string
+): { success: boolean; settledDebt?: PendingDebt; updatedState: UnifiedFinanceState } {
+  const current = activeState;
+  const targetDebt = current.pendingDebts.find((d) => String(d.id) === String(debtId));
+
+  if (!targetDebt || targetDebt.isPaid) {
+    return { success: false, updatedState: current };
+  }
+
+  const dateStr = new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date());
+
+  const nextDebts = current.pendingDebts.map((d) => {
+    if (String(d.id) === String(debtId)) {
+      return {
+        ...d,
+        isPaid: true,
+        paidDate: dateStr,
+        paidToAccount: targetAccountName,
+      };
+    }
+    return d;
+  });
+
+  const nextAccounts = current.accounts.map((acc) => {
+    if (acc.name === targetAccountName) {
+      return {
+        ...acc,
+        balance: acc.balance + targetDebt.amount,
+      };
+    }
+    return acc;
+  });
+
+  const nextState: UnifiedFinanceState = {
+    ...current,
+    accounts: nextAccounts,
+    pendingDebts: nextDebts,
+    lastSynced: new Date().toISOString(),
+  };
+
+  setFinanceState(nextState);
+  syncFinanceStateWithBackend(nextState).catch(() => {});
+
+  return {
+    success: true,
+    settledDebt: { ...targetDebt, isPaid: true, paidDate: dateStr, paidToAccount: targetAccountName },
+    updatedState: activeState,
+  };
+}
+
+/**
+ * Exporta el estado financiero a un string JSON formateado
+ */
+export function exportFinanceStateJSON(state?: UnifiedFinanceState): string {
+  const target = state || activeState;
+  return JSON.stringify(target, null, 2);
+}
+
+/**
+ * Importa y valida un archivo o string JSON al estado financiero
+ */
+export function importFinanceStateJSON(jsonString: string): {
+  success: boolean;
+  state?: UnifiedFinanceState;
+  error?: string;
+} {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (!parsed || typeof parsed !== 'object') {
+      return { success: false, error: 'El archivo no contiene un objeto JSON válido.' };
+    }
+    if (!Array.isArray(parsed.accounts) || !Array.isArray(parsed.fixedExpenses)) {
+      return { success: false, error: 'Estructura incompatible: faltan cuentas o gastos fijos.' };
+    }
+
+    const stateToApply: UnifiedFinanceState = {
+      accounts: parsed.accounts,
+      fixedExpenses: parsed.fixedExpenses,
+      dailyLogs: Array.isArray(parsed.dailyLogs) ? parsed.dailyLogs : [],
+      tripSettings: parsed.tripSettings || initialUnifiedFinanceState.tripSettings,
+      pendingDebts: Array.isArray(parsed.pendingDebts) ? parsed.pendingDebts : [],
+      lastSynced: new Date().toISOString(),
+    };
+
+    setFinanceState(stateToApply);
+    syncFinanceStateWithBackend(stateToApply).catch(() => {});
+
+    return { success: true, state: activeState };
+  } catch (err: any) {
+    return { success: false, error: `Error de parseo JSON: ${err?.message || err}` };
+  }
+}
+
+// ============================================================================
+// 6. COMPATIBILIDAD HACIA ATRÁS CON EL CÓDIGO EXISTENTE DE VYFITH
+// ============================================================================
+
 export interface ExpenseItem {
   id: string;
-  category: 'Nutrición y Proteína' | 'Gimnasio & Salud' | 'Universidad & Libros' | 'Transporte' | 'Ocio y Café' | 'Viaje Medellín' | 'Deuda Yessid' | 'Ahorro iPhone';
+  category:
+    | 'Nutrición y Proteína'
+    | 'Gimnasio & Salud'
+    | 'Universidad & Libros'
+    | 'Transporte'
+    | 'Ocio y Café'
+    | 'Viaje Medellín'
+    | 'Deuda Yessid'
+    | 'Ahorro iPhone';
   title: string;
   amount: number;
   date: string;
@@ -56,18 +977,18 @@ export interface RealisticScenario {
 }
 
 export interface IncomeVolatilityModel {
-  pertMonthlyAverage: number; // $773.000 COP/mes
-  pertWeeklyAverage: number; // $178.000 COP/semana
-  pertNetSavingsMonthly: number; // $351.000 COP/mes libres
+  pertMonthlyAverage: number;
+  pertWeeklyAverage: number;
+  pertNetSavingsMonthly: number;
   scenarios: RealisticScenario[];
 }
 
 export interface WeeklyCashFlow {
   dogWalksIncome: DogWalkIncomeItem[];
-  upbTransportSavings: number; // Aporte pasajes papá ($7.000/día x 5 días) — Tarjeta Estudiantil Gratis ($0 gasto)
-  rappiIncome?: RappiPartnerIncome; // Rappi fines de semana con Andrés Bello (50/50)
-  otherWeeklyIncome: number; // Trabajos universitarios periódicos
-  volatilityModel?: IncomeVolatilityModel; // Modelo de volatilidad (Mes Malo vs Típico vs Excelente)
+  upbTransportSavings: number;
+  rappiIncome?: RappiPartnerIncome;
+  otherWeeklyIncome: number;
+  volatilityModel?: IncomeVolatilityModel;
   weeklyFixedExpenses: {
     id: string;
     concept: string;
@@ -103,17 +1024,17 @@ export interface AssetGoalItem {
 
 export interface MedellinTripBudget {
   tripDates: string;
-  targetBudget: number; // Costo estimado restante del viaje: $375.000 COP
-  cashInHand: number; // Efectivo físico en mano: $202.000 COP
-  nuBoxSavings: number; // Cajita Medayork de Nu al 9.35% E.A.: $148.579 COP
-  nequiSavings: number; // Cuenta Nequi: $0.00 COP
-  totalLiquidAvailable: number; // Total Líquido Disponible: $350.579 COP
-  receivablesTotal: number; // Cartera en la calle: $0.00 COP (100% cobrada)
-  pendingFixedExpenses: number; // Gastos fijos próximos: -$12.000 COP (Motilada)
-  realFreeSurplus: number; // Excedente Líquido Libre real: $338.579 COP
-  pendingFamilyContributions: number; // Aportes familiares pendientes: $150.000 COP (Papá $100k + Mamá $50k)
-  totalTripSecuredCapital: number; // Capital total asegurado: $488.579 COP
-  projectedBuffer: number; // Excedente asegurado libre: +$113.579 COP
+  targetBudget: number;
+  cashInHand: number;
+  nuBoxSavings: number;
+  nequiSavings: number;
+  totalLiquidAvailable: number;
+  receivablesTotal: number;
+  pendingFixedExpenses: number;
+  realFreeSurplus: number;
+  pendingFamilyContributions: number;
+  totalTripSecuredCapital: number;
+  projectedBuffer: number;
   housingCovered: boolean;
   statusDiagnostic: 'BIEN 🟢' | 'ATENCIÓN 🟡' | 'CRÍTICO 🔴';
   tacticalRecommendations: {
@@ -175,25 +1096,25 @@ export const initialFinanceData: FinanceSummary = {
   weeklyFlow: {
     dogWalksIncome: [
       { id: 'walk-1', client: 'Elena', dogName: 'Sienna', walksPerWeek: 5, ratePerWalk: 9000, weeklyTotal: 45000 },
-      { id: 'walk-2', client: 'Laura', dogName: 'Frida', walksPerWeek: 5.5, ratePerWalk: 5000, weeklyTotal: 27500 },
+      { id: 'walk-2', client: 'Laura', dogName: 'Frida', walksPerWeek: 5.5, ratePerWalk: 5850, weeklyTotal: 32175 },
     ],
-    upbTransportSavings: 35000, // Aporte pasajes papá ($7.000/día x 5 días) — Tarjeta Estudiantil Gratis ($0 gasto) = $35.000 neto
+    upbTransportSavings: 35000,
     rappiIncome: {
       partner: 'Andrés Bello',
       days: 'Fines de semana (Viernes noche, Sábado y Domingo almuerzo/cena)',
-      grossWeekendTotal: 255200, // ~44 pedidos x $5.800 tarifa integral promedio
+      grossWeekendTotal: 255200,
       operatingCosts: {
-        gasoline: 35600, // ~2.2 galones en moto urbana (~260 km de recorridos)
-        mobileData: 5400, // Paquete datos 3 días app Soy Rappi + Waze
+        gasoline: 35600,
+        mobileData: 5400,
         total: 41000,
       },
-      netWeekendTotal: 214200, // Ganancia neta fin de semana
-      splitPercentage: 50, // 50% Santiago / 50% Andrés Bello
-      myNetWeeklyTotal: 107100, // Mitad limpia para Santiago (~$107.100 COP/fin de semana)
+      netWeekendTotal: 214200,
+      splitPercentage: 50,
+      myNetWeeklyTotal: 107100,
       ordersCompleted: 44,
-      notes: 'Dupla en moto con Andrés Bello en horas pico de fin de semana en Montería (El Recreo, Pasatiempo, Alamedas, Buenavista). Ganancia 100% dividida en mitades.',
+      notes: 'Dupla en moto con Andrés Bello en horas pico de fin de semana en Montería. Ganancia 100% dividida en mitades.',
     },
-    otherWeeklyIncome: 27500, // Trabajos universitarios periódicos (~$120.000 COP/mes)
+    otherWeeklyIncome: 27500,
     volatilityModel: {
       pertMonthlyAverage: 773000,
       pertWeeklyAverage: 178000,
@@ -274,18 +1195,18 @@ export const initialFinanceData: FinanceSummary = {
   ],
   medellinTrip: {
     tripDates: '8 - 12 de Octubre de 2026',
-    targetBudget: 375000, // Costo restante estimado del viaje
-    cashInHand: 202000, // Efectivo en mano
-    nuBoxSavings: 148579, // Cajita Medayork al 9.35% E.A.
+    targetBudget: 375000,
+    cashInHand: 202000,
+    nuBoxSavings: 148579,
     nequiSavings: 0,
-    totalLiquidAvailable: 350579, // Efectivo + Nu
-    receivablesTotal: 0, // Cartera cobrada al 100% (Rappi, Frida, Sienna, Andrés liquidados)
-    pendingFixedExpenses: 12000, // Motilada pendiente hoy
-    realFreeSurplus: 338579, // Excedente Líquido Libre real
-    pendingFamilyContributions: 150000, // Papá debe $100.000 + Mamá debe $50.000
-    totalTripSecuredCapital: 488579, // Total asegurado ($338.579 + $150.000)
-    projectedBuffer: 113579, // Excedente asegurado libre final en Antioquia
-    housingCovered: true, // Airbnb 100% pago ($0 COP)
+    totalLiquidAvailable: 350579,
+    receivablesTotal: 0,
+    pendingFixedExpenses: 12000,
+    realFreeSurplus: 338579,
+    pendingFamilyContributions: 150000,
+    totalTripSecuredCapital: 488579,
+    projectedBuffer: 113579,
+    housingCovered: true,
     statusDiagnostic: 'BIEN 🟢',
     tacticalRecommendations: [
       {
@@ -304,78 +1225,18 @@ export const initialFinanceData: FinanceSummary = {
       },
     ],
     items: [
-      {
-        category: 'Alojamiento (Airbnb)',
-        amount: 0,
-        description: '100% Cubierto y liquidado ($0.00 COP)',
-        status: 'Cubierto',
-      },
-      {
-        category: 'Bus Aeropuerto (Combuses Nutibara)',
-        amount: 40000,
-        description: 'Trayecto Rionegro - Medellín ida y vuelta',
-        status: 'Planificado',
-      },
-      {
-        category: 'Transporte Local (Tarjeta Cívica Metro)',
-        amount: 35000,
-        description: 'Metro, Metrocable y Tranvía de Medellín',
-        status: 'Planificado',
-      },
-      {
-        category: 'Alimentación (5 Días)',
-        amount: 180000,
-        description: 'Ajustado por llegada a la 1:49 p.m. el jueves 8',
-        status: 'Prioritario',
-      },
-      {
-        category: 'Actividades y Salidas',
-        amount: 70000,
-        description: 'Entradas, museos, cafés de especialidad',
-        status: 'Planificado',
-      },
-      {
-        category: 'Reserva de Imprevistos',
-        amount: 50000,
-        description: 'Reserva intocable para contingencias en viaje',
-        status: 'Prioritario',
-      },
+      { category: 'Alojamiento (Airbnb)', amount: 0, description: '100% Cubierto y liquidado ($0.00 COP)', status: 'Cubierto' },
+      { category: 'Bus Aeropuerto (Combuses Nutibara)', amount: 40000, description: 'Trayecto Rionegro - Medellín ida y vuelta', status: 'Planificado' },
+      { category: 'Transporte Local (Tarjeta Cívica Metro)', amount: 35000, description: 'Metro, Metrocable y Tranvía de Medellín', status: 'Planificado' },
+      { category: 'Alimentación (5 Días)', amount: 180000, description: 'Ajustado por llegada a la 1:49 p.m. el jueves 8', status: 'Prioritario' },
+      { category: 'Actividades y Salidas', amount: 70000, description: 'Entradas, museos, cafés de especialidad', status: 'Planificado' },
+      { category: 'Reserva de Imprevistos', amount: 50000, description: 'Reserva intocable para contingencias en viaje', status: 'Prioritario' },
     ],
     receivables: [
-      {
-        id: 'rec-1',
-        client: 'Rappi / Clientes Varios',
-        concept: 'Entregas & Servicios',
-        amount: 0,
-        status: 'Cobrado',
-        notes: 'Cartera 100% liquidada y disponible.',
-      },
-      {
-        id: 'rec-2',
-        client: 'Laura',
-        concept: 'Paseos caninos de Frida',
-        amount: 0,
-        status: 'Cobrado',
-        dogName: 'Frida',
-        notes: '100% cobrado y transferido a Cajita Medayork Nu (9.35%).',
-      },
-      {
-        id: 'rec-3',
-        client: 'Elena',
-        concept: 'Paseos caninos de Sienna',
-        amount: 0,
-        status: 'Cobrado',
-        dogName: 'Sienna',
-        notes: '100% liquidado y cobrado a Elena.',
-      },
-      {
-        id: 'rec-4',
-        client: 'Andrés',
-        concept: 'Cobros pendientes',
-        amount: 0,
-        status: 'Cobrado',
-        notes: 'Liquidado en su totalidad.',
-      },
+      { id: 'rec-1', client: 'Rappi / Clientes Varios', concept: 'Entregas & Servicios', amount: 0, status: 'Cobrado', notes: 'Cartera 100% liquidada y disponible.' },
+      { id: 'rec-2', client: 'Laura', concept: 'Paseos caninos de Frida', amount: 0, status: 'Cobrado', dogName: 'Frida', notes: '100% cobrado y transferido a Cajita Medayork Nu (9.35%).' },
+      { id: 'rec-3', client: 'Elena', concept: 'Paseos caninos de Sienna', amount: 0, status: 'Cobrado', dogName: 'Sienna', notes: '100% liquidado y cobrado a Elena.' },
+      { id: 'rec-4', client: 'Andrés', concept: 'Cobros pendientes', amount: 0, status: 'Cobrado', notes: 'Liquidado en su totalidad.' },
     ],
   },
 };
