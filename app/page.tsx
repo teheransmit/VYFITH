@@ -17,15 +17,14 @@ import {
 } from 'lucide-react';
 import DashboardOverview from '@/components/DashboardOverview';
 import GoogleHealthConnector from '@/components/GoogleHealthConnector';
-import GoogleCalendarSection from '@/components/GoogleCalendarSection';
 import AcademicGradesSection from '@/components/AcademicGradesSection';
 import HevyWorkoutsSection from '@/components/HevyWorkoutsSection';
 import FinanceSection from '@/components/FinanceSection';
 import UpbWalkSimulatorSection from '@/components/UpbWalkSimulatorSection';
 import ScientificNotesSection from '@/components/ScientificNotesSection';
 import MobileTravelDashboard from '@/components/MobileTravelDashboard';
-import ScheduleManagerSection from '@/components/ScheduleManagerSection';
 import UnifiedGymHevySection from '@/components/UnifiedGymHevySection';
+import UnifiedScheduleCalendarSection from '@/components/UnifiedScheduleCalendarSection';
 import PersonalBioAssistant from '@/components/PersonalBioAssistant';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
@@ -205,13 +204,13 @@ function HomeDashboard() {
               <button
                 onClick={() => setActiveTab('horario')}
                 className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'horario'
+                  activeTab === 'horario' || activeTab === 'calendar'
                     ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-600/20'
                     : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <Calendar className={`w-3.5 h-3.5 ${activeTab === 'horario' ? 'text-white' : 'text-blue-500'}`} />
-                <span>Horario UPB (Notion)</span>
+                <Calendar className={`w-3.5 h-3.5 ${activeTab === 'horario' || activeTab === 'calendar' ? 'text-white' : 'text-blue-500'}`} />
+                <span>Agenda & Horario UPB</span>
               </button>
               <button
                 onClick={() => setActiveTab('health')}
@@ -223,17 +222,6 @@ function HomeDashboard() {
               >
                 <Activity className={`w-3.5 h-3.5 ${activeTab === 'health' ? 'text-white' : 'text-indigo-500'}`} />
                 <span>Salud & VYFITH_APP</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('calendar')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'calendar'
-                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Calendar className={`w-3.5 h-3.5 ${activeTab === 'calendar' ? 'text-white' : 'text-blue-500'}`} />
-                <span>Google Calendar</span>
               </button>
               <button
                 onClick={() => setActiveTab('grades')}
@@ -300,22 +288,15 @@ function HomeDashboard() {
                   <UnifiedGymHevySection />
                 </div>
               )}
-              {activeTab === 'horario' && (
+              {(activeTab === 'horario' || activeTab === 'calendar') && (
                 <div className="animate-fadeIn">
-                  <ScheduleManagerSection />
+                  <UnifiedScheduleCalendarSection />
                 </div>
               )}
 
               {activeTab === 'health' && (
                 <div className="animate-fadeIn">
                   <GoogleHealthConnector />
-                </div>
-              )}
-
-
-              {activeTab === 'calendar' && (
-                <div className="animate-fadeIn">
-                  <GoogleCalendarSection />
                 </div>
               )}
 

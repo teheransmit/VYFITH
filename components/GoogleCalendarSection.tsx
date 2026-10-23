@@ -324,7 +324,7 @@ const STATIC_SAMPLE_EVENTS: CalendarEvent[] = [
 
 export default function GoogleCalendarSection() {
   const [user, setUser] = useState<CalendarUser | null>({
-    displayName: 'Santiago Smith',
+    displayName: 'Santiago Smit Teherán Mogollón',
     email: 'santiagosmitttt@gmail.com',
   });
   const [events, setEvents] = useState<CalendarEvent[]>([]);
