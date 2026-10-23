@@ -120,70 +120,6 @@
       {
         "email": "santiagosmitttt@gmail.com",
         "organizer": true,
-        "responseStatus": "needsAction",
-        "self": true
-      }
-    ],
-    "conferenceData": {
-      "conferenceId": "cqx-tgbv-jqg",
-      "conferenceSolution": {
-        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
-        "key": {
-          "type": "hangoutsMeet"
-        },
-        "name": "Google Meet"
-      },
-      "entryPoints": [
-        {
-          "entryPointType": "video",
-          "label": "meet.google.com/cqx-tgbv-jqg",
-          "uri": "https://meet.google.com/cqx-tgbv-jqg"
-        }
-      ]
-    },
-    "created": "2026-07-22T17:10:02.000Z",
-    "creator": {
-      "email": "santiagosmitttt@gmail.com",
-      "self": true
-    },
-    "end": {
-      "dateTime": "2026-10-22T18:00:00-05:00",
-      "timeZone": "America/Bogota"
-    },
-    "etag": "\"3583833449940318\"",
-    "eventLabelId": "288a09de-8ff9-4fd2-8e65-b3c6689b36a4",
-    "eventType": "default",
-    "hangoutLink": "https://meet.google.com/cqx-tgbv-jqg",
-    "htmlLink": "https://www.google.com/calendar/event?eid=c3Q5YXRwcTc4bXFxamxxOTh2OGo0NmlnM2JfMjAyNjEwMjJUMjEwMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
-    "iCalUID": "st9atpq78mqqjlq98v8j46ig3b_R20261001T210000@google.com",
-    "id": "st9atpq78mqqjlq98v8j46ig3b_20261022T210000Z",
-    "kind": "calendar#event",
-    "organizer": {
-      "email": "santiagosmitttt@gmail.com",
-      "self": true
-    },
-    "originalStartTime": {
-      "dateTime": "2026-10-22T16:00:00-05:00",
-      "timeZone": "America/Bogota"
-    },
-    "recurringEventId": "st9atpq78mqqjlq98v8j46ig3b_R20261001T210000",
-    "reminders": {
-      "useDefault": true
-    },
-    "sequence": 2,
-    "start": {
-      "dateTime": "2026-10-22T16:00:00-05:00",
-      "timeZone": "America/Bogota"
-    },
-    "status": "confirmed",
-    "summary": "Arms & Shoulders",
-    "updated": "2026-10-13T18:38:44.970Z"
-  },
-  {
-    "attendees": [
-      {
-        "email": "santiagosmitttt@gmail.com",
-        "organizer": true,
         "responseStatus": "accepted",
         "self": true
       }
@@ -1929,7 +1865,7 @@
       "dateTime": "2026-10-29T18:00:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3583833449940318\"",
+    "etag": "\"3585374384217150\"",
     "eventLabelId": "288a09de-8ff9-4fd2-8e65-b3c6689b36a4",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/cqx-tgbv-jqg",
@@ -1956,7 +1892,7 @@
     },
     "status": "confirmed",
     "summary": "Arms & Shoulders",
-    "updated": "2026-10-13T18:38:44.970Z"
+    "updated": "2026-10-22T16:39:52.108Z"
   },
   {
     "attendees": [
@@ -3711,7 +3647,7 @@
       "dateTime": "2026-11-05T18:00:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3583833449940318\"",
+    "etag": "\"3585374384217150\"",
     "eventLabelId": "288a09de-8ff9-4fd2-8e65-b3c6689b36a4",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/cqx-tgbv-jqg",
@@ -3738,7 +3674,7 @@
     },
     "status": "confirmed",
     "summary": "Arms & Shoulders",
-    "updated": "2026-10-13T18:38:44.970Z"
+    "updated": "2026-10-22T16:39:52.108Z"
   },
   {
     "attendees": [
@@ -5493,7 +5429,7 @@
       "dateTime": "2026-11-12T18:00:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3583833449940318\"",
+    "etag": "\"3585374384217150\"",
     "eventLabelId": "288a09de-8ff9-4fd2-8e65-b3c6689b36a4",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/cqx-tgbv-jqg",
@@ -5520,7 +5456,7 @@
     },
     "status": "confirmed",
     "summary": "Arms & Shoulders",
-    "updated": "2026-10-13T18:38:44.970Z"
+    "updated": "2026-10-22T16:39:52.108Z"
   },
   {
     "attendees": [
@@ -5588,5 +5524,42 @@
     "summary": "PROGRAMACIÓN Y PRESUPUESTO",
     "updated": "2026-10-22T16:35:06.416Z",
     "visibility": "public"
+  },
+  {
+    "created": "2026-07-09T23:44:28.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-11-12T21:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573795710921118\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=MDJuYjVoZG5tZWhzZjhyNGtlbmhwN2UxbzVfMjAyNjExMTNUMDE0NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "02nb5hdnmehsf8r4kenhp7e1o5@google.com",
+    "id": "02nb5hdnmehsf8r4kenhp7e1o5_20261113T014500Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-11-12T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "02nb5hdnmehsf8r4kenhp7e1o5",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-11-12T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-16T16:30:55.460Z"
   }
 ]

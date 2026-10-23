@@ -95,7 +95,7 @@ export default function AcademicGradesSection() {
           <Sparkles className="w-4 h-4" />
         </div>
         <div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
-          <strong>Diagnóstico Estratégico de Exámenes Finales:</strong> En <strong>Análisis de Estructuras</strong>, con el <strong>3.70</strong> del Avance 5 tu acumulado sube a <strong>2.11 / 5.00</strong> (70% evaluado). <strong>Necesitas 2.97 (un 3.0 pelado) en el Examen Final (30%)</strong> para pasar la materia y habilitar Concreto I. En <strong>Mecánica de Suelos</strong> la tienes casi aprobada con 2.45 acumulados (solo requieres 1.53 en lo restante).
+          <strong>Diagnóstico Estratégico de Notas & Cortes Finales:</strong> En <strong>Programación y Presupuesto</strong> se asentó hoy un <strong>4.40 en el Quiz (30%)</strong> disparando tu acumulado a <strong>2.55 / 5.00</strong> (solo requieres <strong>1.30</strong> en lo restante para asegurar la materia). En <strong>Mecánica de Suelos</strong> se asentó el Examen II (1.00, 10%) situando tu acumulado en <strong>2.55 / 5.00</strong> (74% evaluado, requieres solo <strong>1.73</strong> en el 26% restante). En <strong>Vías II</strong> acumulas <strong>2.18 / 5.00</strong> (requieres <strong>2.36</strong>) y en <strong>Análisis de Estructuras</strong> acumulas <strong>2.11 / 5.00</strong> (requieres <strong>2.97</strong> en el Examen Final).
         </div>
       </div>
 
