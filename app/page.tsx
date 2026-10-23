@@ -161,7 +161,7 @@ function HomeDashboard() {
             </header>
 
             {/* Barra de Navegación por Pilares (8 Pilares) */}
-            <nav className="mb-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            <nav className="mb-8 flex items-center gap-2 overflow-x-auto pb-3 custom-nav-scrollbar">
               <button
                 onClick={() => setActiveTab('overview')}
                 className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
