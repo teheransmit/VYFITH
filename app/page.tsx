@@ -135,14 +135,14 @@ function HomeDashboard() {
               </div>
 
               {/* Botones de Acción Superior: Sesión de Usuario, Modo Oscuro / Claro y Estado */}
-              <div className="flex items-center gap-2.5 self-start md:self-center flex-wrap">
+              <div className="flex items-center gap-2 self-stretch sm:self-start md:self-center flex-wrap justify-between sm:justify-start">
                 {/* Badge de Sesión de Usuario con Botón de Cerrar Sesión */}
                 <UserSessionBadge session={session} onLogout={logout} />
 
                 {/* Botón Paleta de Comandos Cmd+K */}
                 <button
                   onClick={() => setIsCommandOpen(true)}
-                  className="cursor-pointer px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs transition-all flex items-center gap-2 group"
+                  className="cursor-pointer px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs transition-all flex items-center gap-1.5 sm:gap-2 group"
                   title="Abrir buscador y comandos rápidos (Ctrl+K / Cmd+K)"
                 >
                   <Search className="w-4 h-4 text-indigo-500" />
@@ -154,23 +154,23 @@ function HomeDashboard() {
                 <button
                   onClick={toggleTheme}
                   aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-                  className="cursor-pointer px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs transition-all flex items-center gap-2 group"
+                  className="cursor-pointer px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs transition-all flex items-center gap-1.5 sm:gap-2 group"
                 >
                   {isDarkMode ? (
                     <>
                       <Sun className="w-4 h-4 text-amber-400 transition-transform group-hover:rotate-45" />
-                      <span className="text-xs font-bold text-slate-200">Modo Claro</span>
+                      <span className="text-xs font-bold text-slate-200 hidden xs:inline sm:inline">Claro</span>
                     </>
                   ) : (
                     <>
                       <Moon className="w-4 h-4 text-indigo-600 transition-transform group-hover:-rotate-12" />
-                      <span className="text-xs font-bold text-slate-700">Modo Oscuro</span>
+                      <span className="text-xs font-bold text-slate-700 hidden xs:inline sm:inline">Oscuro</span>
                     </>
                   )}
                 </button>
 
-                {/* Badge de Ecosistema */}
-                <div className="px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-3">
+                {/* Badge de Ecosistema (Oculto en móviles para evitar saturación de pantalla) */}
+                <div className="hidden md:flex px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs items-center gap-3">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                   <div className="text-xs">
                     <span className="font-bold text-slate-900 dark:text-white block">Ecosistema Completo</span>

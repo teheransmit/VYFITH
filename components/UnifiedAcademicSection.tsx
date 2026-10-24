@@ -52,7 +52,7 @@ export default function UnifiedAcademicSection() {
           </div>
 
           {/* Sub-Selector de Vista */}
-          <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl border border-amber-500/30 p-2 shrink-0 shadow-lg flex flex-col sm:flex-row items-center gap-1.5 self-start lg:self-center">
+          <div className="w-full lg:w-auto bg-slate-900/90 backdrop-blur-md rounded-2xl border border-amber-500/30 p-2 shrink-0 shadow-lg flex flex-col sm:flex-row items-center gap-1.5 self-stretch lg:self-center">
             <button
               onClick={() => setViewType('combined')}
               className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${

@@ -3,7 +3,14 @@ import FetchInterceptor from '@/components/FetchInterceptor';
 import './globals.css'; // Global styles
 
 export const viewport: Viewport = {
-  themeColor: '#064e3b',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#047857' },
+    { media: '(prefers-color-scheme: dark)', color: '#030712' },
+  ],
 };
 
 export const metadata: Metadata = {

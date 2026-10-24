@@ -203,14 +203,14 @@ export default function MuscleHeatmap() {
                 <button
                   key={m.id}
                   onClick={() => setSelectedMuscle(m.id)}
-                  className={`cursor-pointer p-3 rounded-xl border text-left transition-all ${
+                  className={`cursor-pointer p-2 sm:p-3 rounded-xl border text-left transition-all ${
                     isSelected
                       ? 'bg-rose-50 dark:bg-rose-950/80 border-rose-300 dark:border-rose-700 shadow-xs'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                    <span className="text-[11px] sm:text-xs font-bold text-slate-900 dark:text-white truncate">
                       {m.name}
                     </span>
                     <span
@@ -218,7 +218,7 @@ export default function MuscleHeatmap() {
                       style={{ backgroundColor: m.color }}
                     />
                   </div>
-                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block">
+                  <span className="text-[10px] sm:text-[11px] font-mono text-slate-500 dark:text-slate-400 block">
                     {m.sets} series / sem
                   </span>
                 </button>

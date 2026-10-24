@@ -60,7 +60,7 @@ export default function DateRangePicker({
       </div>
 
       {/* Selector de Rangos (7, 30, 90 días) */}
-      <div className="flex items-center bg-slate-100/90 dark:bg-slate-800/90 p-1 rounded-xl self-start md:self-auto gap-1">
+      <div className="w-full md:w-auto flex items-center justify-between md:justify-start bg-slate-100/90 dark:bg-slate-800/90 p-1 rounded-xl gap-1">
         {PRESETS.map((preset) => {
           const isSelected = selectedRange === preset.days;
           return (
@@ -68,7 +68,7 @@ export default function DateRangePicker({
               key={preset.days}
               type="button"
               onClick={() => onRangeChange(preset.days)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`flex-1 md:flex-initial justify-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
                 isSelected
                   ? 'bg-white dark:bg-indigo-600 text-indigo-700 dark:text-white shadow-xs font-bold border border-slate-200/60 dark:border-indigo-500'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-700/50'

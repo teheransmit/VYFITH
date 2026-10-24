@@ -300,31 +300,31 @@ export default function ScheduleManagerSection() {
         </div>
 
         {/* Acciones */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <button
             onClick={handleExportIcs}
-            className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
+            className="cursor-pointer flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
             title="Descargar archivo estándar .ics compatible con Google Calendar, Apple Calendar y Outlook"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Exportar Calendario (.ics)</span>
+            <span>Exportar .ics</span>
           </button>
           <a
             href="https://vine-sternum-6db.notion.site/HORARIO-210f834da25880df9892f70cb70c5e24"
             target="_blank"
             rel="noopener noreferrer"
-            className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
+            className="cursor-pointer flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>Notion Site Oficial</span>
+            <span>Notion Oficial</span>
           </a>
 
           <button
             onClick={handlePrintPdf}
-            className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
+            className="cursor-pointer flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>Exportar PDF / Imprimir</span>
+            <span>PDF / Imprimir</span>
           </button>
         </div>
       </div>
@@ -385,7 +385,11 @@ export default function ScheduleManagerSection() {
 
       {/* VISTA 1: REJILLA SEMANAL INTERACTIVA (Similar a GitHub Pages Horario) */}
       {filterView === 'grid' && (
-        <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+        <div className="space-y-2">
+          <div className="sm:hidden flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-900/40 text-[11px] font-medium text-blue-700 dark:text-blue-300 text-center">
+            <span>👉 Desliza horizontalmente para ver todos los días de la semana</span>
+          </div>
+          <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl scrollbar-none sm:custom-nav-scrollbar">
           <div className="min-w-[800px] grid grid-cols-7 divide-x divide-slate-200 dark:divide-slate-800 bg-slate-50/50 dark:bg-slate-950/60">
             {/* Columna Horas */}
             <div className="p-3">
@@ -449,6 +453,7 @@ export default function ScheduleManagerSection() {
               );
             })}
           </div>
+        </div>
         </div>
       )}
 

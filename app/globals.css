@@ -368,3 +368,34 @@ html:not(.dark) .custom-nav-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(90deg, #4338ca 0%, #4f46e5 100%) !important;
   box-shadow: 0 3px 10px rgba(79, 70, 229, 0.5);
 }
+
+
+/* ==========================================================================
+   OPTIMIZACIÓN RESPONSIVA MÓVIL Y PANTALLAS TÁCTILES (PIXEL 8 PRO / IPHONE)
+   ========================================================================== */
+@media (max-width: 640px), (pointer: coarse) {
+  .custom-nav-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    padding-bottom: 0.25rem !important;
+    -webkit-overflow-scrolling: touch;
+    cursor: auto !important;
+  }
+
+  .custom-nav-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    height: 0px !important;
+    width: 0px !important;
+  }
+
+  /* Suavizado táctil general para contenedores scrolleables en móviles */
+  .scrollbar-none {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none !important;
+  }
+}

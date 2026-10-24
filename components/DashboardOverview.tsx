@@ -225,7 +225,7 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
   const xAxisInterval = selectedRange === 7 ? 0 : selectedRange === 30 ? 4 : 11;
 
   return (
-    <section className="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-slate-800 mb-10 transition-colors">
+    <section className="w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-8 shadow-xs border border-slate-200/80 dark:border-slate-800 mb-10 transition-colors">
       {/* Date-range picker en la parte superior del Dashboard */}
       <div className="mb-6">
         <DateRangePicker
@@ -255,7 +255,7 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
         </div>
 
         {/* Selector de Vista del Gráfico */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl self-start sm:self-center">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl self-start sm:self-center overflow-x-auto max-w-full scrollbar-none py-1">
           <button
             onClick={() => setViewMode('combined')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
@@ -406,16 +406,16 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
 
       {/* Gráfico Recharts Principal */}
       <div className="mt-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl p-4 sm:p-6 border border-slate-100 dark:border-slate-800">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-indigo-600" />
-            <h3 className="text-sm font-semibold text-slate-800">
+            <TrendingUp className="w-4 h-4 text-indigo-600 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
               {viewMode === 'combined' && 'Correlación: Pasos y Actividad Física vs Gasto Financiero'}
               {viewMode === 'correlation' && 'Balance de Esfuerzo: Recuperación (HRV) vs Carga de Entrenamiento (Hevy)'}
               {viewMode === 'wellness' && 'Inversión en Salud y Nutrición vs Actividad'}
             </h3>
           </div>
-          <div className="text-xs text-slate-400 flex items-center gap-1 font-mono" suppressHydrationWarning>
+          <div className="text-xs text-slate-400 flex items-center gap-1 font-mono shrink-0" suppressHydrationWarning>
             <Calendar className="w-3.5 h-3.5" />
             {startDateStr} — {endDateStr}
           </div>
