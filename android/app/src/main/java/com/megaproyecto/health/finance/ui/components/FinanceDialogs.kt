@@ -193,7 +193,7 @@ fun AddEditExpenseDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Nombre o Concepto (ej. Vuelos, SuscripciÃ³n)") },
+                    label = { Text("Nombre o Concepto (ej. Vuelos, Suscripción)") },
                     singleLine = true,
                     shape = RectangleShape,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -395,7 +395,7 @@ fun EditDadContributionDialog(
         containerColor = DarkSurfaceCard,
         title = {
             Text(
-                text = "ðŸ‘¨â€ðŸ‘¦ Configurar Abono de PapÃ¡",
+                text = "👨‍👦 Configurar Abono de Papá",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -404,7 +404,7 @@ fun EditDadContributionDialog(
         text = {
             Column {
                 Text(
-                    text = "Ajusta el monto total que tu papÃ¡ aportarÃ¡ para el viaje y lo que ya te ha entregado.",
+                    text = "Ajusta el monto total que tu papá aportará para el viaje y lo que ya te ha entregado.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -415,7 +415,7 @@ fun EditDadContributionDialog(
                     onValueChange = { input ->
                         committedText = input.filter { it.isDigit() || it == '.' }
                     },
-                    label = { Text("Total Comprometido por PapÃ¡ ($)") },
+                    label = { Text("Total Comprometido por Papá ($)") },
                     leadingIcon = {
                         Icon(
                             Icons.Default.AttachMoney,
@@ -469,7 +469,7 @@ fun EditDadContributionDialog(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Pendiente por recibir de papÃ¡: ${CurrencyUtils.formatCOP(pending)}",
+                    text = "Pendiente por recibir de papá: ${CurrencyUtils.formatCOP(pending)}",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = if (pending > 0) HighDensityLavender else EmeraldGreen
@@ -514,7 +514,7 @@ fun RegisterDadAbonoDialog(
         containerColor = DarkSurfaceCard,
         title = {
             Text(
-                text = "ðŸ’° Registrar Nuevo Abono de PapÃ¡",
+                text = "💰 Registrar Nuevo Abono de Papá",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -523,7 +523,7 @@ fun RegisterDadAbonoDialog(
         text = {
             Column {
                 Text(
-                    text = "Â¿CuÃ¡nto te acaba de transferir o entregar tu papÃ¡? (Faltan ${CurrencyUtils.formatCOP(pendingAmount)})",
+                    text = "¿Cuánto te acaba de transferir o entregar tu papá? (Faltan ${CurrencyUtils.formatCOP(pendingAmount)})",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -559,7 +559,7 @@ fun RegisterDadAbonoDialog(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Â¿A quÃ© cuenta ingresÃ³ el dinero?",
+                    text = "¿A qué cuenta ingresó el dinero?",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = TextSecondary
@@ -604,7 +604,7 @@ fun RegisterDadAbonoDialog(
                 shape = RectangleShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = EmeraldGreen,
-                    contentColor = com.example.ui.theme.EmeraldGreenDark
+                    contentColor = com.megaproyecto.health.finance.ui.theme.EmeraldGreenDark
                 )
             ) {
                 Text("Registrar Abono", fontWeight = FontWeight.Bold)
@@ -633,7 +633,7 @@ fun AddPendingDebtDialog(
         containerColor = DarkSurfaceCard,
         title = {
             Text(
-                text = "ðŸ“ Nueva Deuda Pendiente",
+                text = "📝 Nueva Deuda Pendiente",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -642,7 +642,7 @@ fun AddPendingDebtDialog(
         text = {
             Column {
                 Text(
-                    text = "Registra a quiÃ©n le prestaste dinero y cuÃ¡nto te debe:",
+                    text = "Registra a quién le prestaste dinero y cuánto te debe:",
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -704,7 +704,7 @@ fun AddPendingDebtDialog(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("Motivo / Concepto (opcional)") },
-                    placeholder = { Text("Ej. Almuerzo, salida viernes, prÃ©stamo") },
+                    placeholder = { Text("Ej. Almuerzo, salida viernes, préstamo") },
                     singleLine = true,
                     shape = RectangleShape,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -773,7 +773,7 @@ fun SettleDebtDialog(
         containerColor = DarkSurfaceCard,
         title = {
             Text(
-                text = "ðŸ’° Registrar Pago Recibido",
+                text = "💰 Registrar Pago Recibido",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -782,7 +782,7 @@ fun SettleDebtDialog(
         text = {
             Column {
                 Text(
-                    text = "Â¡${debt.debtorName} te pagÃ³ ${CurrencyUtils.formatCOP(debt.amount)}!",
+                    text = "¡${debt.debtorName} te pagó ${CurrencyUtils.formatCOP(debt.amount)}!",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = EmeraldGreen
@@ -800,7 +800,7 @@ fun SettleDebtDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Â¿En quÃ© medio o cuenta recibiste este pago?",
+                    text = "¿En qué medio o cuenta recibiste este pago?",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
@@ -867,7 +867,7 @@ fun SettleDebtDialog(
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "âœ“ Se sumarÃ¡n ${CurrencyUtils.formatCOP(debt.amount)} a tu saldo de $selectedAccount y la deuda se marcarÃ¡ como saldada.",
+                    text = "✓ Se sumarán ${CurrencyUtils.formatCOP(debt.amount)} a tu saldo de $selectedAccount y la deuda se marcará como saldada.",
                     style = MaterialTheme.typography.bodySmall,
                     fontSize = 11.sp,
                     color = HighDensityLavender

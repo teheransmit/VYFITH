@@ -1,35 +1,40 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  User,
   Sparkles,
   Send,
-  Code,
-  GraduationCap,
-  Dumbbell,
-  Compass,
-  CheckCircle2,
-  ExternalLink,
   Github,
-  Award,
-  Layers,
-  Heart,
+  ExternalLink,
+  Settings,
+  Key,
+  Check,
+  Copy,
+  Trash2,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  Bot,
+  Zap,
 } from 'lucide-react';
+import { localSemanticFallback } from '@/lib/santiagoKnowledgeBase';
 
 interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
+  source?: 'gemini-ai' | 'local-fallback' | 'initial';
+  model?: string;
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'assistant',
-    text: '¡Hola! Soy el asistente interactivo de presentación personal de Santiago Smit Teherán Mogollón. Estoy aquí para contarte sobre su perfil como estudiante de Ingeniería Civil e Hidroinformática en la UPB Montería, sus proyectos de software, su rendimiento académico y sus metas. ¿Qué te gustaría conocer?',
+    text: '¡Hola! Soy el asistente interactivo de presentación de Santiago Smit Teherán Mogollón, potenciado con Google Gemini. Puedo responderte sobre su perfil como Ingeniero Civil Computacional en la UPB Montería, sus proyectos en GitHub, sus notas en Análisis de Estructuras, su meta física en Hevy o sus finanzas en Nu. ¿Qué deseas consultar?',
     timestamp: 'Ahora',
+    source: 'initial',
   },
 ];
 
@@ -38,33 +43,93 @@ const PREDEFINED_QUESTIONS = [
   '¿Cuáles son sus proyectos destacados de software e ingeniería?',
   '¿Cómo va su rendimiento académico en el 6° semestre de la UPB?',
   '¿Cuál es su disciplina deportiva y meta en el gimnasio?',
+  '¿Cómo están sus finanzas personales y su Cajita de Nu?',
+  '¿Qué perros pasea y cuál es su rutina diaria?',
 ];
 
 export default function PersonalBioAssistant() {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [customApiKey, setCustomApiKey] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [showKeyText, setShowKeyText] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [isTestingKey, setIsTestingKey] = useState(false);
+  const [activeModel, setActiveModel] = useState('Gemini 3.5 Flash');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  const generateAnswer = (query: string): string => {
-    const q = query.toLowerCase();
-    if (q.includes('quién') || q.includes('pasion') || q.includes('perfil') || q.includes('bio')) {
-      return 'Santiago Smit Teherán Mogollón tiene 19 años y cursa 6° semestre de Ingeniería Civil en la Universidad Pontificia Bolivariana (Seccional Montería). Destaca por un percentil 97 nacional en Matemáticas (ICFES) y un PGA de 3.93/5.00 con calificaciones perfectas en Ecuaciones Diferenciales (5.00). Su verdadera pasión es la intersección entre la física civil y la computación: la Hidroinformática, el modelado matemático, la automatización y el desarrollo de software.';
+  // Cargar API Key personalizada desde localStorage si existe
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedKey = localStorage.getItem('vyfith_gemini_api_key');
+      if (storedKey) {
+        setCustomApiKey(storedKey);
+      }
     }
-    if (q.includes('proyecto') || q.includes('software') || q.includes('github') || q.includes('repositorio')) {
-      return 'Entre sus proyectos clave destacan:\n1. colouring-monteria: Plataforma open-source para cartografía de atributos constructivos de edificaciones en Montería.\n2. Horario- (GitHub Pages): Gestor de horarios universitarios publicado y embebido en su Notion Site oficial.\n3. VYFITH: Plataforma integral de salud biométrica HL7 FHIR, entrenamientos Hevy y finanzas personales.\n4. Guías técnicas: Documentación del proceso constructivo de zapatas y columnas.';
+  }, []);
+
+  // Auto-scroll al final del chat en cada nuevo mensaje
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
+
+  const handleSaveKey = () => {
+    if (typeof window !== 'undefined') {
+      if (customApiKey.trim()) {
+        localStorage.setItem('vyfith_gemini_api_key', customApiKey.trim());
+        setSaveStatus('Clave guardada exitosamente');
+      } else {
+        localStorage.removeItem('vyfith_gemini_api_key');
+        setSaveStatus('Usando clave oficial del servidor (.env.local)');
+      }
+      setTimeout(() => setSaveStatus(null), 3500);
     }
-    if (q.includes('semestre') || q.includes('upb') || q.includes('nota') || q.includes('academ')) {
-      return 'En el semestre 2026-II cursa 13 créditos. Su materia foco prioritaria es Análisis de Estructuras (NRC 52885), donde tras obtener 3.70 en el Avance 5 acumula 2.11/5.00 (70% evaluado), necesitando 2.97 (~3.0) en el Examen Final para aprobar y desbloquear Concreto I. En Mecánica de Suelos ya cuenta con 2.45 acumulados, prácticamente asegurando la materia.';
-    }
-    if (q.includes('gym') || q.includes('hevy') || q.includes('deporte') || q.includes('meta') || q.includes('físic')) {
-      return 'Santiago entrena con un split de 6 días a la semana registrado en Hevy. Actualmente pesa 57 kg a 170 cm de estatura y tiene 8 abdominales visibles, con la meta enfocada de alcanzar 60 kg de masa muscular limpia. Prioriza tríceps, antebrazos y pantorrillas, registrando meticulosamente el tonelaje levantado, series efectivas (W/F/D) y RPE.';
-    }
-    return `Santiago es un perfil híbrido escaso: Ingeniero Civil e Hidroinformático. Combina la rigurosidad del cálculo estructural y la modelación hidrológica con el desarrollo de software moderno (Next.js, Python, TypeScript, PyQGIS) y una estricta disciplina física de recuperación y entrenamiento.`;
   };
 
-  const handleSend = (textToSend?: string) => {
+  const handleTestKey = async () => {
+    setIsTestingKey(true);
+    setSaveStatus('Probando conexión con Google Gemini...');
+    try {
+      const res = await fetch('/api/bio-assistant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{ role: 'user', text: 'Ping de prueba. Responde: Conexión exitosa.' }],
+          apiKey: customApiKey.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.source === 'gemini-ai') {
+        setSaveStatus(`Conexión exitosa con ${data.model || 'Gemini 3.5 Flash'} 🟢`);
+        setActiveModel(data.model || 'Gemini 3.5 Flash');
+      } else {
+        setSaveStatus(`Respuesta recibida en modo seguro (${data.source}) 🟡`);
+      }
+    } catch {
+      setSaveStatus('Error de conexión de red 🔴');
+    } finally {
+      setIsTestingKey(false);
+      setTimeout(() => setSaveStatus(null), 4000);
+    }
+  };
+
+  const handleClearChat = () => {
+    setMessages(INITIAL_MESSAGES);
+  };
+
+  const handleCopy = (text: string, id: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  const handleSend = async (textToSend?: string) => {
     const text = textToSend || inputValue.trim();
-    if (!text) return;
+    if (!text || isTyping) return;
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -73,47 +138,112 @@ export default function PersonalBioAssistant() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const newHistory = [...messages, userMsg];
+    setMessages(newHistory);
     if (!textToSend) setInputValue('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const reply = generateAnswer(text);
+    try {
+      // Formatear mensajes para el endpoint
+      const payloadMessages = newHistory.map((m) => ({
+        role: (m.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+        text: m.text,
+      }));
+
+      const res = await fetch('/api/bio-assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(customApiKey.trim() ? { 'x-gemini-api-key': customApiKey.trim() } : {}),
+        },
+        body: JSON.stringify({
+          messages: payloadMessages,
+          apiKey: customApiKey.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      let replyText = '';
+      let replySource: 'gemini-ai' | 'local-fallback' = 'gemini-ai';
+      let replyModel = 'gemini-3.5-flash';
+
+      if (data && data.success && data.reply) {
+        replyText = data.reply;
+        replySource = data.source === 'gemini-ai' ? 'gemini-ai' : 'local-fallback';
+        replyModel = data.model || 'gemini-3.5-flash';
+        setActiveModel(replyModel);
+      } else {
+        replyText = localSemanticFallback(text);
+        replySource = 'local-fallback';
+      }
+
       const assistantMsg: ChatMessage = {
         id: `a-${Date.now()}`,
         sender: 'assistant',
-        text: reply,
+        text: replyText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        source: replySource,
+        model: replyModel,
       };
+
       setMessages((prev) => [...prev, assistantMsg]);
+    } catch (err) {
+      console.warn('[PersonalBioAssistant] Error de red, usando fallback semántico:', err);
+      const fallbackReply = localSemanticFallback(text);
+      const fallbackMsg: ChatMessage = {
+        id: `a-${Date.now()}`,
+        sender: 'assistant',
+        text: fallbackReply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        source: 'local-fallback',
+        model: 'local',
+      };
+      setMessages((prev) => [...prev, fallbackMsg]);
+    } finally {
       setIsTyping(false);
-    }, 600);
+    }
   };
 
   return (
-    <section id="personal-bio-assistant" className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10">
+    <section
+      id="personal-bio-assistant"
+      className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10 transition-all"
+    >
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80">
               <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              Asistente de Presentación Personal (Notion AGENDA)
+              Asistente Interactivo IA • Google Gemini
             </span>
-            <span className="text-xs font-mono text-slate-400 dark:text-slate-500">
-              Perfil Ejecutivo • Santiago Smit Teherán Mogollón
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {activeModel}
+            </span>
+            <span className="text-xs font-mono text-slate-400 dark:text-slate-500 hidden sm:inline">
+              ID: 000533630 • UPB Montería
             </span>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Bio Interactiva & Portafolio de Ingeniería
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl mt-1">
-            Módulo interactivo concebido en Notion para presentar la trayectoria, proyectos y visión técnica de Santiago ante evaluadores, reclutadores o colegas.
+            Módulo interactivo con IA en tiempo real para presentar la trayectoria, código, notas universitarias, metas físicas y finanzas de Santiago ante evaluadores y colegas.
           </p>
         </div>
 
-        {/* Enlaces de Perfil */}
+        {/* Enlaces de Perfil y Botón de Ajustes */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700 transition-colors shadow-xs"
+            title="Configurar Gemini API Key"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            <span>Configurar API</span>
+          </button>
           <a
             href="https://github.com/teheransmit"
             target="_blank"
@@ -134,6 +264,72 @@ export default function PersonalBioAssistant() {
           </a>
         </div>
       </div>
+
+      {/* Panel Desplegable de Configuración de API Key */}
+      {showSettings && (
+        <div className="my-5 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Key className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Configuración de Google Gemini API Key
+              </h3>
+            </div>
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+              Inyectada en servidor: .env.local
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
+            El sistema ya cuenta con la clave oficial de Santiago configurada en el servidor. Si deseas usar una clave propia de Google AI Studio, puedes ingresarla aquí (se guardará exclusivamente en tu navegador).
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            <div className="relative flex-1">
+              <input
+                type={showKeyText ? 'text' : 'password'}
+                value={customApiKey}
+                onChange={(e) => setCustomApiKey(e.target.value)}
+                placeholder="Pega tu API Key de Google AI Studio (ej. AQ.Ab8RN...)"
+                className="w-full px-3.5 py-2 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+              />
+              <button
+                type="button"
+                onClick={() => setShowKeyText(!showKeyText)}
+                className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                {showKeyText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSaveKey}
+                className="cursor-pointer px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+              >
+                Guardar
+              </button>
+              <button
+                type="button"
+                onClick={handleTestKey}
+                disabled={isTestingKey}
+                className="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center gap-1.5"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isTestingKey ? 'animate-spin' : ''}`} />
+                <span>Probar</span>
+              </button>
+            </div>
+          </div>
+
+          {saveStatus && (
+            <p className="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5" />
+              {saveStatus}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Grid de Presentación: Tarjeta de Identidad + Proyectos Clave */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
@@ -240,42 +436,86 @@ export default function PersonalBioAssistant() {
         </div>
       </div>
 
-      {/* Asistente Conversacional Interactivo (Bio IA) */}
-      <div className="mt-6 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50/50 dark:bg-slate-950/60">
+      {/* Asistente Conversacional Interactivo (Bio IA con Gemini) */}
+      <div className="mt-6 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50/50 dark:bg-slate-950/60 shadow-xs">
+        {/* Barra Superior del Chat */}
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-indigo-600 text-white rounded-xl shadow-xs">
-              <Sparkles className="w-4 h-4" />
+              <Bot className="w-4 h-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                Chatbot de Presentación: Pregúntale al Asistente de Santiago
-              </h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  Chatbot de Presentación: Asistente IA de Santiago
+                </h4>
+                <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
+                  Gemini Flash Live
+                </span>
+              </div>
               <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                Responde al instante con los datos de su Notion y portafolio técnico
+                Responde en tiempo real con datos de su Notion, historial académico, Hevy y finanzas Nu
               </span>
             </div>
           </div>
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/80">
-            En Línea
-          </span>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleClearChat}
+              className="cursor-pointer p-1.5 rounded-lg text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              title="Reiniciar conversación"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800/80 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              En Línea
+            </span>
+          </div>
         </div>
 
         {/* Historial de Mensajes */}
-        <div className="p-4 space-y-3 max-h-[320px] overflow-y-auto scrollbar-thin">
+        <div className="p-4 space-y-4 max-h-[380px] overflow-y-auto scrollbar-thin">
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
+              className={`flex flex-col group ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`max-w-[85%] sm:max-w-[75%] p-3.5 rounded-2xl text-xs leading-relaxed ${
+                className={`relative max-w-[88%] sm:max-w-[78%] p-4 rounded-2xl text-xs leading-relaxed transition-all ${
                   m.sender === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-xs'
+                    ? 'bg-indigo-600 text-white rounded-br-xs shadow-xs'
                     : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 rounded-bl-xs shadow-xs'
                 }`}
               >
                 <p className="whitespace-pre-line">{m.text}</p>
+
+                {m.sender === 'assistant' && (
+                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
+                      {m.model || activeModel}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(m.text, m.id)}
+                      className="cursor-pointer opacity-70 group-hover:opacity-100 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 transition-opacity"
+                      title="Copiar respuesta"
+                    >
+                      {copiedId === m.id ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-500" />
+                          <span className="text-emerald-500">Copiado</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" />
+                          <span>Copiar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
               <span className="text-[9px] text-slate-400 dark:text-slate-500 mt-1 px-1">
                 {m.timestamp}
@@ -284,12 +524,18 @@ export default function PersonalBioAssistant() {
           ))}
 
           {isTyping && (
-            <div className="flex items-center gap-1.5 p-3 rounded-xl bg-white dark:bg-slate-800 text-xs text-slate-400 w-fit">
-              <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce" />
-              <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.2s]" />
-              <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.4s]" />
+            <div className="flex items-center gap-2 p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-xs text-slate-400 w-fit shadow-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce" />
+                <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.2s]" />
+                <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.4s]" />
+              </div>
+              <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium ml-1">
+                Gemini procesando respuesta...
+              </span>
             </div>
           )}
+          <div ref={chatBottomRef} />
         </div>
 
         {/* Botones de Preguntas Rápidas */}
@@ -298,7 +544,8 @@ export default function PersonalBioAssistant() {
             <button
               key={idx}
               onClick={() => handleSend(q)}
-              className="cursor-pointer px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/80 dark:border-slate-700/80 transition-colors shrink-0"
+              disabled={isTyping}
+              className="cursor-pointer px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200/80 dark:border-slate-700/80 transition-colors shrink-0 disabled:opacity-50"
             >
               {q}
             </button>
@@ -317,12 +564,14 @@ export default function PersonalBioAssistant() {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Escribe una pregunta sobre Santiago (ej. ¿cuál es su meta en Hevy?, proyectos, etc.)..."
-            className="flex-1 px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            disabled={isTyping}
+            placeholder="Pregúntale a Gemini sobre Santiago (ej. notas en Estructuras, proyectos de software, meta en Hevy)..."
+            className="flex-1 px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-60"
           />
           <button
             type="submit"
-            className="cursor-pointer p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
+            disabled={isTyping || !inputValue.trim()}
+            className="cursor-pointer p-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white shadow-xs transition-colors shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>

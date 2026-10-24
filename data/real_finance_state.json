@@ -1,0 +1,165 @@
+{
+  "accounts": [
+    {
+      "id": 1,
+      "name": "Efectivo",
+      "balance": 85000,
+      "type": "CASH"
+    },
+    {
+      "id": 2,
+      "name": "Cuenta Nu",
+      "balance": 320000,
+      "type": "NU",
+      "dailyYieldCOP": 77.91
+    },
+    {
+      "id": 3,
+      "name": "Nequi",
+      "balance": 245000,
+      "type": "NEQUI"
+    }
+  ],
+  "fixedExpenses": [
+    {
+      "id": 1,
+      "title": "Vuelos",
+      "amount": 140000,
+      "category": "DEBT"
+    },
+    {
+      "id": 2,
+      "title": "Suscripciones (Spotify/Crunchyroll)",
+      "amount": 10200,
+      "category": "SUBSCRIPTION"
+    },
+    {
+      "id": 3,
+      "title": "Motilada",
+      "amount": 25000,
+      "category": "GENERAL"
+    }
+  ],
+  "tripSettings": {
+    "id": 1,
+    "availableFund": 550000,
+    "dadTotalCommitted": 450000,
+    "dadPaidAmount": 140000,
+    "dadPendingAmount": 310000,
+    "pendingWalksWeekly": 48700,
+    "totalEstimatedCost": 584549,
+    "balanceParaLujos": -34549,
+    "personalRemainingTarget": 134549,
+    "projectedFundWithDad": 860000,
+    "projectedSurplusWithDad": 275451
+  },
+  "pendingDebts": [
+    {
+      "id": 1,
+      "debtorName": "Camilo",
+      "amount": 35000,
+      "description": "Préstamo salida fin de semana",
+      "dateCreated": "28 de agosto, 2026",
+      "isPaid": false,
+      "paidDate": null,
+      "paidToAccount": null
+    },
+    {
+      "id": 2,
+      "debtorName": "Mateo",
+      "amount": 20000,
+      "description": "Mitad de la cuenta del almuerzo",
+      "dateCreated": "30 de agosto, 2026",
+      "isPaid": false,
+      "paidDate": null,
+      "paidToAccount": null
+    }
+  ],
+  "dailyLogs": [
+    {
+      "id": 1,
+      "timestamp": 1787664000000,
+      "dateDisplay": "26 de agosto, 2026",
+      "walksIncome": 9000,
+      "siennaWalk": true,
+      "fridaWalk": false,
+      "mollyWalk": false,
+      "rappiIncome": 25000,
+      "dailyExpense": 0,
+      "netChange": 25000,
+      "targetAccountName": "Nequi",
+      "note": "Paseo Sienna mañana + 2 horas Rappi tarde"
+    },
+    {
+      "id": 2,
+      "timestamp": 1787750400000,
+      "dateDisplay": "27 de agosto, 2026",
+      "walksIncome": 5850,
+      "siennaWalk": false,
+      "fridaWalk": true,
+      "mollyWalk": false,
+      "rappiIncome": 0,
+      "dailyExpense": 3500,
+      "netChange": -3500,
+      "targetAccountName": "Efectivo",
+      "note": "Paseo Frida"
+    },
+    {
+      "id": 3,
+      "timestamp": 1787836800000,
+      "dateDisplay": "28 de agosto, 2026",
+      "walksIncome": 14850,
+      "siennaWalk": true,
+      "fridaWalk": true,
+      "mollyWalk": false,
+      "rappiIncome": 18000,
+      "dailyExpense": 0,
+      "netChange": 18000,
+      "targetAccountName": "Cuenta Nu",
+      "note": "Sienna + Frida + Turno Rappi viernes"
+    },
+    {
+      "id": 4,
+      "timestamp": 1787923200000,
+      "dateDisplay": "29 de agosto, 2026",
+      "walksIncome": 0,
+      "siennaWalk": false,
+      "fridaWalk": false,
+      "mollyWalk": false,
+      "rappiIncome": 32000,
+      "dailyExpense": 6000,
+      "netChange": 26000,
+      "targetAccountName": "Nequi",
+      "note": "Turno Rappi noche de sábado"
+    },
+    {
+      "id": 5,
+      "timestamp": 1788009600000,
+      "dateDisplay": "30 de agosto, 2026",
+      "walksIncome": 14850,
+      "siennaWalk": true,
+      "fridaWalk": true,
+      "mollyWalk": false,
+      "rappiIncome": 22000,
+      "dailyExpense": 0,
+      "netChange": 22000,
+      "targetAccountName": "Cuenta Nu",
+      "note": "Paseos Sienna y Frida + Rappi domingo"
+    },
+    {
+      "id": 6,
+      "timestamp": 1788096000000,
+      "dateDisplay": "31 de agosto, 2026",
+      "walksIncome": 9000,
+      "siennaWalk": true,
+      "fridaWalk": false,
+      "mollyWalk": false,
+      "rappiIncome": 0,
+      "dailyExpense": 0,
+      "netChange": 0,
+      "targetAccountName": "Efectivo",
+      "note": "Paseo Sienna"
+    }
+  ],
+  "lastSynced": "2026-10-23T18:00:00.000Z"
+}

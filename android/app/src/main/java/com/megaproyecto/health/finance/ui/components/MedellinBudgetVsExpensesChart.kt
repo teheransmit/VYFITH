@@ -90,8 +90,8 @@ enum class ChartViewMode {
 }
 
 /**
- * GrÃ¡fico de barras interactivo inspirado en Recharts para visualizar los gastos mensuales
- * comparados con el presupuesto proyectado para el viaje a MedellÃ­n (Meta: Octubre 2026).
+ * Gráfico de barras interactivo inspirado en Recharts para visualizar los gastos mensuales
+ * comparados con el presupuesto proyectado para el viaje a Medellín (Meta: Octubre 2026).
  */
 @Composable
 fun MedellinBudgetVsExpensesChart(
@@ -102,7 +102,7 @@ fun MedellinBudgetVsExpensesChart(
     var viewMode by remember { mutableStateOf(ChartViewMode.MENSUAL) }
     var selectedMonthIndex by remember { mutableIntStateOf(Calendar.getInstance().get(Calendar.MONTH)) }
 
-    // Calcular datos de los meses clave para la ruta hacia MedellÃ­n (Mayo - Octubre 2026)
+    // Calcular datos de los meses clave para la ruta hacia Medellín (Mayo - Octubre 2026)
     val monthsData = remember(dailyLogs, totalTripBudget) {
         val monthNames = arrayOf(
             "Enero" to "Ene", "Febrero" to "Feb", "Marzo" to "Mar", "Abril" to "Abr",
@@ -123,7 +123,7 @@ fun MedellinBudgetVsExpensesChart(
             }
         }
 
-        // 6 meses estratÃ©gicos hacia el viaje a MedellÃ­n: Mayo (4) a Octubre (9)
+        // 6 meses estratégicos hacia el viaje a Medellín: Mayo (4) a Octubre (9)
         val monthsRange = (4..9).toList()
         val monthlyTripQuota = totalTripBudget / monthsRange.size // ~$97.575 / mes
 
@@ -139,7 +139,7 @@ fun MedellinBudgetVsExpensesChart(
             } else if (isPastOrCurrent) {
                 38000.0 // Gasto moderado registrado
             } else {
-                // EstimaciÃ³n proyectada basada en un promedio de consumo prudente
+                // Estimación proyectada basada en un promedio de consumo prudente
                 45000.0 + ((mIndex - 4) * 3500.0)
             }
 
@@ -163,7 +163,7 @@ fun MedellinBudgetVsExpensesChart(
         monthsData.find { it.monthIndex == selectedMonthIndex } ?: monthsData.firstOrNull()
     }
 
-    // Calcular escala mÃ¡xima para normalizar las barras
+    // Calcular escala máxima para normalizar las barras
     val maxVal = remember(monthsData, viewMode) {
         if (viewMode == ChartViewMode.MENSUAL) {
             val maxExp = monthsData.maxOfOrNull { it.monthlyExpense } ?: 100000.0
@@ -190,7 +190,7 @@ fun MedellinBudgetVsExpensesChart(
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Header: TÃ­tulo y estilo Recharts
+            // Header: Título y estilo Recharts
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -208,7 +208,7 @@ fun MedellinBudgetVsExpensesChart(
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.BarChart,
-                                contentDescription = "GrÃ¡fico Recharts",
+                                contentDescription = "Gráfico Recharts",
                                 tint = HighDensityLavender,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -217,13 +217,13 @@ fun MedellinBudgetVsExpensesChart(
 
                     Column {
                         Text(
-                            text = "Gastos vs Presupuesto MedellÃ­n",
+                            text = "Gastos vs Presupuesto Medellín",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                         Text(
-                            text = "ESTILO RECHARTS â€¢ RUTA OCTUBRE 2026",
+                            text = "ESTILO RECHARTS • RUTA OCTUBRE 2026",
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.2.sp,
@@ -316,7 +316,7 @@ fun MedellinBudgetVsExpensesChart(
                                         color = if (data.isCurrentOrPast) EmeraldGreen.copy(alpha = 0.2f) else CashGold.copy(alpha = 0.2f)
                                     ) {
                                         Text(
-                                            text = if (data.isCurrentOrPast) "MES ACTIVO" else "PROYECCIÃ“N",
+                                            text = if (data.isCurrentOrPast) "MES ACTIVO" else "PROYECCIÓN",
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
                                             color = if (data.isCurrentOrPast) EmeraldGreen else CashGold,
@@ -333,7 +333,7 @@ fun MedellinBudgetVsExpensesChart(
                                 }
 
                                 Text(
-                                    text = if (isSavingPositive) "Margen Favorable âœ¦" else "AtenciÃ³n a Gastos âš ï¸",
+                                    text = if (isSavingPositive) "Margen Favorable ✦" else "Atención a Gastos ⚠️",
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isSavingPositive) EmeraldGreen else CoralRed,
@@ -385,7 +385,7 @@ fun MedellinBudgetVsExpensesChart(
                                                 .background(HighDensityLavender)
                                         )
                                         Text(
-                                            text = if (viewMode == ChartViewMode.MENSUAL) "Meta Viaje MedellÃ­n:" else "Meta Acumulada MedellÃ­n:",
+                                            text = if (viewMode == ChartViewMode.MENSUAL) "Meta Viaje Medellín:" else "Meta Acumulada Medellín:",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = TextSecondary,
                                             fontSize = 11.sp
@@ -413,7 +413,7 @@ fun MedellinBudgetVsExpensesChart(
                     .padding(horizontal = 12.dp, vertical = 12.dp)
                     .testTag("recharts_bars_container")
             ) {
-                // LÃ­neas guÃ­a horizontales (Grid lines estilo Recharts CartesianGrid)
+                // Líneas guía horizontales (Grid lines estilo Recharts CartesianGrid)
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.SpaceBetween
@@ -498,7 +498,7 @@ fun MedellinBudgetVsExpensesChart(
                                         )
                                 )
 
-                                // Barra 2: Presupuesto MedellÃ­n (HighDensityLavender con gradiente)
+                                // Barra 2: Presupuesto Medellín (HighDensityLavender con gradiente)
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
@@ -577,7 +577,7 @@ fun MedellinBudgetVsExpensesChart(
                             .background(HighDensityLavender)
                     )
                     Text(
-                        text = "Presupuesto Proyectado MedellÃ­n",
+                        text = "Presupuesto Proyectado Medellín",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary,
                         fontSize = 11.sp
@@ -585,7 +585,7 @@ fun MedellinBudgetVsExpensesChart(
                 }
             }
 
-            // Tarjetas de mÃ©tricas sÃ­ntesis
+            // Tarjetas de métricas síntesis
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -602,7 +602,7 @@ fun MedellinBudgetVsExpensesChart(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = "Meta Viaje MedellÃ­n",
+                            text = "Meta Viaje Medellín",
                             style = MaterialTheme.typography.labelSmall,
                             color = TextTertiary,
                             fontSize = 10.sp
@@ -678,7 +678,7 @@ fun MedellinBudgetVsExpensesChart(
                             color = EmeraldGreen
                         )
                         Text(
-                            text = "Con aporte papÃ¡",
+                            text = "Con aporte papá",
                             style = MaterialTheme.typography.labelSmall,
                             color = EmeraldGreen.copy(alpha = 0.7f),
                             fontSize = 9.sp

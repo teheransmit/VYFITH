@@ -6,11 +6,20 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +39,8 @@ import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.lifecycle.lifecycleScope
 import androidx.work.*
+import com.megaproyecto.health.finance.ui.FinanceMainScreen
+import com.megaproyecto.health.finance.ui.theme.FinanceTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -81,8 +92,14 @@ class MainActivity : ComponentActivity() {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val initialUrl = prefs.getString(KEY_BACKEND_URL, DEFAULT_URL) ?: DEFAULT_URL
 
+        val openTabExtra = intent?.getStringExtra("OPEN_TAB")
+        val initialTopTab = if (openTabExtra == "daily_register" || openTabExtra == "finance") 1 else 0
+        val initialFinanceSubTab = if (openTabExtra == "daily_register") 1 else 0
+
         setContent {
-            HealthSyncAppScreen(
+            MainAppRootScreen(
+                initialTopTab = initialTopTab,
+                initialFinanceSubTab = initialFinanceSubTab,
                 initialUrl = initialUrl,
                 onSaveUrl = { newUrl ->
                     prefs.edit().putString(KEY_BACKEND_URL, newUrl).apply()
@@ -220,6 +237,108 @@ data class AuditInfo(
     val recordsCount: Int,
     val httpCode: Int
 )
+
+@Composable
+fun MainAppRootScreen(
+    initialTopTab: Int = 0,
+    initialFinanceSubTab: Int = 0,
+    initialUrl: String,
+    onSaveUrl: (String) -> Unit,
+    onRequestPermissions: () -> Unit,
+    onSyncNow: () -> Unit,
+    onInspectData: (onDone: (Long, Int, Double, Double, String) -> Unit) -> Unit,
+    getAuditData: () -> AuditInfo
+) {
+    var topTabIndex by remember { mutableIntStateOf(initialTopTab) }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            NavigationBar(
+                containerColor = Color(0xFF0F172A),
+                tonalElevation = 8.dp
+            ) {
+                NavigationBarItem(
+                    selected = topTabIndex == 0,
+                    onClick = { topTabIndex = 0 },
+                    icon = {
+                        Icon(
+                            imageVector = if (topTabIndex == 0) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                            contentDescription = "Salud Biometría"
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = "Salud Biometría",
+                            fontSize = 11.sp,
+                            fontWeight = if (topTabIndex == 0) FontWeight.Bold else FontWeight.Normal
+                        )
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF38BDF8),
+                        selectedTextColor = Color(0xFF38BDF8),
+                        unselectedIconColor = Color(0xFF94A3B8),
+                        unselectedTextColor = Color(0xFF94A3B8),
+                        indicatorColor = Color(0xFF1E293B)
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = topTabIndex == 1,
+                    onClick = { topTabIndex = 1 },
+                    icon = {
+                        Icon(
+                            imageVector = if (topTabIndex == 1) Icons.Filled.MonetizationOn else Icons.Outlined.MonetizationOn,
+                            contentDescription = "Finanzas & Viaje"
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = "Finanzas & Viaje",
+                            fontSize = 11.sp,
+                            fontWeight = if (topTabIndex == 1) FontWeight.Bold else FontWeight.Normal
+                        )
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFFB89947),
+                        selectedTextColor = Color(0xFFB89947),
+                        unselectedIconColor = Color(0xFF94A3B8),
+                        unselectedTextColor = Color(0xFF94A3B8),
+                        indicatorColor = Color(0xFF1E293B)
+                    )
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            AnimatedContent(
+                targetState = topTabIndex,
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(200)) togetherWith fadeOut(animationSpec = tween(150))
+                },
+                label = "MainTopTabTransition"
+            ) { tab ->
+                when (tab) {
+                    0 -> HealthSyncAppScreen(
+                        initialUrl = initialUrl,
+                        onSaveUrl = onSaveUrl,
+                        onRequestPermissions = onRequestPermissions,
+                        onSyncNow = onSyncNow,
+                        onInspectData = onInspectData,
+                        getAuditData = getAuditData
+                    )
+                    1 -> FinanceTheme {
+                        FinanceMainScreen(initialTabIndex = initialFinanceSubTab)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun HealthSyncAppScreen(
@@ -389,7 +508,6 @@ fun HealthSyncAppScreen(
                     Button(
                         onClick = {
                             onSyncNow()
-                            // Refrescar auditoría después de un segundo
                             audit = getAuditData()
                         },
                         modifier = Modifier.fillMaxWidth(),

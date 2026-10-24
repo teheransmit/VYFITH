@@ -10,3 +10,4 @@ coverage/
 *.iml
 *.tsbuildinfo
 .vercel
+.agents/
