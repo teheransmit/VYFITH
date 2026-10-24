@@ -15,6 +15,10 @@ import {
   Coins,
   ArrowRight,
   ShieldCheck,
+  Settings2,
+  History,
+  Shuffle,
+  Route,
 } from 'lucide-react';
 import {
   initialDogs,
@@ -27,16 +31,76 @@ export default function UpbWalkSimulatorSection() {
   const [classTime, setClassTime] = useState<string>('07:00');
   const [commuteTime, setCommuteTime] = useState<number>(25); // 25 min to UPB Km 8
   const [prepTime, setPrepTime] = useState<number>(20); // Ducha y mochila
+  const [activeView, setActiveView] = useState<'plan' | 'config' | 'history'>('plan');
+  const [day, setDay] = useState<'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes'>('lunes');
+  const [startLocation, setStartLocation] = useState<'centro' | 'abuela'>('centro');
+  const [transport, setTransport] = useState<'pie' | 'moto'>('pie');
+  const [strategy, setStrategy] = useState<'zigzag' | 'lineal' | 'terminar'>('zigzag');
+  const [scenario, setScenario] = useState<'normal' | 'lluvia' | 'trafico'>('normal');
+  const [dogOrder, setDogOrder] = useState<string[]>(['dog-sienna', 'dog-frida']);
+  const [walkGoals, setWalkGoals] = useState<Record<string, number>>({ 'dog-sienna': 40, 'dog-frida': 30 });
+  const [history, setHistory] = useState<Array<{ date: string; day: string; arrival: string; classTime: string; dogs: string[]; strategy: string; scenario: string }>>(() => {
+    if (typeof window === 'undefined') return [];
+    const saved = window.localStorage.getItem('vyfith_walk_beta_history');
+    return saved ? JSON.parse(saved) : [];
+  });
 
-  const schedule = useMemo(() => {
-    return calculateWalkSchedule(selectedDogIds, classTime, commuteTime, prepTime, 10);
-  }, [selectedDogIds, classTime, commuteTime, prepTime]);
+  const dayClasses = {
+    lunes: '10:00',
+    martes: '08:00',
+    miercoles: '10:00',
+    jueves: '08:00',
+    viernes: '10:00',
+  } as const;
+
+  const locationAdjustment = startLocation === 'abuela' ? 5 : 0;
+  const trafficAdjustment = scenario === 'trafico' ? 10 : 0;
+  const effectiveCommuteTime = transport === 'moto'
+    ? Math.max(10, commuteTime + locationAdjustment + trafficAdjustment - 10)
+    : commuteTime + locationAdjustment + trafficAdjustment;
+  const adjustedGoals = scenario === 'lluvia'
+    ? Object.fromEntries(Object.entries(walkGoals).map(([id, minutes]) => [id, Math.ceil(minutes * 0.85)]))
+    : walkGoals;
+
+  const betaSchedule = useMemo(() => calculateWalkSchedule(
+    selectedDogIds,
+    classTime,
+    effectiveCommuteTime,
+    prepTime,
+    10,
+    adjustedGoals
+  ), [selectedDogIds, classTime, effectiveCommuteTime, prepTime, adjustedGoals]);
 
   const toggleDog = (id: string) => {
     setSelectedDogIds((prev) =>
       prev.includes(id) ? prev.filter((dId) => dId !== id) : [...prev, id]
     );
   };
+
+  const shuffleOrder = () => {
+    const next = [...dogOrder].sort(() => Math.random() - 0.5);
+    setDogOrder(next);
+  };
+
+  const registerToday = () => {
+    setHistory((current) => [
+      {
+        date: new Date().toLocaleDateString('es-CO'),
+        day,
+        arrival: betaSchedule.upbArrivalTime,
+        classTime,
+        dogs: selectedDogIds,
+        strategy,
+        scenario,
+      },
+      ...current,
+    ].slice(0, 12));
+    setActiveView('history');
+  };
+
+  React.useEffect(() => {
+    window.localStorage.setItem('vyfith_walk_beta_history', JSON.stringify(history));
+  }, [history]);
 
   return (
     <section id="upb-walk-simulator-section" className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10 transition-colors">
@@ -48,8 +112,80 @@ export default function UpbWalkSimulatorSection() {
               <Footprints className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               Simulador de Paseos y Rutinas UPB
             </span>
-            <span className="text-xs font-mono text-slate-400">Montería • Campus Km 8 Vía Cereté</span>
+            <span className="text-xs font-mono text-slate-400">Beta unificada • Montería • Campus Km 8</span>
           </div>
+
+          <div className="mb-6 flex flex-wrap gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
+            {[
+              ['plan', 'Plan de hoy', Route],
+              ['config', 'Configuración beta', Settings2],
+              ['history', 'Historial', History],
+            ].map(([id, label, Icon]) => (
+              <button
+                key={id as string}
+                type="button"
+                onClick={() => setActiveView(id as 'plan' | 'config' | 'history')}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition ${
+                  activeView === id ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label as string}
+              </button>
+            ))}
+          </div>
+
+          {activeView === 'config' && (
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-5 border border-slate-200 dark:border-slate-700">
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                Día de rutina
+                <select value={day} onChange={(e) => { const next = e.target.value as typeof day; setDay(next); setClassTime(dayClasses[next]); }} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+                  <option value="lunes">Lunes</option><option value="martes">Martes</option><option value="miercoles">Miércoles</option><option value="jueves">Jueves</option><option value="viernes">Viernes</option>
+                </select>
+              </label>
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                Origen
+                <select value={startLocation} onChange={(e) => setStartLocation(e.target.value as typeof startLocation)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+                  <option value="centro">Casa Centro</option><option value="abuela">Casa Abuela</option>
+                </select>
+              </label>
+              <div>
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-300">Primer traslado</span>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {(['pie', 'moto'] as const).map((value) => <button key={value} type="button" onClick={() => setTransport(value)} className={`rounded-xl px-3 py-2 text-xs font-bold ${transport === value ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'}`}>{value === 'pie' ? 'Caminando' : 'En moto'}</button>)}
+                </div>
+              </div>
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                Estrategia de ruta
+                <select value={strategy} onChange={(e) => setStrategy(e.target.value as typeof strategy)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+                  <option value="zigzag">Zigzag activo</option><option value="lineal">Ida y vuelta lineal</option><option value="terminar">Terminar en el último</option>
+                </select>
+              </label>
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                Escenario
+                <select value={scenario} onChange={(e) => setScenario(e.target.value as typeof scenario)} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+                  <option value="normal">Despejado</option><option value="lluvia">Lluvia</option><option value="trafico">Tráfico pesado</option>
+                </select>
+              </label>
+              <div className="flex items-end">
+                <button type="button" onClick={shuffleOrder} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-bold text-white"><Shuffle className="h-3.5 w-3.5" /> Orden aleatorio</button>
+              </div>
+              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {dogOrder.map((id) => {
+                  const dog = initialDogs.find((item) => item.id === id);
+                  if (!dog) return null;
+                  return <label key={id} className="rounded-xl bg-white dark:bg-slate-900 p-3 text-xs font-bold text-slate-700 dark:text-slate-200">{dog.name} · minutos objetivo<input type="number" min="5" max="120" value={walkGoals[id] ?? dog.defaultDurationMin} onChange={(e) => setWalkGoals((current) => ({ ...current, [id]: Number(e.target.value) || dog.defaultDurationMin }))} className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1 dark:border-slate-700 dark:bg-slate-800" /></label>;
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeView === 'history' && (
+            <div className="mb-6 rounded-2xl border border-slate-200 dark:border-slate-800 p-5">
+              <div className="flex items-center justify-between"><h3 className="font-bold text-slate-900 dark:text-white">Historial beta de puntualidad</h3><button type="button" onClick={() => setHistory([])} className="text-xs text-rose-600">Limpiar</button></div>
+              {history.length === 0 ? <p className="mt-4 text-sm text-slate-500">Aún no has registrado una rutina.</p> : <div className="mt-4 space-y-2">{history.map((item, index) => <div key={`${item.date}-${index}`} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 p-3 text-xs"><span className="font-bold text-slate-800 dark:text-slate-200">{item.date} · {item.day}</span><span className="text-slate-500">Llegada {item.arrival} / clase {item.classTime}</span><span className="font-bold text-indigo-600">{item.strategy} · {item.scenario}</span></div>)}</div>}
+            </div>
+          )}
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Optimizador de Paseos Caninos & Puntualidad UPB
           </h2>
@@ -61,18 +197,18 @@ export default function UpbWalkSimulatorSection() {
         {/* Badge de Confort Térmico */}
         <div
           className={`flex items-center gap-3 px-5 py-3 rounded-2xl border ${
-            schedule.thermalRisk.includes('Alerta')
+            betaSchedule.thermalRisk.includes('Alerta')
               ? 'bg-rose-50 border-rose-200 text-rose-900'
-              : schedule.thermalRisk.includes('Aceptable')
+              : betaSchedule.thermalRisk.includes('Aceptable')
               ? 'bg-amber-50 border-amber-200 text-amber-900'
               : 'bg-emerald-50 border-emerald-200 text-emerald-900'
           }`}
         >
           <div
             className={`p-2.5 rounded-xl text-white shadow-xs ${
-              schedule.thermalRisk.includes('Alerta')
+              betaSchedule.thermalRisk.includes('Alerta')
                 ? 'bg-rose-600'
-                : schedule.thermalRisk.includes('Aceptable')
+                : betaSchedule.thermalRisk.includes('Aceptable')
                 ? 'bg-amber-600'
                 : 'bg-emerald-600'
             }`}
@@ -83,12 +219,12 @@ export default function UpbWalkSimulatorSection() {
             <span className="text-[10px] font-bold uppercase tracking-wider block opacity-80">
               Clima Montería (Pavimento)
             </span>
-            <span className="text-sm font-extrabold block">{schedule.thermalRisk}</span>
+            <span className="text-sm font-extrabold block">{betaSchedule.thermalRisk}</span>
           </div>
         </div>
       </div>
 
-      {/* Controles de Simulación */}
+      {activeView === 'plan' && <>{/* Controles de Simulación */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
         {/* Selector de Perros */}
         <div className="lg:col-span-2 p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
@@ -98,10 +234,9 @@ export default function UpbWalkSimulatorSection() {
               ¿Qué perros paseas hoy?
             </span>
             <span className="text-xs text-slate-500 font-medium">
-              Duración total: <strong>{schedule.totalWalkDurationMin} min</strong>
+              Duración total: <strong>{betaSchedule.totalWalkDurationMin} min</strong>
             </span>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {initialDogs.map((dog) => {
               const isSelected = selectedDogIds.includes(dog.id);
@@ -138,14 +273,14 @@ export default function UpbWalkSimulatorSection() {
           </div>
 
           {/* Ingreso proyectado */}
-          {schedule.totalProjectedIncome > 0 && (
+          {betaSchedule.totalProjectedIncome > 0 && (
             <div className="mt-4 p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between text-xs">
               <span className="text-emerald-900 font-medium flex items-center gap-1.5">
                 <Coins className="w-3.5 h-3.5 text-emerald-600" />
                 Ingreso diario sumado a tus finanzas por estos paseos:
               </span>
               <span className="text-sm font-extrabold text-emerald-950">
-                +${schedule.totalProjectedIncome.toLocaleString('es-CO')} COP
+                +${betaSchedule.totalProjectedIncome.toLocaleString('es-CO')} COP
               </span>
             </div>
           )}
@@ -218,7 +353,7 @@ export default function UpbWalkSimulatorSection() {
 
           <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
             <span className="text-slate-500">Probabilidad de puntualidad:</span>
-            <span className="font-extrabold text-emerald-600 text-sm">{schedule.punctualityScore}%</span>
+            <span className="font-extrabold text-emerald-600 text-sm">{betaSchedule.punctualityScore}%</span>
           </div>
         </div>
       </div>
@@ -235,7 +370,7 @@ export default function UpbWalkSimulatorSection() {
           <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100">
             <span className="text-[10px] font-bold uppercase text-indigo-700 block">1. Alarma / Despertar</span>
             <span className="text-2xl font-black text-indigo-950 mt-1 block">
-              {schedule.recommendedWakeUpTime}
+              {betaSchedule.recommendedWakeUpTime}
             </span>
             <span className="text-[11px] text-indigo-800/80 mt-1 block">Alístate con ropa cómoda</span>
           </div>
@@ -244,10 +379,10 @@ export default function UpbWalkSimulatorSection() {
           <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-100">
             <span className="text-[10px] font-bold uppercase text-amber-700 block">2. Salida Paseo</span>
             <span className="text-2xl font-black text-amber-950 mt-1 block">
-              {schedule.recommendedWalkDepartureTime}
+              {betaSchedule.recommendedWalkDepartureTime}
             </span>
             <span className="text-[11px] text-amber-800/80 mt-1 block">
-              {schedule.totalWalkDurationMin} min con correa
+              {betaSchedule.totalWalkDurationMin} min con correa
             </span>
           </div>
 
@@ -255,7 +390,7 @@ export default function UpbWalkSimulatorSection() {
           <div className="p-4 rounded-2xl bg-teal-50/60 border border-teal-100">
             <span className="text-[10px] font-bold uppercase text-teal-700 block">3. Regreso a Casa</span>
             <span className="text-2xl font-black text-teal-950 mt-1 block">
-              {schedule.walkReturnTime}
+              {betaSchedule.walkReturnTime}
             </span>
             <span className="text-[11px] text-teal-800/80 mt-1 block">Hidratación + Ducha rápida</span>
           </div>
@@ -264,7 +399,7 @@ export default function UpbWalkSimulatorSection() {
           <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-100">
             <span className="text-[10px] font-bold uppercase text-blue-700 block">4. Salida a UPB</span>
             <span className="text-2xl font-black text-blue-950 mt-1 block">
-              {schedule.homeDepartureTime}
+              {betaSchedule.homeDepartureTime}
             </span>
             <span className="text-[11px] text-blue-800/80 mt-1 block">Ruta Cereté ({commuteTime} min)</span>
           </div>
@@ -273,10 +408,10 @@ export default function UpbWalkSimulatorSection() {
           <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 col-span-2 sm:col-span-1">
             <span className="text-[10px] font-bold uppercase text-emerald-800 block">5. Llegada al Aula</span>
             <span className="text-2xl font-black text-emerald-950 mt-1 block">
-              {schedule.upbArrivalTime}
+              {betaSchedule.upbArrivalTime}
             </span>
             <span className="text-[11px] text-emerald-800 font-semibold mt-1 block">
-              +{schedule.bufferMarginMin} min antes de clase
+              +{betaSchedule.bufferMarginMin} min antes de clase
             </span>
           </div>
         </div>
@@ -284,7 +419,7 @@ export default function UpbWalkSimulatorSection() {
         {/* Notas del Asistente */}
         <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
           <div className="space-y-1.5">
-            {schedule.notes.map((note, idx) => (
+            {betaSchedule.notes.map((note, idx) => (
               <div key={idx} className="text-xs text-slate-600 flex items-start gap-2">
                 <span className="text-indigo-600 font-bold">•</span>
                 <span>{note}</span>
@@ -293,6 +428,8 @@ export default function UpbWalkSimulatorSection() {
           </div>
         </div>
       </div>
+      <button type="button" onClick={registerToday} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white"><CheckCircle2 className="h-4 w-4" /> Registrar este plan</button>
+      </>}
     </section>
   );
 }

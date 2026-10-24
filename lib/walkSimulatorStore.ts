@@ -52,12 +52,16 @@ export function calculateWalkSchedule(
   classStartTimeStr: string = '07:00',
   commuteMinutes: number = 25,
   prepMinutes: number = 20,
-  safetyBufferMin: number = 10
+  safetyBufferMin: number = 10,
+  walkDurationOverrides: Record<string, number> = {}
 ): SimulationResult {
   const selectedDogs = initialDogs.filter((d) => selectedDogIds.includes(d.id));
 
   // Si no hay perros seleccionados, duración 0
-  const totalWalkDuration = selectedDogs.reduce((acc, d) => acc + d.defaultDurationMin, 0);
+  const totalWalkDuration = selectedDogs.reduce(
+    (acc, d) => acc + (walkDurationOverrides[d.id] ?? d.defaultDurationMin),
+    0
+  );
   const totalIncome = selectedDogs.reduce((acc, d) => acc + d.ratePerWalk, 0);
 
   // Parse class start time
