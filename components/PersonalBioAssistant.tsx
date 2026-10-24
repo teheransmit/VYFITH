@@ -32,20 +32,126 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'assistant',
-    text: '¡Hola! Soy el asistente interactivo de presentación de Santiago Smit Teherán Mogollón, potenciado con Google Gemini. Puedo responderte sobre su perfil como Ingeniero Civil Computacional en la UPB Montería, sus proyectos en GitHub, sus notas en Análisis de Estructuras, su meta física en Hevy o sus finanzas en Nu. ¿Qué deseas consultar?',
+    text: '¡Hola! Soy tu asistente y copiloto interactivo de presentación personal, conectado a **Google Gemini**. Puedo responder sobre tu perfil como Ingeniero Civil Computacional en la UPB Montería, tus notas en Análisis de Estructuras, tu meta física en Hevy o el estado consolidado de tus finanzas en Nu. ¿Qué deseas consultar hoy?',
     timestamp: 'Ahora',
     source: 'initial',
   },
 ];
 
 const PREDEFINED_QUESTIONS = [
-  '¿Quién es Santiago Smit Teherán Mogollón y cuál es su pasión?',
-  '¿Cuáles son sus proyectos destacados de software e ingeniería?',
-  '¿Cómo va su rendimiento académico en el 6° semestre de la UPB?',
-  '¿Cuál es su disciplina deportiva y meta en el gimnasio?',
-  '¿Cómo están sus finanzas personales y su Cajita de Nu?',
-  '¿Qué perros pasea y cuál es su rutina diaria?',
+  '¿Cómo están mis finanzas y mi Cajita de Nu?',
+  '¿Cuánto necesito en el examen de Estructuras?',
+  '¿Cuál es mi meta en el gimnasio y split en Hevy?',
+  '¿Cuáles son mis proyectos destacados de software?',
+  '¿Qué perros paseo y qué cobros tengo pendientes?',
+  '¿Quién es Santiago Smit Teherán Mogollón?',
 ];
+
+/**
+ * Parsea el texto en línea para resaltar negritas, código y cursivas
+ */
+function renderInline(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*.*?\*\*|\*[^*\n]+?\*|`.*?`)/g);
+
+  return parts.map((part, index) => {
+    // Negrita: **texto**
+    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+      const inner = part.slice(2, -2);
+      return (
+        <strong key={index} className="font-semibold text-slate-900 dark:text-white">
+          {inner}
+        </strong>
+      );
+    }
+    // Código / Monospace: `texto`
+    if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+      const inner = part.slice(1, -1);
+      return (
+        <code
+          key={index}
+          className="px-1.5 py-0.5 mx-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200/50 dark:border-indigo-800/60 text-[11px] font-mono text-indigo-700 dark:text-indigo-300 font-medium"
+        >
+          {inner}
+        </code>
+      );
+    }
+    // Cursiva: *texto*
+    if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+      const inner = part.slice(1, -1);
+      return (
+        <em key={index} className="italic text-slate-700 dark:text-slate-300">
+          {inner}
+        </em>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
+/**
+ * Renderizador limpio de Markdown a JSX para eliminar sintaxis cruda (###, ---, *, **)
+ */
+function FormattedMessageContent({ text }: { text: string }) {
+  const lines = text.split('\n');
+
+  return (
+    <div className="space-y-1.5 text-xs leading-relaxed">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+
+        // Línea vacía
+        if (!trimmed) {
+          return <div key={idx} className="h-1.5" />;
+        }
+
+        // Divisor horizontal: --- o *** o ___
+        if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+          return (
+            <div
+              key={idx}
+              className="my-2.5 border-t border-slate-200/90 dark:border-slate-700/70"
+            />
+          );
+        }
+
+        // Encabezados: ### o ## o #
+        if (trimmed.startsWith('#')) {
+          const headerText = trimmed.replace(/^#+\s*/, '');
+          return (
+            <div
+              key={idx}
+              className="pt-2 pb-0.5 flex items-center gap-1.5 font-bold uppercase tracking-wider text-[11px] text-indigo-600 dark:text-indigo-400"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              <span>{renderInline(headerText)}</span>
+            </div>
+          );
+        }
+
+        // Elemento de lista con viñeta: *, -, • o número
+        const isBullet = /^(\*|-|•)\s+/.test(trimmed);
+        const isNumbered = /^\d+\.\s+/.test(trimmed);
+
+        if (isBullet || isNumbered) {
+          const content = trimmed.replace(/^(\*|-|•|\d+\.)\s+/, '');
+          return (
+            <div key={idx} className="flex items-start gap-2.5 pl-1 py-0.5 text-slate-800 dark:text-slate-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 mt-1.5 shrink-0" />
+              <div className="flex-1">{renderInline(content)}</div>
+            </div>
+          );
+        }
+
+        // Párrafo de texto regular
+        return (
+          <p key={idx} className="text-slate-800 dark:text-slate-200">
+            {renderInline(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function PersonalBioAssistant() {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
@@ -482,16 +588,20 @@ export default function PersonalBioAssistant() {
               className={`flex flex-col group ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
             >
               <div
-                className={`relative max-w-[88%] sm:max-w-[78%] p-4 rounded-2xl text-xs leading-relaxed transition-all ${
+                className={`relative max-w-[90%] sm:max-w-[80%] p-4 rounded-2xl text-xs leading-relaxed transition-all ${
                   m.sender === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-xs shadow-xs'
-                    : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 rounded-bl-xs shadow-xs'
+                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-br-xs shadow-xs'
+                    : 'bg-white dark:bg-slate-800/95 border border-slate-200/90 dark:border-slate-700/80 text-slate-800 dark:text-slate-100 rounded-bl-xs shadow-xs'
                 }`}
               >
-                <p className="whitespace-pre-line">{m.text}</p>
+                {m.sender === 'user' ? (
+                  <p className="whitespace-pre-line text-white font-medium">{m.text}</p>
+                ) : (
+                  <FormattedMessageContent text={m.text} />
+                )}
 
                 {m.sender === 'assistant' && (
-                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
                     <span className="flex items-center gap-1">
                       <Zap className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
                       {m.model || activeModel}
@@ -505,7 +615,7 @@ export default function PersonalBioAssistant() {
                       {copiedId === m.id ? (
                         <>
                           <Check className="w-3 h-3 text-emerald-500" />
-                          <span className="text-emerald-500">Copiado</span>
+                          <span className="text-emerald-500 font-medium">Copiado</span>
                         </>
                       ) : (
                         <>
