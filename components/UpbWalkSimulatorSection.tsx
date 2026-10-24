@@ -25,6 +25,7 @@ import {
   calculateWalkSchedule,
   DogProfile,
 } from '@/lib/walkSimulatorStore';
+import WalkRouteMap from '@/components/WalkRouteMap';
 
 export default function UpbWalkSimulatorSection() {
   const [selectedDogIds, setSelectedDogIds] = useState<string[]>(['dog-frida', 'dog-sienna']);
@@ -428,6 +429,7 @@ export default function UpbWalkSimulatorSection() {
           </div>
         </div>
       </div>
+      <WalkRouteMap selectedDogIds={selectedDogIds} startLocation={startLocation} />
       <button type="button" onClick={registerToday} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white"><CheckCircle2 className="h-4 w-4" /> Registrar este plan</button>
       </>}
     </section>
