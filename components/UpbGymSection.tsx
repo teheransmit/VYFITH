@@ -160,6 +160,84 @@ export default function UpbGymSection() {
         </div>
       </div>
 
+      {/* PLAN TÁCTICO OFICIAL: 3 DÍAS DE ENTRENAMIENTO & MENSUALIDAD $49.000 COP */}
+      <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-indigo-500/30 p-6 sm:p-7 shadow-lg space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                Plan Táctico Semestral 2026-II
+              </span>
+              <span className="text-xs font-mono text-slate-400">Mensualidad: $49.000 COP</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+              Tu Rutina de 3 Días vs. Parciales UPB
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              Cruce matemático entre tus clases de Ingeniería Civil (B1, B2) y los turnos del gimnasio climatizado.
+            </p>
+          </div>
+
+          <div className="px-4 py-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-right self-start sm:self-auto">
+            <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block font-mono">Costo Marginal Real</span>
+            <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 font-mono">$3.266 COP / día</span>
+            <span className="text-[10px] text-indigo-700 dark:text-indigo-300 block font-medium">15 sesiones en 5 semanas</span>
+          </div>
+        </div>
+
+        {/* Los 3 Bloques Dorados */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Martes */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-indigo-200/60 dark:border-indigo-900/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase font-mono">Día 1 • Martes</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">10:00 – 11:20 a.m.</span>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Torso & Empuje (Pecho / Hombros)</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Sales de <em>Análisis de Estructuras</em> (09:40). El gym abre y está casi vacío. Entrenas 80 min, te duchas con calma, almorzas y entras a <em>Mecánica de Suelos</em> a las 14:00.
+            </p>
+          </div>
+
+          {/* Jueves */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-indigo-200/60 dark:border-indigo-900/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase font-mono">Día 2 • Jueves</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">10:00 – 11:20 a.m.</span>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Tracción & Brazos (Espalda / Tríceps)</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Sales de <em>Estructuras</em> (09:40). Despejas el estrés con dominadas, jalón y tríceps prioritario. Cero tiempo de viaje. Ducha y almuerzo antes de <em>Suelos</em> (14:00).
+            </p>
+          </div>
+
+          {/* Viernes */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-indigo-200/60 dark:border-indigo-900/40 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase font-mono">Día 3 • Viernes</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300">16:00 – 17:30 p.m.</span>
+            </div>
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Pierna Pesada Hevy (Sentadilla / Prensa)</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              ¡Tarde 100% libre de clases! Sales de <em>Vías II</em> a las 11:40. A las 16:00 abren turno tarde: sesión de tren inferior sin presión de reloj. Fin de semana despejado.
+            </p>
+          </div>
+        </div>
+
+        {/* Las 2 Alertas Críticas de Cumplimiento */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
+          <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 flex items-center gap-2.5">
+            <span className="text-base">🚫</span>
+            <span><strong>Miércoles: PROHIBIDO ENTRENAR.</strong> Tienes 4 materias seguidas (Vías II, Hidrología, Suelos, Presupuesto). Día reservado para estudio y descanso del SNC.</span>
+          </div>
+
+          <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 flex items-center gap-2.5">
+            <span className="text-base">⏰</span>
+            <span><strong>Regla de las 17:30 (Si vas lunes):</strong> Si decides sumar el lunes a las 16:00, corte innegociable a las 17:30 para ducharte antes de Presupuesto (18:00).</span>
+          </div>
+        </div>
+      </div>
+
       {/* 2. ALERTA TÁCTICA: ESTRATEGIA DE PARCIALES & REGLA DEL CORTE 17:30 */}
       <div className="rounded-2xl bg-amber-500/10 dark:bg-amber-950/20 border border-amber-300 dark:border-amber-700/50 p-5 sm:p-6 text-slate-800 dark:text-slate-200">
         <div className="flex items-start gap-3.5">

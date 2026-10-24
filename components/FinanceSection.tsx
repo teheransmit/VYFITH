@@ -460,6 +460,87 @@ export default function FinanceSection() {
         </div>
       )}
 
+      {/* Panel de Micro-Liquidez, Deuda Daniela Bula & Pago Gimnasio UPB */}
+      <div className="my-6 p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-800/80 shadow-md space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                Auditoría en Tiempo Real
+              </span>
+              <span className="text-xs font-mono text-slate-400">Octubre 2026</span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+              Micro-Liquidez Disponible: Gimnasio vs. Deuda Daniela vs. Cajita Nu
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Evaluación matemática de solvencia para autorizar el pago de la mensualidad del gimnasio manteniendo tu colchón seguro.
+            </p>
+          </div>
+
+          <div className="px-4 py-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-right self-start sm:self-auto">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase block font-mono">Saldo Libre Tras Pagos</span>
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">+$50.929 COP</span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 block font-semibold">+41.8% de colchón intacto</span>
+          </div>
+        </div>
+
+        {/* Rejilla de Activos y Compromisos */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
+          {/* Cajita Nu */}
+          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Cajita Nu (9.30%)</span>
+            <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 font-mono">$116.929</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Líquido 24/7</span>
+          </div>
+
+          {/* Efectivo */}
+          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Efectivo en Mano</span>
+            <span className="text-sm sm:text-base font-black text-slate-800 dark:text-slate-200 font-mono">$5.000</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Billetes físicos</span>
+          </div>
+
+          {/* Deuda Daniela Bula */}
+          <div className="p-3 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60">
+            <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 block font-mono">Deuda Daniela Bula</span>
+            <span className="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 font-mono">-$22.000</span>
+            <span className="text-[10px] text-rose-700/80 dark:text-rose-300 block">Pago Prioritario #1</span>
+          </div>
+
+          {/* Gimnasio UPB */}
+          <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60">
+            <span className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400 block font-mono">Mensualidad Gym UPB</span>
+            <span className="text-sm sm:text-base font-black text-amber-600 dark:text-amber-400 font-mono">-$49.000</span>
+            <span className="text-[10px] text-amber-700/80 dark:text-amber-300 block">5 semanas (~$3.266/d)</span>
+          </div>
+
+          {/* María Minerva */}
+          <div className="p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60">
+            <span className="text-[10px] uppercase font-bold text-blue-700 dark:text-blue-400 block font-mono">Cobro María Minerva</span>
+            <span className="text-sm sm:text-base font-black text-blue-600 dark:text-blue-400 font-mono">+$10.000</span>
+            <span className="text-[10px] text-blue-700/80 dark:text-blue-300 block">Por cobrar</span>
+          </div>
+
+          {/* Reembolso Google Play */}
+          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60">
+            <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block font-mono">Reembolso Google</span>
+            <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">+$20.000</span>
+            <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300 block">Aprobado (Mastercard)</span>
+          </div>
+        </div>
+
+        {/* Diagnóstico Resolutivo */}
+        <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center justify-between flex-wrap gap-2">
+          <span>
+            💡 <strong>Diagnóstico de Cobertura:</strong> Tienes <strong>$121.929 COP</strong> disponibles. Pagando los <strong>$22.000</strong> a Daniela y los <strong>$49.000</strong> del gimnasio, te sobran <strong>$50.929 COP</strong> (que suben a <strong>$60.929 COP</strong> al cobrar a Minerva).
+          </span>
+          <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase font-mono bg-emerald-600 text-white shadow-xs">
+            Solvencia Verificada ✅
+          </span>
+        </div>
+      </div>
+
       {/* Tarjeta Ejecutiva de Alta Densidad: Runway & Asignación Base Cero (Inspirado en midday-ai & Actual Budget) */}
       <div className="my-6 p-5 sm:p-6 rounded-3xl bg-linear-to-br from-slate-900 via-emerald-950/70 to-slate-900 border border-emerald-800/40 text-white shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
