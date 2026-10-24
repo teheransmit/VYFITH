@@ -39,21 +39,21 @@ export default function UpbWalkSimulatorSection() {
   };
 
   return (
-    <section id="upb-walk-simulator-section" className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs mb-10">
+    <section id="upb-walk-simulator-section" className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10 transition-colors">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
-              <Footprints className="w-3.5 h-3.5 text-amber-600" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+              <Footprints className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               Simulador de Paseos y Rutinas UPB
             </span>
             <span className="text-xs font-mono text-slate-400">Montería • Campus Km 8 Vía Cereté</span>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Optimizador de Paseos Caninos & Puntualidad UPB
           </h2>
-          <p className="text-sm text-slate-500 max-w-2xl mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl mt-1">
             Calcula la hora exacta de salida matutina según los perros que pasees hoy (Frida, Sienna), cuidando sus patas del calor de Montería y garantizando tu llegada puntual a clases.
           </p>
         </div>

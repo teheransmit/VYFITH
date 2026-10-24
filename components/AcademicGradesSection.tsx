@@ -31,29 +31,29 @@ export default function AcademicGradesSection() {
   };
 
   return (
-    <section id="academic-grades-section" className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs mb-10">
+    <section id="academic-grades-section" className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10 transition-colors">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-              <GraduationCap className="w-3.5 h-3.5 text-blue-600" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+              <GraduationCap className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               SIGAA Oficial UPB — Campus Montería
             </span>
-            <span className="text-xs font-mono text-slate-500 font-medium">
+            <span className="text-xs font-mono text-slate-500 dark:text-slate-400 font-medium">
               ID: {initialAcademicData.studentId} • {initialAcademicData.program}
             </span>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Control de Materias & Metas del Último Corte (2026-20)
           </h2>
-          <p className="text-sm text-slate-500 max-w-2xl mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl mt-1">
             Auditoría en tiempo real de calificaciones, avance porcentual por materia y cálculo matemático exacto de la nota necesaria para aprobar en el examen o corte final.
           </p>
         </div>
 
         {/* Badge Promedio Ponderado */}
-        <div className="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3">
+        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl px-5 py-3">
           <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs">
             <Award className="w-6 h-6" />
           </div>
@@ -62,7 +62,7 @@ export default function AcademicGradesSection() {
               Promedio Ponderado Semestral
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-extrabold text-slate-900">{currentGPA.toFixed(2)}</span>
+              <span className="text-3xl font-extrabold text-slate-900 dark:text-white">{currentGPA.toFixed(2)}</span>
               <span className="text-xs font-medium text-slate-500">/ 5.00</span>
             </div>
           </div>

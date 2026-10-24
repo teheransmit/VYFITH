@@ -7,23 +7,27 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'MegaProyecto | Unified Health & Life Data',
-  description: 'Aplicación híbrida para sincronizar datos de salud, entrenamientos, agenda y finanzas.',
+  title: 'VYFITH • Centro de Mando Personal | Santiago Smit Teherán Mogollón',
+  description: 'Plataforma integral de salud biométrica HL7 FHIR, entrenamientos Hevy, agenda UPB Montería y finanzas personales.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icon-192.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'VYFITH',
   },
   openGraph: {
-    title: 'MegaProyecto | Unified Health & Life Data',
-    description: 'Aplicación híbrida para sincronizar datos de salud, entrenamientos, agenda y finanzas.',
+    title: 'VYFITH • Centro de Mando Personal | Santiago Smit Teherán Mogollón',
+    description: 'Plataforma integral de salud biométrica HL7 FHIR, entrenamientos Hevy, agenda UPB Montería y finanzas personales.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MegaProyecto | Unified Health & Life Data',
-    description: 'Aplicación híbrida para sincronizar datos de salud, entrenamientos, agenda y finanzas.',
+    title: 'VYFITH • Centro de Mando Personal | Santiago Smit Teherán Mogollón',
+    description: 'Plataforma integral de salud biométrica HL7 FHIR, entrenamientos Hevy, agenda UPB Montería y finanzas personales.',
   },
 };
 

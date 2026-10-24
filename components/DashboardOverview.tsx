@@ -195,7 +195,11 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   return null;
 }
 
-export default function DashboardOverview() {
+export interface DashboardOverviewProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export default function DashboardOverview({ onNavigate }: DashboardOverviewProps = {}) {
   const isClient = useIsClient();
   const [selectedRange, setSelectedRange] = useState<DateRangeDays>(7);
   const [viewMode, setViewMode] = useState<'combined' | 'correlation' | 'wellness'>('combined');
@@ -221,7 +225,7 @@ export default function DashboardOverview() {
   const xAxisInterval = selectedRange === 7 ? 0 : selectedRange === 30 ? 4 : 11;
 
   return (
-    <section className="w-full bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/80 mb-10 transition-all">
+    <section className="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/80 dark:border-slate-800 mb-10 transition-colors">
       {/* Date-range picker en la parte superior del Dashboard */}
       <div className="mb-6">
         <DateRangePicker
@@ -233,31 +237,31 @@ export default function DashboardOverview() {
       </div>
 
       {/* Header del Dashboard */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               <ShieldCheck className="w-3.5 h-3.5" />
               Sincronización en Tiempo Real
             </span>
             <span className="text-xs text-slate-400 font-mono">HL7 FHIR + Open Banking</span>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white dark:text-white tracking-tight flex items-center gap-2">
             Resumen de Métricas Cruzadas
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Correlación analítica entre actividad biométrica (Health Connect), rutinas de fuerza (Hevy) y transacciones financieras ({selectedRange} días).
           </p>
         </div>
 
         {/* Selector de Vista del Gráfico */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl self-start sm:self-center">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl self-start sm:self-center">
           <button
             onClick={() => setViewMode('combined')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               viewMode === 'combined'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Actividad vs Gastos
@@ -266,8 +270,8 @@ export default function DashboardOverview() {
             onClick={() => setViewMode('correlation')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               viewMode === 'correlation'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             HRV vs Carga Hevy
@@ -276,8 +280,8 @@ export default function DashboardOverview() {
             onClick={() => setViewMode('wellness')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               viewMode === 'wellness'
-                ? 'bg-white text-slate-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             Inversión en Bienestar
@@ -296,7 +300,7 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900" suppressHydrationWarning>
+            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
               {formatInteger(avgSteps)}
             </span>
             <span className="text-xs text-emerald-600 font-semibold flex items-center">
@@ -315,7 +319,7 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900" suppressHydrationWarning>
+            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
               ${formatMoney(totalExpense)}
             </span>
             <span className="text-xs text-slate-500 font-medium">COP</span>
@@ -332,7 +336,7 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900" suppressHydrationWarning>
+            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
               {avgHrv} <span className="text-sm font-normal text-slate-500">ms</span>
             </span>
             <span className="text-xs text-emerald-600 font-semibold flex items-center">
@@ -351,7 +355,7 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900" suppressHydrationWarning>
+            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
               {(totalVolumeKg / 1000).toFixed(1)}k
             </span>
             <span className="text-xs text-slate-500 font-medium">kg movidos</span>

@@ -115,7 +115,7 @@ function HomeDashboard() {
                   Centro de Mando Personal
                 </h1>
                 <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-                  Plataforma unificada que correlaciona tus dimensiones vitales: <strong>Salud Biométrica</strong> (Health Connect), <strong>Entrenamientos</strong> (Hevy), <strong>Agenda UPB</strong>, <strong>Economía & Medellín 2026</strong>, <strong>Paseos Caninos</strong> y <strong>Notas & Literatura Científica</strong>.
+                  Plataforma ejecutiva unificada que correlaciona tus <strong>7 dimensiones vitales</strong>: Salud Biométrica & Fitness, Agenda UPB, Academia & Literatura Científica, Paseos Caninos y Finanzas Personales.
                 </p>
               </div>
 
@@ -154,7 +154,7 @@ function HomeDashboard() {
               </div>
             </header>
 
-            {/* Barra de Navegación por Pilares (8 Pilares) */}
+            {/* Barra de Navegación por Pilares (7 Pilares Ejecutivos) */}
             <nav
               className="mb-8 flex items-center gap-2 overflow-x-auto pb-4 custom-nav-scrollbar"
               onWheel={(e) => {
@@ -246,7 +246,7 @@ function HomeDashboard() {
             <div className="transition-all duration-200">
               {activeTab === 'overview' && (
                 <div className="animate-fadeIn">
-                  <DashboardOverview />
+                  <DashboardOverview onNavigate={(tab) => setActiveTab(tab)} />
                 </div>
               )}
 

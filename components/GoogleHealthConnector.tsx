@@ -124,28 +124,28 @@ export default function GoogleHealthConnector() {
   const isModerate = readiness >= 60 && readiness < 80;
 
   return (
-    <section className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs mb-10">
+    <section className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10 transition-colors">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
               Sincronización en Tiempo Real (3s)
             </span>
             <span className="text-xs font-mono text-slate-400">VYFITH_APP (FitSync AI) ➔ MegaProyecto</span>
             <button
               onClick={copyEndpointUrl}
-              className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-mono font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-lg border border-slate-300 transition-colors"
+              className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-colors"
               title="Copiar URL de recepción directa a tu app móvil"
             >
               <span>{copiedUrl ? '✅ ¡Copiado!' : '📡 Copiar IP LAN: 192.168.1.8:3000'}</span>
             </button>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             Salud Biométrica & Conexión Google Health
           </h2>
-          <p className="text-sm text-slate-500 max-w-2xl mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl mt-1">
             Métricas biométricas consolidadas de <strong>Google Health Connect</strong> y <strong>Health Sync</strong> (Google Pixel 8 Pro). Monitoreo continuo de recuperación biológica y fatiga neuromuscular.
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function GoogleHealthConnector() {
       {/* TARJETA EN VIVO: READINESS SCORE & DATOS DE VYFITH_APP */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
         {/* Widget Circular del Readiness Score */}
-        <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center text-center">
+        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
             <Activity className="w-4 h-4 text-indigo-600" />
             <span>Nivel de Recuperación (Readiness)</span>
@@ -226,7 +226,7 @@ export default function GoogleHealthConnector() {
         </div>
 
         {/* Tarjeta de Análisis de Gemini (Médico Deportivo) */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col justify-between">
+        <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-indigo-950 font-bold text-sm">
