@@ -446,7 +446,7 @@ export default function FinanceSection() {
             }`}
           >
             <Plane className="w-3.5 h-3.5 text-emerald-600" />
-            Viaje Medellín
+            Viaje Medellín (Concluido)
           </button>
         </div>
       </div>
@@ -486,12 +486,12 @@ export default function FinanceSection() {
         </div>
 
         {/* Rejilla de Activos y Compromisos */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 pt-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 pt-1">
           {/* Cajita Nu */}
           <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
             <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Cajita Nu (9.30%)</span>
             <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 font-mono">$116.929</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Líquido 24/7</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Incluye $50k Sienna</span>
           </div>
 
           {/* Efectivo */}
@@ -505,7 +505,7 @@ export default function FinanceSection() {
           <div className="p-3 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60">
             <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 block font-mono">Deuda Daniela Bula</span>
             <span className="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 font-mono">-$22.000</span>
-            <span className="text-[10px] text-rose-700/80 dark:text-rose-300 block">Pago Prioritario #1</span>
+            <span className="text-[10px] text-rose-700/80 dark:text-rose-300 block">Prioridad #1</span>
           </div>
 
           {/* Gimnasio UPB */}
@@ -515,28 +515,35 @@ export default function FinanceSection() {
             <span className="text-[10px] text-amber-700/80 dark:text-amber-300 block">5 semanas (~$3.266/d)</span>
           </div>
 
+          {/* Laura (Paseos Frida) */}
+          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800">
+            <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block font-mono">Laura (Frida)</span>
+            <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">+$25.000</span>
+            <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300 block">5 paseos x $5k (No en Nu)</span>
+          </div>
+
           {/* María Minerva */}
           <div className="p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60">
-            <span className="text-[10px] uppercase font-bold text-blue-700 dark:text-blue-400 block font-mono">Cobro María Minerva</span>
+            <span className="text-[10px] uppercase font-bold text-blue-700 dark:text-blue-400 block font-mono">María Minerva</span>
             <span className="text-sm sm:text-base font-black text-blue-600 dark:text-blue-400 font-mono">+$10.000</span>
             <span className="text-[10px] text-blue-700/80 dark:text-blue-300 block">Por cobrar</span>
           </div>
 
           {/* Reembolso Google Play */}
-          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60">
-            <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block font-mono">Reembolso Google</span>
-            <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">+$20.000</span>
-            <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300 block">Aprobado (Mastercard)</span>
+          <div className="p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60">
+            <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400 block font-mono">Reembolso Google</span>
+            <span className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400 font-mono">+$20.000</span>
+            <span className="text-[10px] text-purple-700/80 dark:text-purple-300 block">Mastercard-2406</span>
           </div>
         </div>
 
         {/* Diagnóstico Resolutivo */}
-        <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center justify-between flex-wrap gap-2">
+        <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center justify-between flex-wrap gap-2">
           <span>
-            💡 <strong>Diagnóstico de Cobertura:</strong> Tienes <strong>$121.929 COP</strong> disponibles. Pagando los <strong>$22.000</strong> a Daniela y los <strong>$49.000</strong> del gimnasio, te sobran <strong>$50.929 COP</strong> (que suben a <strong>$60.929 COP</strong> al cobrar a Minerva).
+            💡 <strong>Diagnóstico de Cobertura:</strong> Tienes <strong>$121.929 COP</strong> disponibles (incluye ya los $50k de Sienna). Pagando los <strong>$22.000</strong> a Daniela y los <strong>$49.000</strong> del gimnasio, te sobran <strong>$50.929 COP</strong> libres. Al cobrar los <strong>$25.000 de Laura (Frida)</strong> y los <strong>$10.000 de Minerva</strong>, tu colchón final sube a <strong>+$85.929 COP</strong>.
           </span>
           <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase font-mono bg-emerald-600 text-white shadow-xs">
-            Solvencia Verificada ✅
+            Colchón Final: $85.929 COP ✅
           </span>
         </div>
       </div>
@@ -550,10 +557,10 @@ export default function FinanceSection() {
               <span>Consola Ejecutiva de Capital • Estándar Midday & Envelope Budgeting</span>
             </div>
             <h3 className="text-xl font-bold tracking-tight text-white">
-              Runway Personal, Rendimiento Nu & Fondo Blindado Medellín
+              Runway Personal, Rendimiento Nu & Flujo Post-Viaje
             </h3>
             <p className="text-xs text-slate-300 max-w-xl">
-              Asignación determinista de liquidez con separación estricta para la meta fija de viaje ($584.500 COP) y rentabilidad activa en Cajita Nu (9.30% E.A.).
+              Monitoreo de liquidez en Cajita Nu ($116.929 COP al 9.30% E.A.), saneamiento de deudas y flujo estudiantil. (Viaje Medellín 8-12 Octubre concluido; auditoría de gastos a fin de mes).
             </p>
           </div>
 
@@ -578,15 +585,15 @@ export default function FinanceSection() {
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Envolvente Medellín</span>
-            <span className="text-lg font-black text-sky-400 font-mono">$584.500</span>
-            <span className="text-[10px] text-slate-400 block">Fondo Intocable</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Viaje Medellín</span>
+            <span className="text-lg font-black text-sky-400 font-mono">Concluido</span>
+            <span className="text-[10px] text-slate-400 block">8 - 12 Octubre 2026</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Abonos Papá</span>
-            <span className="text-lg font-black text-amber-400 font-mono">$450.000</span>
-            <span className="text-[10px] text-slate-400 block">Compromiso 100% OK</span>
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Cierre de Gastos</span>
+            <span className="text-lg font-black text-amber-400 font-mono">Fin de Mes</span>
+            <span className="text-[10px] text-slate-400 block">Auditoría pendiente</span>
           </div>
         </div>
       </div>
@@ -1202,21 +1209,21 @@ export default function FinanceSection() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30 mb-2">
-                  <Plane className="w-3.5 h-3.5" />
-                  <span>Fechas: {med.tripDates} (5 Días)</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Viaje Concluido • 8 al 12 de Octubre de 2026</span>
                 </div>
-                <h3 className="text-2xl font-extrabold tracking-tight">Presupuesto del Viaje a Medellín</h3>
+                <h3 className="text-2xl font-extrabold tracking-tight">Auditoría Post-Viaje Medellín</h3>
                 <p className="text-xs text-emerald-100/80 mt-1 max-w-xl">
-                  Alojamiento 100% cubierto. Fondos proyectados con ahorro de pasajes semanales ($35k con tarjeta hermano), cobros pendientes de paseos y Cajita Nu.
+                  El viaje a Medellín finalizó exitosamente. No hay abonos pendientes de papá ni fondos en tránsito. El análisis consolidado de gastos reales se cargará al cierre de fin de mes.
                 </p>
               </div>
 
               <div className="text-right self-start md:self-center bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/10">
                 <span className="text-[11px] text-emerald-200 uppercase tracking-wider block font-semibold">
-                  Meta del Viaje
+                  Estado Operativo
                 </span>
-                <span className="text-2xl font-black text-white">{formatCurrency(med.targetBudget)}</span>
-                <span className="text-[11px] text-emerald-300 block font-medium">Costo total proyectado</span>
+                <span className="text-xl font-black text-emerald-300 font-mono">FINALIZADO ✅</span>
+                <span className="text-[10px] text-emerald-200/80 block font-medium">Reporte a fin de mes</span>
               </div>
             </div>
 

@@ -1065,7 +1065,7 @@ export interface MedellinTripBudget {
   totalTripSecuredCapital: number;
   projectedBuffer: number;
   housingCovered: boolean;
-  statusDiagnostic: 'BIEN 🟢' | 'ATENCIÓN 🟡' | 'CRÍTICO 🔴';
+  statusDiagnostic: 'BIEN 🟢' | 'ATENCIÓN 🟡' | 'CRÍTICO 🔴' | 'CONCLUIDO ✅';
   tacticalRecommendations: {
     id: string;
     priority: 'Alta' | 'Media';
@@ -1124,8 +1124,8 @@ export const initialFinanceData: FinanceSummary = {
   },
   weeklyFlow: {
     dogWalksIncome: [
-      { id: 'walk-1', client: 'Elena', dogName: 'Sienna', walksPerWeek: 5, ratePerWalk: 9000, weeklyTotal: 45000 },
-      { id: 'walk-2', client: 'Laura', dogName: 'Frida', walksPerWeek: 5.5, ratePerWalk: 5850, weeklyTotal: 32175 },
+      { id: 'walk-1', client: 'Elena', dogName: 'Sienna', walksPerWeek: 3, ratePerWalk: 16666, weeklyTotal: 50000 },
+      { id: 'walk-2', client: 'Laura', dogName: 'Frida', walksPerWeek: 5, ratePerWalk: 5000, weeklyTotal: 25000 },
     ],
     upbTransportSavings: 35000,
     rappiIncome: {
@@ -1232,11 +1232,11 @@ export const initialFinanceData: FinanceSummary = {
     receivablesTotal: 0,
     pendingFixedExpenses: 12000,
     realFreeSurplus: 338579,
-    pendingFamilyContributions: 150000,
+    pendingFamilyContributions: 0,
     totalTripSecuredCapital: 488579,
     projectedBuffer: 113579,
     housingCovered: true,
-    statusDiagnostic: 'BIEN 🟢',
+    statusDiagnostic: 'CONCLUIDO ✅',
     tacticalRecommendations: [
       {
         id: 'rec-1',
@@ -1262,10 +1262,10 @@ export const initialFinanceData: FinanceSummary = {
       { category: 'Reserva de Imprevistos', amount: 50000, description: 'Reserva intocable para contingencias en viaje', status: 'Prioritario' },
     ],
     receivables: [
-      { id: 'rec-1', client: 'Rappi / Clientes Varios', concept: 'Entregas & Servicios', amount: 0, status: 'Cobrado', notes: 'Cartera 100% liquidada y disponible.' },
-      { id: 'rec-2', client: 'Laura', concept: 'Paseos caninos de Frida', amount: 0, status: 'Cobrado', dogName: 'Frida', notes: '100% cobrado y transferido a Cajita Medayork Nu (9.35%).' },
-      { id: 'rec-3', client: 'Elena', concept: 'Paseos caninos de Sienna', amount: 0, status: 'Cobrado', dogName: 'Sienna', notes: '100% liquidado y cobrado a Elena.' },
-      { id: 'rec-4', client: 'Andrés', concept: 'Cobros pendientes', amount: 0, status: 'Cobrado', notes: 'Liquidado en su totalidad.' },
+      { id: 'rec-1', client: 'Laura', concept: 'Paseos caninos de Frida (5 paseos x $5.000)', amount: 25000, status: 'Pendiente', dogName: 'Frida', notes: 'Pendiente de cobro. NO está incluido aún en el saldo de Cajita Nu.' },
+      { id: 'rec-2', client: 'María Minerva', concept: 'Cuenta por cobrar personal', amount: 10000, status: 'Pendiente', notes: 'Pendiente de cobro.' },
+      { id: 'rec-3', client: 'Elena', concept: 'Paseos caninos de Sienna (3 paseos)', amount: 50000, status: 'Cobrado', dogName: 'Sienna', notes: '100% cobrado y ya incluido en el saldo de Cajita Nu ($116.929 COP).' },
+      { id: 'rec-4', client: 'Rappi / Clientes Varios', concept: 'Entregas & Servicios', amount: 0, status: 'Cobrado', notes: 'Cartera 100% liquidada y disponible.' },
     ],
   },
 };
