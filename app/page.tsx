@@ -10,6 +10,7 @@ import {
   Footprints,
   Plane,
   Sun,
+  Search,
   Moon,
   User,
 } from 'lucide-react';
@@ -23,6 +24,7 @@ import UnifiedAcademicSection from '@/components/UnifiedAcademicSection';
 import PersonalBioAssistant from '@/components/PersonalBioAssistant';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
+import CommandPaletteModal from '@/components/CommandPaletteModal';
 
 export default function Home() {
   return (
@@ -38,6 +40,19 @@ function HomeDashboard() {
   // Por defecto en PC: inicia directamente en el Centro de Mando completo (8 pilares)
   const [viewMode, setViewMode] = useState<'travel' | 'full'>('full');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
+
+  // Atajo global de teclado Cmd+K / Ctrl+K (Inspirado en sahnia3/life-os)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Detección y persistencia de Tema (Modo Claro / Modo Oscuro)
   useEffect(() => {
@@ -123,6 +138,17 @@ function HomeDashboard() {
               <div className="flex items-center gap-2.5 self-start md:self-center flex-wrap">
                 {/* Badge de Sesión de Usuario con Botón de Cerrar Sesión */}
                 <UserSessionBadge session={session} onLogout={logout} />
+
+                {/* Botón Paleta de Comandos Cmd+K */}
+                <button
+                  onClick={() => setIsCommandOpen(true)}
+                  className="cursor-pointer px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs transition-all flex items-center gap-2 group"
+                  title="Abrir buscador y comandos rápidos (Ctrl+K / Cmd+K)"
+                >
+                  <Search className="w-4 h-4 text-indigo-500" />
+                  <span className="text-xs font-bold hidden sm:inline">Comandos</span>
+                  <kbd className="hidden sm:inline px-1.5 py-0.5 text-[10px] font-mono bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-slate-500">⌘K</kbd>
+                </button>
 
                 {/* Switcher Modo Oscuro / Claro */}
                 <button
@@ -301,6 +327,12 @@ function HomeDashboard() {
             </footer>
           </div>
         )}
+        {/* Paleta Global de Comandos Cmd+K (sahnia3/life-os) */}
+        <CommandPaletteModal
+          isOpen={isCommandOpen}
+          onClose={() => setIsCommandOpen(false)}
+          onNavigate={(tab) => setActiveTab(tab)}
+        />
       </div>
     </main>
   );

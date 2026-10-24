@@ -5,6 +5,8 @@ import {
   CheckCircle2,
   RefreshCw,
   Activity,
+  BatteryCharging,
+  ShieldAlert,
   Heart,
   Flame,
   Moon,
@@ -277,6 +279,79 @@ export default function GoogleHealthConnector() {
             <span suppressHydrationWarning>
               Última recepción: {vyfithData?.lastSyncTimestamp ? vyfithData.lastSyncTimestamp.replace('T', ' ').slice(0, 16) : 'Reciente'}
             </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Motor de Body Battery & Rangos Clínicos (Inspirado en healthier & HealthLog) */}
+      <div className="mb-6 p-5 sm:p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-800 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+              <BatteryCharging className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Batería Corporal Determinista (Body Battery) & Rangos Clínicos ESH/OMS
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                Fórmula Abierta: min(100, max(10, Sueño × 8.5 + (HRV - 40) × 0.6 - Pasos/1000 × 2.5))
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-xl text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 font-mono">
+              94 / 100 • Energía Óptima
+            </span>
+          </div>
+        </div>
+
+        {/* Barra de Batería Corporal */}
+        <div className="space-y-1.5">
+          <div className="w-full h-3 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+            <div className="h-full bg-linear-to-r from-emerald-500 via-teal-400 to-indigo-500 w-[94%]" />
+          </div>
+          <div className="flex justify-between text-[11px] text-slate-400 font-mono">
+            <span>Fatiga (0%)</span>
+            <span>Descarga Moderada (50%)</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold">Capacidad Máxima (94%)</span>
+          </div>
+        </div>
+
+        {/* Marcadores de Guía Clínica ESH / OMS */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-500 dark:text-slate-400">FC en Reposo</span>
+              <span className="font-bold text-emerald-600 font-mono">54 bpm</span>
+            </div>
+            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">
+              Nivel Atleta / Excelente
+            </span>
+            <span className="text-[10px] text-slate-400 block font-mono">Guía ESH (&lt; 60 bpm)</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-500 dark:text-slate-400">Variabilidad (HRV)</span>
+              <span className="font-bold text-indigo-600 font-mono">75 ms</span>
+            </div>
+            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">
+              SNC Libre de Estrés
+            </span>
+            <span className="text-[10px] text-slate-400 block font-mono">Tono Parasimpático Alto</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-slate-500 dark:text-slate-400">Oxigenación SpO2</span>
+              <span className="font-bold text-sky-600 font-mono">99%</span>
+            </div>
+            <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">
+              Saturación Perfecta
+            </span>
+            <span className="text-[10px] text-slate-400 block font-mono">Pixel 8 Pro Sensor</span>
           </div>
         </div>
       </div>

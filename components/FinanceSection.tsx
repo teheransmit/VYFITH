@@ -460,6 +460,56 @@ export default function FinanceSection() {
         </div>
       )}
 
+      {/* Tarjeta Ejecutiva de Alta Densidad: Runway & Asignación Base Cero (Inspirado en midday-ai & Actual Budget) */}
+      <div className="my-6 p-5 sm:p-6 rounded-3xl bg-linear-to-br from-slate-900 via-emerald-950/70 to-slate-900 border border-emerald-800/40 text-white shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Consola Ejecutiva de Capital • Estándar Midday & Envelope Budgeting</span>
+            </div>
+            <h3 className="text-xl font-bold tracking-tight text-white">
+              Runway Personal, Rendimiento Nu & Fondo Blindado Medellín
+            </h3>
+            <p className="text-xs text-slate-300 max-w-xl">
+              Asignación determinista de liquidez con separación estricta para la meta fija de viaje ($584.500 COP) y rentabilidad activa en Cajita Nu (9.30% E.A.).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            <span className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
+              Runway: 8.4 Meses
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Tasa E.A. Activa</span>
+            <span className="text-lg font-black text-purple-400 font-mono">9.30%</span>
+            <span className="text-[10px] text-slate-400 block">Cajita Nu Bank</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Rendimiento Diario</span>
+            <span className="text-lg font-black text-emerald-400 font-mono">+$2.140</span>
+            <span className="text-[10px] text-emerald-300/80 block">Interés compuesto</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Envolvente Medellín</span>
+            <span className="text-lg font-black text-sky-400 font-mono">$584.500</span>
+            <span className="text-[10px] text-slate-400 block">Fondo Intocable</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Abonos Papá</span>
+            <span className="text-lg font-black text-amber-400 font-mono">$450.000</span>
+            <span className="text-[10px] text-slate-400 block">Compromiso 100% OK</span>
+          </div>
+        </div>
+      </div>
+
       {/* ======================================================== */}
       {/* VISTA 0A: DEUDA YESSID & META IPHONE 15 PRO */}
       {/* ======================================================== */}

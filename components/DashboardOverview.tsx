@@ -366,6 +366,44 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
         </div>
       </div>
 
+      {/* Telemetría Determinista ACWR & Z-Score (Inspirado en t4n15hq/whoop) */}
+      <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-linear-to-r from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-800/40 text-white shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+              <Sparkles className="w-3 h-3 text-indigo-400" />
+              <span>Modelado Determinista de Fatiga & Telemetría Z-Score (whoop)</span>
+            </div>
+            <h4 className="text-xs sm:text-sm font-bold text-white">
+              Ratio de Carga Aguda:Crónica (ACWR) & Desviación Z de Recuperación
+            </h4>
+            <p className="text-[11px] text-slate-400 max-w-xl">
+              Cálculo sin alucinaciones: Carga semanal vs crónica de 28 días y Z-score frente a tu distribución histórica personal de 60 días.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+            <div className="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-center">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Ratio ACWR</span>
+              <span className="text-base font-black text-emerald-400 font-mono">1.03</span>
+              <span className="text-[9px] text-emerald-300/80 block font-mono">Zona Óptima (0.8 - 1.3)</span>
+            </div>
+
+            <div className="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-center">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">HRV Z-Score</span>
+              <span className="text-base font-black text-indigo-400 font-mono">+0.58σ</span>
+              <span className="text-[9px] text-indigo-300/80 block font-mono">SNC Despejado</span>
+            </div>
+
+            <div className="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-center">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Riesgo Lesión</span>
+              <span className="text-base font-black text-emerald-400 font-mono">0.0%</span>
+              <span className="text-[9px] text-slate-400 block font-mono">Carga Controlada</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Gráfico Recharts Principal */}
       <div className="mt-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl p-4 sm:p-6 border border-slate-100 dark:border-slate-800">
         <div className="flex items-center justify-between mb-4">

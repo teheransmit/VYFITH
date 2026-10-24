@@ -7,6 +7,7 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  Sliders,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -23,8 +24,13 @@ export default function AcademicGradesSection() {
   const [courses] = useState<CourseGrade[]>(initialAcademicData.courses);
   const [expandedCourse, setExpandedCourse] = useState<string | null>('c-estructuras');
 
+  const [simulatedFinalScore, setSimulatedFinalScore] = useState<number>(3.00);
   const currentGPA = calculateSemesterGPA(courses);
   const totalCredits = courses.reduce((acc, c) => acc + c.credits, 0);
+
+  // Simulación dinámica de nota final de Análisis de Estructuras (acumulado 2.11 + 30% restante)
+  const simulatedEstructurasGrade = Math.min(5.00, Math.round((2.11 + (simulatedFinalScore * 0.30)) * 100) / 100);
+  const simulatedGPA = Math.round(((3.93 * 65 + (simulatedEstructurasGrade - 3.01) * 2) / 65) * 100) / 100;
 
   const toggleExpand = (id: string) => {
     setExpandedCourse((prev) => (prev === id ? null : id));
@@ -86,6 +92,73 @@ export default function AcademicGradesSection() {
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800">
           <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Materia Foco Prioritaria</span>
           <div className="text-base font-bold text-amber-600 mt-0.5">Análisis de Estructuras</div>
+        </div>
+      </div>
+
+      {/* Simulador Interactivo de Metas GPA (Inspirado en nusmodifications/nusmods & mygpa) */}
+      <div className="my-6 p-5 sm:p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-800 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400">
+              <Sliders className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Simulador Dinámico de Metas de Examen Final & GPA
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Desliza la nota hipotética del Examen Final de Análisis de Estructuras (30%) para proyectar tu promedio.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-center">
+            <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/80 px-3 py-1 rounded-xl border border-amber-200 dark:border-amber-800">
+              PGA Proyectado: {simulatedGPA.toFixed(2)}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center pt-2">
+          <div className="md:col-span-8 space-y-2">
+            <div className="flex justify-between items-center text-xs font-bold">
+              <span className="text-slate-700 dark:text-slate-300">
+                Examen Final Análisis de Estructuras: <strong className="text-amber-600 dark:text-amber-400">{simulatedFinalScore.toFixed(2)} / 5.00</strong>
+              </span>
+              <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">Meta Aprobatoria: 2.97</span>
+            </div>
+            <input
+              type="range"
+              min="1.00"
+              max="5.00"
+              step="0.05"
+              value={simulatedFinalScore}
+              onChange={(e) => setSimulatedFinalScore(parseFloat(e.target.value))}
+              className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+              <span>1.00 (Mínimo)</span>
+              <span>2.97 (Aprobación)</span>
+              <span>4.00 (Sobresaliente)</span>
+              <span>5.00 (Perfecto)</span>
+            </div>
+          </div>
+
+          <div className="md:col-span-4 p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center space-y-1">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+              Nota Final Materia
+            </span>
+            <div className="text-2xl font-black text-slate-900 dark:text-white">
+              {simulatedEstructurasGrade.toFixed(2)}
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-block ${
+              simulatedEstructurasGrade >= 3.00
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+            }`}>
+              {simulatedEstructurasGrade >= 3.00 ? '✅ Habilita Concreto I' : '⚠️ No aprueba (Meta: 3.00)'}
+            </span>
+          </div>
         </div>
       </div>
 

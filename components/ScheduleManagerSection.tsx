@@ -7,6 +7,7 @@ import {
   MapPin,
   BookOpen,
   Printer,
+  Download,
   Plus,
   ExternalLink,
   GraduationCap,
@@ -227,6 +228,55 @@ export default function ScheduleManagerSection() {
     window.print();
   };
 
+  const handleExportIcs = () => {
+    const dayMap: Record<string, string> = {
+      Lunes: 'MO',
+      Martes: 'TU',
+      Miércoles: 'WE',
+      Jueves: 'TH',
+      Viernes: 'FR',
+      Sábado: 'SA',
+    };
+
+    let icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//UPB Monteria//Horario Santiago Teheran//ES',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'X-WR-CALNAME:Horario UPB 2026-II (Santiago Teheran)',
+      'X-WR-TIMEZONE:America/Bogota',
+    ];
+
+    schedule.forEach((block) => {
+      const byDay = dayMap[block.day] || 'MO';
+      const startClean = block.startTime.replace(':', '') + '00';
+      const endClean = block.endTime.replace(':', '') + '00';
+      icsContent.push(
+        'BEGIN:VEVENT',
+        `UID:${block.id}-2026@upb.edu.co`,
+        `SUMMARY:${block.name} (${block.code})`,
+        `DESCRIPTION:Profesor: ${block.professor}\\nAula: ${block.classroom} - ${block.building}`,
+        `LOCATION:${block.classroom}, ${block.building}, UPB Montería`,
+        `RRULE:FREQ=WEEKLY;BYDAY=${byDay}`,
+        `DTSTART:20260803T${startClean}`,
+        `DTEND:20260803T${endClean}`,
+        'STATUS:CONFIRMED',
+        'END:VEVENT'
+      );
+    });
+
+    icsContent.push('END:VCALENDAR');
+    const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'Horario_UPB_Santiago_Teheran_2026.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <section id="schedule-manager-section" className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10">
       {/* Header Superior */}
@@ -251,6 +301,14 @@ export default function ScheduleManagerSection() {
 
         {/* Acciones */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleExportIcs}
+            className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
+            title="Descargar archivo estándar .ics compatible con Google Calendar, Apple Calendar y Outlook"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Exportar Calendario (.ics)</span>
+          </button>
           <a
             href="https://vine-sternum-6db.notion.site/HORARIO-210f834da25880df9892f70cb70c5e24"
             target="_blank"

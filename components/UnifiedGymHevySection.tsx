@@ -30,6 +30,7 @@ import {
   GymLiveStatus,
 } from '@/lib/upbGymStore';
 import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
+import MuscleHeatmap from './MuscleHeatmap';
 
 export interface UnifiedGymHevyProps {
   initialSubTab?: 'all' | 'schedule' | 'hevy';
@@ -251,6 +252,7 @@ export default function UnifiedGymHevySection({
 
       {/* 2. DASHBOARD DE MÉTRICAS HEVY (Volumen, Series, RPE, Sobrecarga) */}
       {(subTab === 'all' || subTab === 'hevy') && (
+        <>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fadeIn">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs">
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Volumen Semanal</span>
@@ -290,6 +292,12 @@ export default function UnifiedGymHevySection({
             </span>
           </div>
         </div>
+
+        {/* 2.1. MAPA DE CALOR MUSCULAR & PLATEAUS (Inspirado en aree6/LiftShift) */}
+        <div className="animate-fadeIn">
+          <MuscleHeatmap />
+        </div>
+        </>
       )}
 
       {/* 3. ALERTA TÁCTICA PARA SEMANA DE PARCIALES */}
