@@ -39,3 +39,25 @@ Este directorio contiene la aplicación nativa para Android en **Kotlin** que le
    - **1. Conceder Permisos Health Connect:** Se abrirá el selector del sistema de Google para autorizar lectura de Pasos, Frecuencia Cardíaca, Sueño y HRV.
    - **2. Sincronizar Ahora:** Ejecutará una primera extracción manual de deltas y los enviará a tu web.
 6. Automáticamente `WorkManager` quedará registrado para sincronizaciones periódicas cada 15 minutos en segundo plano.
+
+### Conectar con la página local
+
+La aplicación Android debe apuntar al mismo servidor que está mostrando la página:
+
+```text
+http://192.168.1.8:3000/api/sync/health
+```
+
+El teléfono y el PC deben estar en la misma red Wi-Fi. Si la app conserva una URL
+anterior de Cloud Run, abre la tarjeta **Endpoint del Servidor** en la app, reemplázala
+por la URL anterior y pulsa **Guardar URL de Destino**. Después:
+
+1. Confirma que `npm run dev` está activo en el PC.
+2. Permite el puerto TCP 3000 en el Firewall de Windows si el teléfono no conecta.
+3. Pulsa **Verificar Extracción en Health Connect** y confirma que hay valores reales.
+4. Pulsa **Sincronizar y Verificar Ahora**.
+5. Comprueba que el estado indique HTTP `200` y que la página web cambie su hora de última recepción.
+
+La URL de Cloud Run que estaba configurada anteriormente devuelve `404` y no es el
+receptor de la instancia local. Para producción se necesitaría desplegar esta misma
+ruta y configurar esa URL explícitamente en la app.

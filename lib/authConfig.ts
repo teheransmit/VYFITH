@@ -25,14 +25,14 @@ export const MASTER_PASSKEY_ALT = 'vyfith2026';
 const SESSION_STORAGE_KEY = 'vyfith_auth_session';
 
 /**
- * Obtiene la sesión activa almacenada en localStorage.
+ * Obtiene la sesión activa almacenada durante la sesión del navegador.
  * Si no existe o el correo no pertenece a la lista blanca, retorna null.
  * La sesión se mantiene indefinidamente en el PC según lo solicitado.
  */
 export function getStoredSession(): UserSession | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY);
     if (!raw) return null;
     const session: UserSession = JSON.parse(raw);
     
@@ -42,14 +42,14 @@ export function getStoredSession(): UserSession | null {
       if (!session.name || session.name.includes('Terán') || session.name.includes('Teran') || session.name.includes('Smith') || !session.name.includes('Teherán')) {
         session.name = 'Santiago Smit Teherán Mogollón';
         try {
-          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+          sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
         } catch (_) {}
       }
       return session;
     }
     
     // Purga de sesión no autorizada si se detecta inconsistencia
-    localStorage.removeItem(SESSION_STORAGE_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
     return null;
   } catch (err) {
     console.error('Error al recuperar sesión de VYFITH:', err);
@@ -63,7 +63,7 @@ export function getStoredSession(): UserSession | null {
 export function saveSession(session: UserSession): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
     // Disparar evento para sincronización reactiva en pestañas/componentes
     window.dispatchEvent(new Event('vyfith-auth-change'));
   } catch (err) {
@@ -77,7 +77,7 @@ export function saveSession(session: UserSession): void {
 export function clearSession(): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.removeItem(SESSION_STORAGE_KEY);
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
     window.dispatchEvent(new Event('vyfith-auth-change'));
   } catch (err) {
     console.error('Error al cerrar sesión:', err);

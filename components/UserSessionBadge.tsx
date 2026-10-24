@@ -33,7 +33,7 @@ export default function UserSessionBadge({ session, onLogout }: UserSessionBadge
       <div className="hidden sm:block text-left">
         <div className="flex items-center gap-1.5">
           <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
-            {session.name && !session.name.includes('Terán') && !session.name.includes('Teran') ? session.name : 'Santiago Smit Teherán Mogollón'}
+            {session.name}
           </span>
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
         </div>

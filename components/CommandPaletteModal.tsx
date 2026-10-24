@@ -19,6 +19,7 @@ import {
   X,
   Keyboard,
 } from 'lucide-react';
+import { DASHBOARD_NAV_ITEMS } from '@/lib/navigation';
 
 export interface CommandItem {
   id: string;
@@ -46,93 +47,19 @@ export default function CommandPaletteModal({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const commandItems: CommandItem[] = [
-    // 1. Pilares
-    {
-      id: 'nav-overview',
-      title: 'Vista General del Sistema',
-      subtitle: 'Resumen ejecutivo de métricas cruzadas (Salud, Hevy y Gastos)',
-      category: 'Pilar Principal',
+    ...DASHBOARD_NAV_ITEMS.map((item) => ({
+      id: `nav-${item.id}`,
+      title: item.commandTitle,
+      subtitle: item.commandSubtitle,
+      category: 'Pilar Principal' as const,
       icon: <Sparkles className="w-4 h-4 text-indigo-500" />,
       action: () => {
-        onNavigate('overview');
+        onNavigate(item.id);
         onClose();
       },
-      badge: 'Pilar 1',
-    },
-    {
-      id: 'nav-bio',
-      title: 'Bio & Portafolio IA',
-      subtitle: 'Perfil híbrido de Santiago Smit, proyectos y visión profesional',
-      category: 'Pilar Principal',
-      icon: <User className="w-4 h-4 text-indigo-500" />,
-      action: () => {
-        onNavigate('bio');
-        onClose();
-      },
-      badge: 'Pilar 2',
-    },
-    {
-      id: 'nav-health',
-      title: 'Salud, Biometría & Fitness',
-      subtitle: 'Readiness en vivo (Pixel 8 Pro), Gimnasio UPB y sobrecarga Hevy',
-      category: 'Pilar Principal',
-      icon: <Heart className="w-4 h-4 text-rose-500" />,
-      action: () => {
-        onNavigate('health');
-        onClose();
-      },
-      badge: 'Pilar 3',
-    },
-    {
-      id: 'nav-horario',
-      title: 'Agenda & Horario UPB',
-      subtitle: 'Cuadrícula semanal de clases presenciales y Google Calendar en vivo',
-      category: 'Pilar Principal',
-      icon: <Calendar className="w-4 h-4 text-blue-500" />,
-      action: () => {
-        onNavigate('horario');
-        onClose();
-      },
-      badge: 'Pilar 4',
-    },
-    {
-      id: 'nav-grades',
-      title: 'Academia & Literatura UPB',
-      subtitle: 'Calificaciones oficiales SIGAA, cálculo de corte final y papers OpenAlex',
-      category: 'Pilar Principal',
-      icon: <GraduationCap className="w-4 h-4 text-amber-500" />,
-      action: () => {
-        onNavigate('grades');
-        onClose();
-      },
-      badge: 'Pilar 5',
-    },
-    {
-      id: 'nav-walks',
-      title: 'Paseos Caninos & Rutina UPB',
-      subtitle: 'Optimizador matutino de salidas con Frida y confort térmico en Montería',
-      category: 'Pilar Principal',
-      icon: <Footprints className="w-4 h-4 text-amber-700" />,
-      action: () => {
-        onNavigate('walks');
-        onClose();
-      },
-      badge: 'Pilar 6',
-    },
-    {
-      id: 'nav-finance',
-      title: 'Finanzas Personales & iPhone',
-      subtitle: 'Rendimiento Cajita Nu 9.30% E.A., presupuesto Medellín $584.5k y deudas',
-      category: 'Pilar Principal',
-      icon: <CreditCard className="w-4 h-4 text-emerald-500" />,
-      action: () => {
-        onNavigate('finance');
-        onClose();
-      },
-      badge: 'Pilar 7',
-    },
-
-    // 2. Acciones Rápidas
+      badge: item.badge,
+    })),
+    // Acciones Rápidas
     {
       id: 'action-gym-status',
       title: 'Verificar Estado del Gimnasio UPB',
@@ -204,14 +131,18 @@ export default function CommandPaletteModal({
 
   useEffect(() => {
     if (isOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      const resetId = window.setTimeout(() => {
+        setQuery('');
+        setSelectedIndex(0);
+        inputRef.current?.focus();
+      }, 50);
+      return () => window.clearTimeout(resetId);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    setSelectedIndex(0);
+    const resetId = window.setTimeout(() => setSelectedIndex(0), 0);
+    return () => window.clearTimeout(resetId);
   }, [query]);
 
   // Manejo de teclado dentro del modal

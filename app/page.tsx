@@ -25,6 +25,27 @@ import PersonalBioAssistant from '@/components/PersonalBioAssistant';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
 import CommandPaletteModal from '@/components/CommandPaletteModal';
+import SessionThemeControls from '@/components/SessionThemeControls';
+import { DASHBOARD_NAV_ITEMS, DashboardTab } from '@/lib/navigation';
+
+const NAV_COLOR_CLASSES = {
+  slate: ['bg-slate-900 dark:bg-indigo-600 text-white shadow-md ring-2 ring-slate-900/20 dark:ring-indigo-600/30', 'text-slate-500 dark:text-slate-400'],
+  indigo: ['bg-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20', 'text-indigo-500'],
+  rose: ['bg-rose-600 text-white shadow-md ring-2 ring-rose-600/20', 'text-rose-500'],
+  blue: ['bg-blue-600 text-white shadow-md ring-2 ring-blue-600/20', 'text-blue-500'],
+  amber: ['bg-amber-600 text-white shadow-md ring-2 ring-amber-600/20', 'text-amber-500'],
+  emerald: ['bg-emerald-600 text-white shadow-md ring-2 ring-emerald-600/20', 'text-emerald-500'],
+} as const;
+
+const NAV_ICONS = {
+  sparkles: Sparkles,
+  user: User,
+  activity: Activity,
+  calendar: Calendar,
+  graduation: GraduationCap,
+  footprints: Footprints,
+  'credit-card': CreditCard,
+} as const;
 
 export default function Home() {
   return (
@@ -36,7 +57,7 @@ export default function Home() {
 
 function HomeDashboard() {
   const { session, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   // Por defecto en PC: inicia directamente en el Centro de Mando completo (8 pilares)
   const [viewMode, setViewMode] = useState<'travel' | 'full'>('full');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
@@ -58,13 +79,14 @@ function HomeDashboard() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setIsDarkMode(true);
+    const nextIsDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    const themeId = window.setTimeout(() => setIsDarkMode(nextIsDark), 0);
+    if (nextIsDark) {
       document.documentElement.classList.add('dark');
     } else {
-      setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
+    return () => window.clearTimeout(themeId);
   }, []);
 
   const toggleTheme = () => {
@@ -81,7 +103,7 @@ function HomeDashboard() {
 
   return (
     <main className="min-h-screen bg-slate-50/70 dark:bg-slate-950 py-6 px-3 sm:px-6 lg:px-8 font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200">
-      <div className="max-w-6xl mx-auto">
+      <div className="app-shell mx-auto w-full min-w-0">
         {/* VISTA 1: MODO VIAJE MÓVIL (Preservado para móvil / desplazamientos futuros) */}
         {viewMode === 'travel' && (
           <div className="animate-fadeIn">
@@ -92,17 +114,12 @@ function HomeDashboard() {
                 <span>Modo Viaje (Móvil) Activo — Optimizado para smartphone</span>
               </div>
               <div className="flex items-center gap-2">
-                {/* Badge de Sesión */}
-                <UserSessionBadge session={session} onLogout={logout} />
-
-                {/* Alternar Tema */}
-                <button
-                  onClick={toggleTheme}
-                  aria-label="Alternar tema"
-                  className="cursor-pointer p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
-                >
-                  {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
-                </button>
+                <SessionThemeControls
+                  session={session}
+                  onLogout={logout}
+                  isDarkMode={isDarkMode}
+                  onToggleTheme={toggleTheme}
+                />
                 <button
                   onClick={() => setViewMode('full')}
                   className="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-black bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 transition-all flex items-center gap-1.5 shadow-xs"
@@ -136,38 +153,13 @@ function HomeDashboard() {
 
               {/* Botones de Acción Superior: Sesión de Usuario, Modo Oscuro / Claro y Estado */}
               <div className="flex items-center gap-2 self-stretch sm:self-start md:self-center flex-wrap justify-between sm:justify-start">
-                {/* Badge de Sesión de Usuario con Botón de Cerrar Sesión */}
-                <UserSessionBadge session={session} onLogout={logout} />
-
-                {/* Botón Paleta de Comandos Cmd+K */}
-                <button
-                  onClick={() => setIsCommandOpen(true)}
-                  className="cursor-pointer px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs transition-all flex items-center gap-1.5 sm:gap-2 group"
-                  title="Abrir buscador y comandos rápidos (Ctrl+K / Cmd+K)"
-                >
-                  <Search className="w-4 h-4 text-indigo-500" />
-                  <span className="text-xs font-bold hidden sm:inline">Comandos</span>
-                  <kbd className="hidden sm:inline px-1.5 py-0.5 text-[10px] font-mono bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-slate-500">⌘K</kbd>
-                </button>
-
-                {/* Switcher Modo Oscuro / Claro */}
-                <button
-                  onClick={toggleTheme}
-                  aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-                  className="cursor-pointer px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-xs transition-all flex items-center gap-1.5 sm:gap-2 group"
-                >
-                  {isDarkMode ? (
-                    <>
-                      <Sun className="w-4 h-4 text-amber-400 transition-transform group-hover:rotate-45" />
-                      <span className="text-xs font-bold text-slate-200 hidden xs:inline sm:inline">Claro</span>
-                    </>
-                  ) : (
-                    <>
-                      <Moon className="w-4 h-4 text-indigo-600 transition-transform group-hover:-rotate-12" />
-                      <span className="text-xs font-bold text-slate-700 hidden xs:inline sm:inline">Oscuro</span>
-                    </>
-                  )}
-                </button>
+                <SessionThemeControls
+                  session={session}
+                  onLogout={logout}
+                  isDarkMode={isDarkMode}
+                  onToggleTheme={toggleTheme}
+                  onOpenCommands={() => setIsCommandOpen(true)}
+                />
 
                 {/* Badge de Ecosistema (Oculto en móviles para evitar saturación de pantalla) */}
                 <div className="hidden md:flex px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs items-center gap-3">
@@ -180,99 +172,48 @@ function HomeDashboard() {
               </div>
             </header>
 
-            {/* Barra de Navegación por Pilares (7 Pilares Ejecutivos) */}
+            {/* Navegación dinámica: se distribuye en escritorio y se desplaza en móvil. */}
             <nav
-              className="mb-8 flex items-center gap-2 overflow-x-auto pb-4 custom-nav-scrollbar"
+              aria-label="Secciones principales"
+              className="mb-8 flex items-center gap-2 overflow-x-auto pb-4 custom-nav-scrollbar lg:overflow-visible lg:flex-wrap"
               onWheel={(e) => {
                 if (e.deltaY !== 0) {
                   e.currentTarget.scrollLeft += e.deltaY;
                 }
               }}
             >
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'overview'
-                    ? 'bg-slate-900 dark:bg-indigo-600 text-white shadow-md ring-2 ring-slate-900/20 dark:ring-indigo-600/30'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'overview' ? 'text-white' : 'text-slate-500 dark:text-slate-400'}`} />
-                <span>Vista General</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('bio')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'bio'
-                    ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <User className={`w-3.5 h-3.5 ${activeTab === 'bio' ? 'text-white' : 'text-indigo-500'}`} />
-                <span>Bio & Portafolio IA</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('health')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'health' || activeTab === 'gym' || activeTab === 'hevy'
-                    ? 'bg-rose-600 text-white shadow-md ring-2 ring-rose-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Activity className={`w-3.5 h-3.5 ${activeTab === 'health' || activeTab === 'gym' || activeTab === 'hevy' ? 'text-white' : 'text-rose-500'}`} />
-                <span>Salud, Biometría & Fitness</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('horario')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'horario' || activeTab === 'calendar'
-                    ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Calendar className={`w-3.5 h-3.5 ${activeTab === 'horario' || activeTab === 'calendar' ? 'text-white' : 'text-blue-500'}`} />
-                <span>Agenda & Horario UPB</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('grades')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'grades' || activeTab === 'science'
-                    ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <GraduationCap className={`w-3.5 h-3.5 ${activeTab === 'grades' || activeTab === 'science' ? 'text-white' : 'text-amber-500'}`} />
-                <span>Academia & Literatura UPB</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('walks')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'walks'
-                    ? 'bg-amber-700 text-white shadow-md ring-2 ring-amber-700/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Footprints className={`w-3.5 h-3.5 ${activeTab === 'walks' ? 'text-white' : 'text-amber-600'}`} />
-                <span>Paseos & Rutina UPB</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('finance')}
-                className={`cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                  activeTab === 'finance'
-                    ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-600/20'
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <CreditCard className={`w-3.5 h-3.5 ${activeTab === 'finance' ? 'text-white' : 'text-emerald-500'}`} />
-                <span>Finanzas & iPhone</span>
-              </button>
+              {DASHBOARD_NAV_ITEMS.map((item) => {
+                const Icon = NAV_ICONS[item.icon];
+                const [activeClasses, inactiveIconClasses] = NAV_COLOR_CLASSES[item.color];
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    aria-current={isActive ? 'page' : undefined}
+                    title={item.commandTitle}
+                    className={`cursor-pointer min-h-10 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1.5 lg:flex-1 ${
+                      isActive
+                        ? activeClasses
+                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : inactiveIconClasses}`} />
+                    <span>{item.shortLabel}</span>
+                  </button>
+                );
+              })}
             </nav>
 
             {/* Renderizado Exclusivo: Sólo el Pilar Seleccionado */}
             <div className="transition-all duration-200">
               {activeTab === 'overview' && (
                 <div className="animate-fadeIn">
-                  <DashboardOverview onNavigate={(tab) => setActiveTab(tab)} />
+                  <DashboardOverview onNavigate={(tab) => {
+                    if (DASHBOARD_NAV_ITEMS.some((item) => item.id === tab)) {
+                      setActiveTab(tab as DashboardTab);
+                    }
+                  }} />
                 </div>
               )}
 
@@ -282,18 +223,18 @@ function HomeDashboard() {
                 </div>
               )}
 
-              {(activeTab === 'health' || activeTab === 'gym' || activeTab === 'hevy') && (
+              {activeTab === 'health' && (
                 <div className="animate-fadeIn">
                   <UnifiedHealthFitnessSection />
                 </div>
               )}
-              {(activeTab === 'horario' || activeTab === 'calendar') && (
+              {activeTab === 'horario' && (
                 <div className="animate-fadeIn">
                   <UnifiedScheduleCalendarSection />
                 </div>
               )}
 
-              {(activeTab === 'grades' || activeTab === 'science') && (
+              {activeTab === 'grades' && (
                 <div className="animate-fadeIn">
                   <UnifiedAcademicSection />
                 </div>
@@ -331,7 +272,11 @@ function HomeDashboard() {
         <CommandPaletteModal
           isOpen={isCommandOpen}
           onClose={() => setIsCommandOpen(false)}
-          onNavigate={(tab) => setActiveTab(tab)}
+          onNavigate={(tab) => {
+            if (DASHBOARD_NAV_ITEMS.some((item) => item.id === tab)) {
+              setActiveTab(tab as DashboardTab);
+            }
+          }}
         />
       </div>
     </main>

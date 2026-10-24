@@ -226,6 +226,28 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
 
   return (
     <section className="w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-8 shadow-xs border border-slate-200/80 dark:border-slate-800 mb-10 transition-colors">
+      <div className="mb-6 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/70 bg-indigo-50/70 dark:bg-indigo-950/30 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-300">Prioridades de hoy</p>
+            <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
+              Usa este resumen para decidir qué revisar primero; las métricas inferiores son datos de referencia simulados.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => onNavigate?.('health')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-rose-700 shadow-xs hover:bg-rose-50 dark:bg-slate-900 dark:text-rose-300 dark:hover:bg-slate-800">
+              Revisar salud
+            </button>
+            <button onClick={() => onNavigate?.('horario')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 shadow-xs hover:bg-blue-50 dark:bg-slate-900 dark:text-blue-300 dark:hover:bg-slate-800">
+              Ver agenda
+            </button>
+            <button onClick={() => onNavigate?.('finance')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-emerald-700 shadow-xs hover:bg-emerald-50 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-slate-800">
+              Revisar finanzas
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Date-range picker en la parte superior del Dashboard */}
       <div className="mb-6">
         <DateRangePicker
@@ -242,15 +264,15 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Sincronización en Tiempo Real
+              Datos de referencia
             </span>
-            <span className="text-xs text-slate-400 font-mono">HL7 FHIR + Open Banking</span>
+            <span className="text-xs text-slate-400 font-mono">Simulación local • No es telemetría en vivo</span>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white dark:text-white tracking-tight flex items-center gap-2">
             Resumen de Métricas Cruzadas
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Correlación analítica entre actividad biométrica (Health Connect), rutinas de fuerza (Hevy) y transacciones financieras ({selectedRange} días).
+            Correlación de referencia entre actividad biométrica, rutinas de fuerza y transacciones financieras ({selectedRange} días). Conecta las fuentes para reemplazar estos valores simulados.
           </p>
         </div>
 

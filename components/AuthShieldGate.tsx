@@ -23,12 +23,21 @@ import {
   verifyMasterPasskey,
   AUTHORIZED_EMAILS,
 } from '@/lib/authConfig';
+import { getFirebaseAuth, isFirebaseConfigured } from '@/lib/firebaseClient';
+import {
+  GoogleAuthProvider,
+  browserSessionPersistence,
+  getRedirectResult,
+  setPersistence,
+  signInWithRedirect,
+  signOut,
+} from 'firebase/auth';
 
 // Contexto de Autenticación para componentes hijos
 interface AuthContextType {
   session: UserSession | null;
   logout: () => void;
-}
+};
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
@@ -55,9 +64,10 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
 
   // Sincronización inicial y escucha de cambios de sesión
   useEffect(() => {
-    const active = getStoredSession();
-    setSession(active);
-    setIsChecking(false);
+    const initializationId = window.setTimeout(() => {
+      setSession(getStoredSession());
+      setIsChecking(false);
+    }, 0);
 
     const handleAuthChange = () => {
       setSession(getStoredSession());
@@ -65,11 +75,18 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
 
     window.addEventListener('vyfith-auth-change', handleAuthChange);
     return () => {
+      window.clearTimeout(initializationId);
       window.removeEventListener('vyfith-auth-change', handleAuthChange);
     };
   }, []);
 
   const handleLogout = () => {
+    const firebaseAuth = getFirebaseAuth();
+    if (firebaseAuth) {
+      void signOut(firebaseAuth).catch((error) => {
+        console.error('Error al cerrar sesión de Firebase:', error);
+      });
+    }
     clearSession();
     setSession(null);
     setSuccessMessage(null);
@@ -77,30 +94,80 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
     setPasskeyInput('');
   };
 
-  // Inicio de sesión oficial con Google para la cuenta autorizada de Santiago
-  const handleGoogleSignIn = () => {
+  async function completeGoogleSignIn() {
+    const firebaseAuth = getFirebaseAuth();
+    if (!firebaseAuth) return;
+
+    try {
+      const result = await getRedirectResult(firebaseAuth);
+      if (!result) return;
+
+      const { user } = result;
+      const email = user.email?.trim().toLowerCase();
+      if (!email || !isEmailAuthorized(email)) {
+        await signOut(firebaseAuth);
+        setErrorMessage('Acceso denegado: Esta cuenta de Google no tiene permisos de administrador.');
+        return;
+      }
+
+      const newSession: UserSession = {
+        email,
+        name: user.displayName || email,
+        avatarUrl: user.photoURL || undefined,
+        authenticatedAt: Date.now(),
+        authMethod: 'google',
+      };
+      saveSession(newSession);
+      setSession(newSession);
+      setSuccessMessage('¡Cuenta de Google verificada! Cargando Centro de Mando...');
+    } catch (error) {
+      console.error('Error al completar el inicio de sesión con Google:', error);
+      setErrorMessage('No fue posible verificar tu cuenta de Google. Intenta nuevamente.');
+    }
+  }
+
+  useEffect(() => {
+    const redirectCheckId = window.setTimeout(() => {
+      void completeGoogleSignIn();
+    }, 0);
+    return () => window.clearTimeout(redirectCheckId);
+  }, []);
+
+  // Inicio de sesión real con Google para la cuenta autorizada de Santiago
+  const handleGoogleSignIn = async () => {
     setIsAuthenticating(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    // Simulación / Integración de Google OAuth
-    setTimeout(() => {
-      const email = 'santiagosmitttt@gmail.com';
-      if (isEmailAuthorized(email)) {
-        const newSession: UserSession = {
-          email,
-          name: 'Santiago Smit Teherán Mogollón',
-          authenticatedAt: Date.now(),
-          authMethod: 'google',
-        };
-        saveSession(newSession);
-        setSession(newSession);
-        setSuccessMessage('¡Acceso autorizado! Cargando Centro de Mando...');
-      } else {
-        setErrorMessage('Acceso denegado: Esta cuenta de Google no tiene permisos de administrador.');
-      }
+    if (!isFirebaseConfigured) {
+      setErrorMessage(
+        'La autenticación de Google no está configurada en este entorno. Usa “Master Key de Administrador” mientras agregas la apiKey web de Firebase.',
+      );
       setIsAuthenticating(false);
-    }, 600);
+      return;
+    }
+
+    try {
+      const firebaseAuth = getFirebaseAuth();
+      if (!firebaseAuth) {
+        setErrorMessage(
+          'La autenticación de Google no está configurada en este entorno. Usa “Master Key de Administrador” mientras agregas la apiKey web de Firebase.',
+        );
+        return;
+      }
+
+      await setPersistence(firebaseAuth, browserSessionPersistence);
+      await signInWithRedirect(firebaseAuth, new GoogleAuthProvider());
+    } catch (error) {
+      console.error('Error durante el inicio de sesión con Google:', error);
+      setErrorMessage(
+        error instanceof Error && error.message.includes('unauthorized-domain')
+          ? 'Este dominio todavía no está autorizado en Firebase Authentication.'
+          : 'No fue posible iniciar la verificación con Google. Intenta nuevamente.',
+      );
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
 
   // Intento de acceso con Master Passkey
@@ -282,7 +349,7 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
               <span>Lista Blanca Exclusiva: santiagosmitttt@gmail.com</span>
             </div>
             <p>
-              Sesión persistente indefinida en este equipo. Cualquier otra cuenta será rechazada sin exponer información.
+              La sesión dura hasta cerrar el navegador. Cualquier otra cuenta será rechazada sin exponer información.
             </p>
           </div>
         </div>

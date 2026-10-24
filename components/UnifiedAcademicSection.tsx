@@ -10,12 +10,16 @@ import {
   FileText,
   BookmarkCheck,
   TrendingUp,
+  Target,
+  Compass,
 } from 'lucide-react';
 import AcademicGradesSection from './AcademicGradesSection';
 import ScientificNotesSection from './ScientificNotesSection';
+import StructuralStudySection from './StructuralStudySection';
+import CareerTopicRoulette from './CareerTopicRoulette';
 
 export default function UnifiedAcademicSection() {
-  const [viewType, setViewType] = useState<'combined' | 'grades' | 'science'>('combined');
+  const [viewType, setViewType] = useState<'combined' | 'grades' | 'science' | 'study' | 'curiosity'>('study');
 
   return (
     <section id="unified-academic-section" className="space-y-6 animate-fadeIn">
@@ -86,6 +90,28 @@ export default function UnifiedAcademicSection() {
               <BookOpen className="w-3.5 h-3.5" />
               <span>Notas & Referencias</span>
             </button>
+            <button
+              onClick={() => setViewType('study')}
+              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                viewType === 'study'
+                  ? 'bg-amber-600 text-white shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>Plan de Estudio</span>
+            </button>
+            <button
+              onClick={() => setViewType('curiosity')}
+              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                viewType === 'curiosity'
+                  ? 'bg-cyan-600 text-white shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Idea del Día</span>
+            </button>
           </div>
         </div>
       </div>
@@ -126,6 +152,18 @@ export default function UnifiedAcademicSection() {
       {viewType === 'science' && (
         <div className="animate-fadeIn">
           <ScientificNotesSection />
+        </div>
+      )}
+
+      {viewType === 'study' && (
+        <div className="animate-fadeIn">
+          <StructuralStudySection />
+        </div>
+      )}
+
+      {viewType === 'curiosity' && (
+        <div className="animate-fadeIn">
+          <CareerTopicRoulette />
         </div>
       )}
     </section>

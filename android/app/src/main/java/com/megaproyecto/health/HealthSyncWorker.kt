@@ -7,10 +7,12 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.changes.DeletionChange
 import androidx.health.connect.client.changes.UpsertionChange
 import androidx.health.connect.client.request.ChangesTokenRequest
+import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
+import androidx.health.connect.client.time.TimeRangeFilter
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
@@ -45,32 +47,41 @@ class HealthSyncWorker(
         try {
             val healthConnectClient = HealthConnectClient.getOrCreate(applicationContext)
             
-            // 1. Recuperar el token de cambios guardado o solicitar uno nuevo si es primera vez
-            val token = getStoredChangesToken() ?: requestNewChangesToken(healthConnectClient)
-            
-            // 2. Extraer los cambios deltas desde la última sincronización
-            val changesResponse = healthConnectClient.getChanges(token)
             val fhirObservations = JSONArray()
+            val storedToken = getStoredChangesToken()
+            val token: String
+            var nextChangesToken: String
 
-            for (change in changesResponse.changes) {
-                when (change) {
-                    is UpsertionChange -> {
-                        val record = change.record
-                        // Mapeo exhaustivo a HL7 FHIR R4 con códigos LOINC internacionales
-                        when (record) {
-                            is StepsRecord -> fhirObservations.put(mapStepsToFhir(record))
-                            is HeartRateRecord -> fhirObservations.put(mapHeartRateToFhir(record))
-                            is SleepSessionRecord -> fhirObservations.put(mapSleepToFhir(record))
-                            is HeartRateVariabilityRmssdRecord -> fhirObservations.put(mapHrvToFhir(record))
+            if (storedToken == null) {
+                // El primer token solo marca un punto de partida; no contiene el histórico.
+                // Cargamos una ventana inicial para que la web no empiece vacía.
+                appendInitialRecords(healthConnectClient, fhirObservations)
+                token = requestNewChangesToken(healthConnectClient)
+                nextChangesToken = token
+            } else {
+                token = storedToken
+                val changesResponse = healthConnectClient.getChanges(token)
+
+                for (change in changesResponse.changes) {
+                    when (change) {
+                        is UpsertionChange -> {
+                            val record = change.record
+                            when (record) {
+                                is StepsRecord -> fhirObservations.put(mapStepsToFhir(record))
+                                is HeartRateRecord -> fhirObservations.put(mapHeartRateToFhir(record))
+                                is SleepSessionRecord -> fhirObservations.put(mapSleepToFhir(record))
+                                is HeartRateVariabilityRmssdRecord -> fhirObservations.put(mapHrvToFhir(record))
+                            }
+                        }
+                        is DeletionChange -> {
+                            Log.d(TAG, "Registro biométrico borrado en dispositivo: ${change.recordId}")
                         }
                     }
-                    is DeletionChange -> {
-                        Log.d(TAG, "Registro biométrico borrado en dispositivo: ${change.recordId}")
-                    }
                 }
+                nextChangesToken = changesResponse.nextChangesToken
             }
 
-            // 3. Transmitir lote FHIR al backend si hay observaciones acumuladas
+            // Transmitir lote FHIR al backend si hay observaciones acumuladas.
             if (fhirObservations.length() > 0) {
                 val success = sendToBackend(fhirObservations, token)
                 if (!success) {
@@ -85,8 +96,9 @@ class HealthSyncWorker(
                 }.apply()
             }
 
-            // 4. Guardar de forma persistente el siguiente token de cambios para la próxima ejecución
-            saveChangesToken(changesResponse.nextChangesToken)
+            // Guardar el token para la próxima ejecución; el primer token queda vigente
+            // después del bootstrap y las ejecuciones posteriores usan deltas.
+            saveChangesToken(nextChangesToken)
 
             Log.i(TAG, "Sincronización completada exitosamente. Elementos procesados: ${fhirObservations.length()}")
             Result.success()
@@ -94,6 +106,29 @@ class HealthSyncWorker(
             Log.e(TAG, "Excepción en HealthSyncWorker:", e)
             Result.retry()
         }
+
+    }
+
+    private suspend fun appendInitialRecords(
+        client: HealthConnectClient,
+        observations: JSONArray
+    ) {
+        val now = java.time.Instant.now()
+        val start = now.minus(7, java.time.temporal.ChronoUnit.DAYS)
+        val range = TimeRangeFilter.between(start, now)
+
+        client.readRecords(
+            ReadRecordsRequest(recordType = StepsRecord::class, timeRangeFilter = range)
+        ).records.forEach { observations.put(mapStepsToFhir(it)) }
+        client.readRecords(
+            ReadRecordsRequest(recordType = HeartRateRecord::class, timeRangeFilter = range)
+        ).records.forEach { observations.put(mapHeartRateToFhir(it)) }
+        client.readRecords(
+            ReadRecordsRequest(recordType = SleepSessionRecord::class, timeRangeFilter = range)
+        ).records.forEach { observations.put(mapSleepToFhir(it)) }
+        client.readRecords(
+            ReadRecordsRequest(recordType = HeartRateVariabilityRmssdRecord::class, timeRangeFilter = range)
+        ).records.forEach { observations.put(mapHrvToFhir(it)) }
     }
 
     private suspend fun requestNewChangesToken(client: HealthConnectClient): String {
@@ -268,7 +303,7 @@ class HealthSyncWorker(
     }
 
     private fun getBackendUrl(): String {
-        return getPrefs().getString(KEY_BACKEND_URL, "https://ais-pre-2ihzxs7iiz7evj5q52apo5-472843269573.us-east1.run.app/api/sync/health")!!
+        return getPrefs().getString(KEY_BACKEND_URL, "http://192.168.1.8:3000/api/sync/health")!!
     }
 
     private fun getDeviceId(): String {

@@ -56,7 +56,8 @@ class MainActivity : ComponentActivity() {
 
     private val PREFS_NAME = "MegaProyectoHealthPrefs"
     private val KEY_BACKEND_URL = "key_backend_url"
-    private val DEFAULT_URL = "https://ais-pre-2ihzxs7iiz7evj5q52apo5-472843269573.us-east1.run.app/api/sync/health"
+    private val LEGACY_CLOUD_URL = "https://ais-pre-2ihzxs7iiz7evj5q52apo5-472843269573.us-east1.run.app/api/sync/health"
+    private val DEFAULT_URL = "http://192.168.1.8:3000/api/sync/health"
 
     // Permisos exactos requeridos de Health Connect
     private val PERMISSIONS = setOf(
@@ -90,7 +91,13 @@ class MainActivity : ComponentActivity() {
         }
 
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val initialUrl = prefs.getString(KEY_BACKEND_URL, DEFAULT_URL) ?: DEFAULT_URL
+        val storedUrl = prefs.getString(KEY_BACKEND_URL, null)
+        val initialUrl = if (storedUrl.isNullOrBlank() || storedUrl == LEGACY_CLOUD_URL) {
+            prefs.edit().putString(KEY_BACKEND_URL, DEFAULT_URL).apply()
+            DEFAULT_URL
+        } else {
+            storedUrl
+        }
 
         val openTabExtra = intent?.getStringExtra("OPEN_TAB")
         val initialTopTab = if (openTabExtra == "daily_register" || openTabExtra == "finance") 1 else 0
@@ -127,7 +134,7 @@ class MainActivity : ComponentActivity() {
      * Inspecciona los datos reales almacenados en Google Health Connect en este momento
      */
     private fun inspectHealthConnectData(
-        onDone: (steps: Long, hr: Int, sleepHours: Double, hrvMs: Double, statusMsg: String) -> Unit
+        onDone: (steps: Long?, hr: Int?, sleepHours: Double?, hrvMs: Double?, statusMsg: String) -> Unit
     ) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -148,7 +155,7 @@ class MainActivity : ComponentActivity() {
                     timeRangeFilter = TimeRangeFilter.between(now.minus(24, ChronoUnit.HOURS), now)
                 )
                 val hrResponse = healthConnectClient.readRecords(hrRequest)
-                val latestHr = hrResponse.records.lastOrNull()?.samples?.lastOrNull()?.beatsPerMinute?.toInt() ?: 57
+                val latestHr = hrResponse.records.lastOrNull()?.samples?.lastOrNull()?.beatsPerMinute?.toInt()
 
                 // 3. Duración de sueño (últimas 36h)
                 val sleepRequest = ReadRecordsRequest(
@@ -157,10 +164,8 @@ class MainActivity : ComponentActivity() {
                 )
                 val sleepResponse = healthConnectClient.readRecords(sleepRequest)
                 val lastSleep = sleepResponse.records.lastOrNull()
-                val sleepDuration = if (lastSleep != null) {
-                    Duration.between(lastSleep.startTime, lastSleep.endTime).toMinutes() / 60.0
-                } else {
-                    8.0
+                val sleepDuration = lastSleep?.let {
+                    Duration.between(it.startTime, it.endTime).toMinutes() / 60.0
                 }
 
                 // 4. HRV RMSSD (últimas 48h)
@@ -169,7 +174,7 @@ class MainActivity : ComponentActivity() {
                     timeRangeFilter = TimeRangeFilter.between(now.minus(48, ChronoUnit.HOURS), now)
                 )
                 val hrvResponse = healthConnectClient.readRecords(hrvRequest)
-                val latestHrv = hrvResponse.records.lastOrNull()?.heartRateVariabilityMillis ?: 76.0
+                val latestHrv = hrvResponse.records.lastOrNull()?.heartRateVariabilityMillis
 
                 withContext(Dispatchers.Main) {
                     onDone(
@@ -182,13 +187,7 @@ class MainActivity : ComponentActivity() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    onDone(
-                        4525L,
-                        57,
-                        8.0,
-                        76.0,
-                        "ℹ️ Lectura de respaldo activa (${e.message ?: "Permisos pendientes"})"
-                    )
+                    onDone(null, null, null, null, "⚠️ No se pudieron leer datos reales: ${e.message ?: "Permisos pendientes"}")
                 }
             }
         }
@@ -246,7 +245,7 @@ fun MainAppRootScreen(
     onSaveUrl: (String) -> Unit,
     onRequestPermissions: () -> Unit,
     onSyncNow: () -> Unit,
-    onInspectData: (onDone: (Long, Int, Double, Double, String) -> Unit) -> Unit,
+    onInspectData: (onDone: (Long?, Int?, Double?, Double?, String) -> Unit) -> Unit,
     getAuditData: () -> AuditInfo
 ) {
     var topTabIndex by remember { mutableIntStateOf(initialTopTab) }
@@ -346,7 +345,7 @@ fun HealthSyncAppScreen(
     onSaveUrl: (String) -> Unit,
     onRequestPermissions: () -> Unit,
     onSyncNow: () -> Unit,
-    onInspectData: (onDone: (Long, Int, Double, Double, String) -> Unit) -> Unit,
+    onInspectData: (onDone: (Long?, Int?, Double?, Double?, String) -> Unit) -> Unit,
     getAuditData: () -> AuditInfo
 ) {
     var urlText by remember { mutableStateOf(initialUrl) }
@@ -415,13 +414,13 @@ fun HealthSyncAppScreen(
                     ) {
                         MetricBox(
                             label = "Pasos Hoy",
-                            value = inspectedSteps?.let { "$it" } ?: "4,525",
+                            value = inspectedSteps?.let { "$it" } ?: "—",
                             unit = "pasos",
                             modifier = Modifier.weight(1f)
                         )
                         MetricBox(
                             label = "FC Reposo",
-                            value = inspectedHr?.let { "$it" } ?: "57",
+                            value = inspectedHr?.let { "$it" } ?: "—",
                             unit = "bpm",
                             modifier = Modifier.weight(1f)
                         )
@@ -433,13 +432,13 @@ fun HealthSyncAppScreen(
                     ) {
                         MetricBox(
                             label = "Sueño",
-                            value = inspectedSleep?.let { String.format("%.1f", it) } ?: "8.0",
+                            value = inspectedSleep?.let { String.format("%.1f", it) } ?: "—",
                             unit = "horas",
                             modifier = Modifier.weight(1f)
                         )
                         MetricBox(
                             label = "HRV (RMSSD)",
-                            value = inspectedHrv?.let { String.format("%.0f", it) } ?: "76",
+                            value = inspectedHrv?.let { String.format("%.0f", it) } ?: "—",
                             unit = "ms",
                             modifier = Modifier.weight(1f)
                         )
