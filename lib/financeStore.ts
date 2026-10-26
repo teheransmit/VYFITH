@@ -1038,13 +1038,34 @@ export interface DebtPriorityItem {
   notes: string;
 }
 
+export interface IphoneAccessoryItem {
+  id: string;
+  name: string;
+  price: number;
+  category: 'CARGADOR' | 'CABLE' | 'CASE' | 'VIDRIO' | 'ESIM';
+  details: string;
+}
+
+export interface EsimConfig {
+  carrier: string;
+  mode: 'Prepago';
+  activationCost: number;
+  monthlyFee: number;
+  legalBasis: string;
+  notes: string;
+}
+
 export interface AssetGoalItem {
   id: string;
   name: string;
   store: string;
   location: string;
   specs: string;
+  baseDevicePrice?: number;
+  accessoriesTotal?: number;
   price: number;
+  accessories?: IphoneAccessoryItem[];
+  esimConfig?: EsimConfig;
   savedAmount: number;
   targetDate: string;
   verifiedBatteryHealth: string;
@@ -1112,11 +1133,58 @@ export const initialFinanceData: FinanceSummary = {
   },
   iphoneGoal: {
     id: 'goal-iphone-15-pro',
-    name: 'iPhone 15 Pro (256 GB - Titanio)',
+    name: 'iPhone 15 Pro (256 GB - Titanio) + Combo Accesorios & eSIM Prepago',
     store: 'Bodega Mayorista Montería (Importadores Directos)',
-    location: 'Montería, Córdoba',
+    location: 'Montería, Córdoba (Calle 33 - 34 con 3ra, frente a Óptica Bucaramanga)',
     specs: '256 GB, Dynamic Island, A17 Pro (3nm), Cámara 48MP Pro, USB-C 3.0',
-    price: 1950000,
+    baseDevicePrice: 1950000,
+    accessoriesTotal: 110000,
+    price: 2060000,
+    accessories: [
+      {
+        id: 'acc-charger',
+        name: 'Cabeza Cargador Original 20W Apple',
+        price: 35000,
+        category: 'CARGADOR',
+        details: 'Carga rápida 20W USB-C original cotizado en Bodega Mayorista Montería ($35.000 COP)',
+      },
+      {
+        id: 'acc-cable',
+        name: 'Cable USB-C a USB-C Trenzado Carga Rápida',
+        price: 25000,
+        category: 'CABLE',
+        details: 'Cable de alta transferencia compatible con transferencias USB 3.0 del iPhone 15 Pro',
+      },
+      {
+        id: 'acc-case',
+        name: 'Forro / Case Protector Antichoques (MagSafe)',
+        price: 30000,
+        category: 'CASE',
+        details: 'Silicona reforzada con anillo magnético MagSafe para soporte y protección de esquinas',
+      },
+      {
+        id: 'acc-glass',
+        name: 'Protector de Pantalla (Vidrio Cerámico 9D Templado)',
+        price: 15000,
+        category: 'VIDRIO',
+        details: 'Vidrio templado antihuellas y cobertura total de bordes contra impactos directos',
+      },
+      {
+        id: 'acc-esim',
+        name: 'Activación eSIM Modalidad Prepago (Tigo / Claro / Liwa)',
+        price: 5000,
+        category: 'ESIM',
+        details: 'Código QR presencial Tigo ($5.000 COP) o recarga inicial prepago. Cero contratos pospago.',
+      },
+    ],
+    esimConfig: {
+      carrier: 'Tigo / Claro / Liwa',
+      mode: 'Prepago',
+      activationCost: 5000,
+      monthlyFee: 0,
+      legalBasis: 'Ley 1341 de la CRC — Libre elección de modalidad de servicio',
+      notes: 'No aceptar que el asesor imponga un plan pospago obligatorio. Exigir reposición o alta en prepago.',
+    },
     savedAmount: 0,
     targetDate: 'Diciembre 2026 (Temporada)',
     verifiedBatteryHealth: 'Verificar en iOS 17.4+ ciclos reales (≤50 ciclos) o test en 3uTools',

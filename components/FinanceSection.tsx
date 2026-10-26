@@ -161,8 +161,8 @@ export default function FinanceSection() {
   const yessidRemaining = Math.max(0, yessidTotal - yessidPaid);
   const debtProgress = Math.min(100, Math.round((yessidPaid / yessidTotal) * 100));
 
-  // Cálculos Meta iPhone 15 Pro Bodega Mayorista ($1.950.000 COP)
-  const iphoneCost = finance.iphoneGoal?.price ?? 1950000;
+  // Cálculos Meta iPhone 15 Pro Bodega Mayorista ($2.060.000 COP con accesorios y eSIM)
+  const iphoneCost = finance.iphoneGoal?.price ?? 2060000;
   const iphoneSaved = finance.iphoneGoal?.savedAmount ?? 0;
   const iphoneRemaining = Math.max(0, iphoneCost - iphoneSaved);
   const iphoneProgress = Math.min(100, Math.round((iphoneSaved / iphoneCost) * 100));
@@ -198,7 +198,7 @@ export default function FinanceSection() {
     if (amount <= 0) return;
     setFinance((prev) => {
       const currentSaved = prev.iphoneGoal?.savedAmount || 0;
-      const price = prev.iphoneGoal?.price || 1950000;
+      const price = prev.iphoneGoal?.price || 2060000;
       const newSaved = Math.min(price, currentSaved + amount);
       return {
         ...prev,
@@ -736,12 +736,84 @@ export default function FinanceSection() {
 
                 <div className="mt-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xl font-bold text-slate-900">iPhone 15 Pro (256 GB - Titanio)</h4>
-                    <span className="text-lg font-black text-indigo-600">{formatCurrency(iphoneCost)}</span>
+                    <div>
+                      <h4 className="text-xl font-bold text-slate-900">iPhone 15 Pro (256 GB - Titanio)</h4>
+                      <p className="text-[11px] text-indigo-600 font-semibold mt-0.5">
+                        Combo Completo: Dispositivo + Cargador 20W + Cable + Forro + Vidrio + eSIM
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-indigo-600 block">{formatCurrency(iphoneCost)}</span>
+                      <span className="text-[10px] text-slate-400 font-medium">Meta Final Total</span>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-2">
                     Titanio Natural/Negro, Dynamic Island, Chip A17 Pro (3nm para emulación y render), Puerto USB-C 3.0 de alta velocidad.
                   </p>
+                </div>
+
+                {/* Desglose Detallado del Presupuesto (Dispositivo + Accesorios) */}
+                <div className="mt-4 p-3.5 bg-slate-50/80 rounded-2xl border border-slate-200/80">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-800 mb-2.5 pb-1.5 border-b border-slate-200">
+                    <span className="flex items-center gap-1.5">
+                      <ShoppingBag className="w-3.5 h-3.5 text-indigo-600" />
+                      Desglose de Compra Cotizado:
+                    </span>
+                    <span className="text-indigo-600 font-black">{formatCurrency(iphoneCost)}</span>
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between items-center text-slate-700">
+                      <span>📱 iPhone 15 Pro 256GB (Grado A+ Bodega Montería)</span>
+                      <strong className="font-semibold text-slate-900">$1.950.000</strong>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>🔌 Cabeza Cargador 20W Original Apple (Bodega Calle 33-34)</span>
+                      <span className="font-semibold text-slate-800">$35.000</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>⚡ Cable USB-C a USB-C Carga Rápida (Trenzado A17 Pro)</span>
+                      <span className="font-semibold text-slate-800">$25.000</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>🛡️ Forro / Case Protector Silicona Reforzada (MagSafe)</span>
+                      <span className="font-semibold text-slate-800">$30.000</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-600">
+                      <span>🪟 Protector Pantalla Vidrio Cerámico 9D Templado</span>
+                      <span className="font-semibold text-slate-800">$15.000</span>
+                    </div>
+                    <div className="flex justify-between items-center text-emerald-700 bg-emerald-50/60 px-1.5 py-0.5 rounded-lg border border-emerald-100">
+                      <span className="flex items-center gap-1">
+                        <QrCode className="w-3 h-3 text-emerald-600" />
+                        Activación eSIM 100% Prepago (Tigo/Claro/Liwa)
+                      </span>
+                      <span className="font-bold text-emerald-800">$5.000</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">Subtotal Accesorios + eSIM:</span>
+                    <span className="font-bold text-indigo-700">+$110.000 COP</span>
+                  </div>
+                </div>
+
+                {/* Callout Regulaciones eSIM en Prepago */}
+                <div className="mt-3 p-3 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-950">
+                  <div className="flex items-start gap-2">
+                    <QrCode className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-indigo-900 block font-bold">
+                        📶 eSIM Prepago Garantizada (Ley 1341 CRC):
+                      </strong>
+                      <p className="text-[11px] text-indigo-800/90 mt-0.5 leading-relaxed">
+                        No te dejes amarrar a planes pospago obligatorios. Por ley colombiana tienes libre elección de modalidad:
+                      </p>
+                      <ul className="text-[10px] text-indigo-700 space-y-0.5 mt-1 list-disc list-inside">
+                        <li><strong>Tigo:</strong> Solicita &quot;reposición a eSIM en prepago&quot; en tienda Montería (~$5.000 COP el QR).</li>
+                        <li><strong>Claro / Movistar:</strong> Activación prepago con compra de paquete inicial (~$6.000 COP). Cero cuotas fijas.</li>
+                        <li><strong>Liwa:</strong> Operador virtual 100% digital prepago con QR inmediato al correo.</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Métricas del iPhone */}
@@ -761,7 +833,7 @@ export default function FinanceSection() {
                 {/* Barra de Progreso del iPhone */}
                 <div className="mt-4">
                   <div className="flex justify-between items-center text-xs font-semibold mb-1">
-                    <span className="text-slate-600">Progreso hacia el iPhone</span>
+                    <span className="text-slate-600">Progreso hacia el iPhone + Accesorios</span>
                     <span className="text-indigo-600 font-bold">{iphoneProgress}%</span>
                   </div>
                   <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden">
@@ -791,8 +863,36 @@ export default function FinanceSection() {
                 )}
               </div>
 
+              {/* Controles de Ahorro para el iPhone */}
+              <div className="mt-5 pt-3 border-t border-slate-100">
+                <span className="text-xs font-bold text-slate-700 block mb-2">Asignar ahorro a la meta del iPhone:</span>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  <button
+                    onClick={() => handleSaveIPhone(50000)}
+                    disabled={yessidRemaining > 0 || iphoneRemaining === 0}
+                    className="cursor-pointer py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all disabled:opacity-40"
+                  >
+                    +$50.000
+                  </button>
+                  <button
+                    onClick={() => handleSaveIPhone(100000)}
+                    disabled={yessidRemaining > 0 || iphoneRemaining === 0}
+                    className="cursor-pointer py-1.5 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all disabled:opacity-40"
+                  >
+                    +$100.000
+                  </button>
+                  <button
+                    onClick={() => handleSaveIPhone(iphoneRemaining)}
+                    disabled={yessidRemaining > 0 || iphoneRemaining === 0}
+                    className="cursor-pointer py-1.5 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all disabled:opacity-40"
+                  >
+                    Completar Meta
+                  </button>
+                </div>
+              </div>
+
               {/* Protocolo de Inspección en Bodega */}
-              <div className="mt-4 pt-3 border-t border-slate-100">
+              <div className="mt-3 pt-3 border-t border-slate-100">
                 <span className="text-[11px] font-bold text-slate-700 block mb-1">🔍 Protocolo de Verificación Batería 100% en Bodega:</span>
                 <ul className="text-[10px] text-slate-500 space-y-1 leading-tight">
                   <li>• <strong>Ciclos Reales (iOS 17.4+):</strong> Ajustes ➔ General ➔ Información ➔ Batería. Si marca 100% y tiene ≤50 ciclos, es legítimo. Si tiene &gt;150 ciclos y dice 100%, fue alterada.</li>
