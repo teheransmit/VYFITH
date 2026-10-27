@@ -29,6 +29,7 @@ import {
   browserSessionPersistence,
   getRedirectResult,
   setPersistence,
+  signInWithPopup,
   signInWithRedirect,
   signOut,
 } from 'firebase/auth';
@@ -157,13 +158,42 @@ export default function AuthShieldGate({ children }: AuthShieldGateProps) {
       }
 
       await setPersistence(firebaseAuth, browserSessionPersistence);
-      await signInWithRedirect(firebaseAuth, new GoogleAuthProvider());
-    } catch (error) {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+
+      try {
+        const result = await signInWithPopup(firebaseAuth, provider);
+        const email = result.user.email?.trim().toLowerCase();
+        if (!email || !isEmailAuthorized(email)) {
+          await signOut(firebaseAuth);
+          setErrorMessage('Acceso denegado: Esta cuenta de Google no tiene permisos de administrador.');
+          return;
+        }
+
+        const newSession: UserSession = {
+          email,
+          name: result.user.displayName || email,
+          avatarUrl: result.user.photoURL || undefined,
+          authenticatedAt: Date.now(),
+          authMethod: 'google',
+        };
+        saveSession(newSession);
+        setSession(newSession);
+        setSuccessMessage('¡Cuenta de Google verificada! Cargando Centro de Mando...');
+      } catch (popupErr: any) {
+        if (popupErr?.code === 'auth/popup-blocked' || popupErr?.code === 'auth/cancelled-popup-request') {
+          await signInWithRedirect(firebaseAuth, provider);
+        } else {
+          throw popupErr;
+        }
+      }
+    } catch (error: any) {
       console.error('Error durante el inicio de sesión con Google:', error);
+      const isUnauthorizedDomain = error?.code === 'auth/unauthorized-domain' || (error instanceof Error && error.message.includes('unauthorized-domain'));
       setErrorMessage(
-        error instanceof Error && error.message.includes('unauthorized-domain')
-          ? 'Este dominio todavía no está autorizado en Firebase Authentication.'
-          : 'No fue posible iniciar la verificación con Google. Intenta nuevamente.',
+        isUnauthorizedDomain
+          ? 'Dominio no autorizado en Firebase. Agrega "vyfith.vercel.app" en Firebase Console > Authentication > Settings > Authorized Domains.'
+          : (error?.message || 'No fue posible iniciar la verificación con Google. Intenta nuevamente o usa la Clave Maestra.')
       );
     } finally {
       setIsAuthenticating(false);

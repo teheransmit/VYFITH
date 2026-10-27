@@ -12,14 +12,20 @@ import {
   Moon,
   Dumbbell,
   Bot,
+  Cloud,
+  Wifi,
 } from 'lucide-react';
 import { SyncSessionState } from '@/lib/healthStore';
+import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default function GoogleHealthConnector() {
   const [syncState, setSyncState] = useState<SyncSessionState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedToken, setCopiedToken] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
+  const [isCloudBridgeActive, setIsCloudBridgeActive] = useState(false);
 
   const [copiedUrl, setCopiedUrl] = useState(false);
   const localSyncEndpoint = 'http://192.168.1.8:3000/api/sync/health';
@@ -65,6 +71,126 @@ export default function GoogleHealthConnector() {
     };
   }, [loadData]);
 
+  // 4. Suscripción en Tiempo Real al Puente en la Nube (Firestore Named Database)
+  useEffect(() => {
+    const auth = getFirebaseAuth();
+    const db = getFirestoreDb();
+    if (!auth || !db) return;
+
+    let unsubSnapshot: (() => void) | null = null;
+
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      if (user?.uid) {
+        try {
+          unsubSnapshot = onSnapshot(
+            doc(db, 'users', user.uid, 'healthSync', 'latest'),
+            (snapshot) => {
+              if (snapshot.exists()) {
+                const docData = snapshot.data();
+                setSyncState((prev) => {
+                  const nowIso = new Date().toISOString();
+                  return {
+                    isPaired: true,
+                    deviceId: docData.deviceId || 'VYFITH_APP',
+                    deviceName: docData.deviceId
+                      ? `VYFITH_APP (${docData.deviceId})`
+                      : 'FitSync AI Mobile (Cloud Bridge)',
+                    pairingToken: 'CLOUD-BRIDGE',
+                    lastSyncTime: docData.updatedAt?.toDate
+                      ? docData.updatedAt.toDate().toISOString()
+                      : docData.updatedAt || nowIso,
+                    syncCount: (prev?.syncCount || 0) + 1,
+                    changesToken: `firestore_${Date.now()}`,
+                    currentMetrics: {
+                      steps: Number(docData.roomMetrics?.steps ?? docData.steps ?? prev?.currentMetrics?.steps ?? 0),
+                      hrv: prev?.currentMetrics?.hrv || 76,
+                      heartRate: Number(
+                        docData.roomMetrics?.restingHeartRate ??
+                          docData.restingHeartRate ??
+                          prev?.currentMetrics?.heartRate ??
+                          0
+                      ),
+                      sleepHours: Number(
+                        docData.roomMetrics?.totalSleepHours ??
+                          docData.totalSleepHours ??
+                          prev?.currentMetrics?.sleepHours ??
+                          0
+                      ),
+                    },
+                    recentObservations: prev?.recentObservations || [],
+                    vyfithData: {
+                      connected: true,
+                      appName: 'VYFITH_APP (Cloud Firestore)',
+                      readinessScore: Number(docData.readinessScore ?? 90),
+                      readinessCategory: docData.readinessCategory || 'Vitalidad Óptima',
+                      lastSyncTimestamp: nowIso,
+                      geminiAnalysis: {
+                        diagnostico:
+                          docData.geminiAnalysis?.diagnostico ||
+                          docData.diagnostico ||
+                          'Diagnóstico recibido vía Cloud Bridge.',
+                        recomendacionMuscular:
+                          docData.geminiAnalysis?.recomendacionMuscular ||
+                          docData.recomendacionMuscular ||
+                          'Priorización calculada por IA en dispositivo.',
+                        gruposPriorizar:
+                          docData.geminiAnalysis?.gruposPriorizar || docData.gruposPriorizar || [],
+                        gruposDescanso:
+                          docData.geminiAnalysis?.gruposDescanso || docData.gruposDescanso || [],
+                        tiempoRecuperacionHoras:
+                          docData.geminiAnalysis?.tiempoRecuperacionHoras || 0,
+                      },
+                      roomMetrics: {
+                        steps: Number(docData.roomMetrics?.steps ?? docData.steps ?? 0),
+                        deepSleepHours: Number(
+                          docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 0
+                        ),
+                        totalSleepHours: Number(
+                          docData.roomMetrics?.totalSleepHours ?? docData.totalSleepHours ?? 0
+                        ),
+                        restingHeartRate: Number(
+                          docData.roomMetrics?.restingHeartRate ?? docData.restingHeartRate ?? 0
+                        ),
+                        spo2: Number(docData.roomMetrics?.spo2 ?? docData.spo2 ?? 99),
+                        caloriesBurned: Number(
+                          docData.roomMetrics?.caloriesBurned ?? docData.caloriesBurned ?? 0
+                        ),
+                      },
+                      hevySummary: {
+                        lastWorkoutName:
+                          docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || '',
+                        totalVolumeKg: Number(
+                          docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 0
+                        ),
+                        setsCompleted: Number(
+                          docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 0
+                        ),
+                        date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
+                      },
+                    },
+                  };
+                });
+                setIsCloudBridgeActive(true);
+                setNotificationMsg('☁️ Datos recibidos en tiempo real vía Cloud Bridge (Firestore)');
+                setTimeout(() => setNotificationMsg(null), 4000);
+              }
+            },
+            (error) => {
+              console.warn('Firestore onSnapshot listener fallback:', error);
+            }
+          );
+        } catch (e) {
+          console.error('Error suscribiendo a Cloud Bridge Firestore:', e);
+        }
+      }
+    });
+
+    return () => {
+      unsubAuth();
+      if (unsubSnapshot) unsubSnapshot();
+    };
+  }, []);
+
   const handleManualRefresh = async () => {
     try {
       setIsLoading(true);
@@ -85,7 +211,10 @@ export default function GoogleHealthConnector() {
   };
 
   const copyEndpointUrl = () => {
-    navigator.clipboard.writeText(localSyncEndpoint);
+    const effectiveUrl = typeof window !== 'undefined' && window.location.origin.includes('vercel.app')
+      ? `${window.location.origin}/api/sync/health`
+      : localSyncEndpoint;
+    navigator.clipboard.writeText(effectiveUrl);
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2500);
   };
@@ -131,17 +260,24 @@ export default function GoogleHealthConnector() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              Sincronización en Tiempo Real (3s)
-            </span>
-            <span className="text-xs font-mono text-slate-400">VYFITH_APP (FitSync AI) ➔ MegaProyecto</span>
+            {isCloudBridgeActive ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                <Cloud className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
+                Puente en la Nube Activo (Firestore)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                Sincronización en Tiempo Real (Híbrida)
+              </span>
+            )}
+            <span className="text-xs font-mono text-slate-400">VYFITH_APP (Android) ➔ Vercel / LAN</span>
             <button
               onClick={copyEndpointUrl}
               className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-mono font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 transition-colors"
-              title="Copiar URL de recepción directa a tu app móvil"
+              title="Copiar URL del endpoint de recepción para tu app móvil"
             >
-              <span>{copiedUrl ? '✅ ¡Copiado!' : '📡 Copiar IP LAN: 192.168.1.8:3000'}</span>
+              <span>{copiedUrl ? '✅ ¡Copiado!' : '📡 Copiar Endpoint /api/sync/health'}</span>
             </button>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">

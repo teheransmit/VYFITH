@@ -112,32 +112,32 @@ export async function POST(req: NextRequest) {
           ? 'Recuperación Adecuada'
           : 'Necesita Descanso';
 
-      const geminiAnalysis = body.geminiAnalysis || {
+      const geminiAnalysis = {
         diagnostico: isSimulated
           ? 'Análisis Gemini AI: El atleta presenta una variabilidad cardíaca (HRV) alta de 78 ms y descanso reparador (2.2 h de sueño profundo). Fatiga del SNC mínima.'
-          : body.geminiAnalysis?.diagnostico || 'Evaluación médica deportiva completada.',
+          : (body.geminiAnalysis?.diagnostico || body.diagnostico || 'Evaluación médica deportiva completada.'),
         recomendacionMuscular: isSimulated
           ? 'Día óptimo para levantamiento pesado de hipertrofia. Carga recomendada: RPE 8.5 en ejercicios básicos multiarticulares.'
-          : body.geminiAnalysis?.recomendacionMuscular || 'Continuar progresión planificada.',
-        gruposPriorizar: body.geminiAnalysis?.gruposPriorizar || ['Espalda / Dorsales', 'Bíceps', 'Core'],
-        gruposDescanso: body.geminiAnalysis?.gruposDescanso || ['Piernas / Cuádriceps'],
-        tiempoRecuperacionHoras: body.geminiAnalysis?.tiempoRecuperacionHoras || 0,
+          : (body.geminiAnalysis?.recomendacionMuscular || body.recomendacionMuscular || 'Continuar progresión planificada.'),
+        gruposPriorizar: body.geminiAnalysis?.gruposPriorizar || body.gruposPriorizar || ['Espalda / Dorsales', 'Bíceps', 'Core'],
+        gruposDescanso: body.geminiAnalysis?.gruposDescanso || body.gruposDescanso || ['Piernas / Cuádriceps'],
+        tiempoRecuperacionHoras: body.geminiAnalysis?.tiempoRecuperacionHoras || body.tiempoRecuperacionHoras || 0,
       };
 
-      const roomMetrics = body.roomMetrics || {
-        steps: isSimulated ? Math.floor(Math.random() * 4000) + 9000 : Number(body.roomMetrics?.steps || 10500),
-        deepSleepHours: isSimulated ? 2.3 : Number(body.roomMetrics?.deepSleepHours || 2.1),
-        totalSleepHours: isSimulated ? 8.2 : Number(body.roomMetrics?.totalSleepHours || 7.9),
-        restingHeartRate: isSimulated ? Math.floor(Math.random() * 8) + 56 : Number(body.roomMetrics?.restingHeartRate || 60),
-        spo2: Number(body.roomMetrics?.spo2 || 99),
-        caloriesBurned: isSimulated ? Math.floor(Math.random() * 500) + 2300 : Number(body.roomMetrics?.caloriesBurned || 2400),
+      const roomMetrics = {
+        steps: isSimulated ? Math.floor(Math.random() * 4000) + 9000 : Number(body.roomMetrics?.steps ?? body.steps ?? 10500),
+        deepSleepHours: isSimulated ? 2.3 : Number(body.roomMetrics?.deepSleepHours ?? body.deepSleepHours ?? 2.1),
+        totalSleepHours: isSimulated ? 8.2 : Number(body.roomMetrics?.totalSleepHours ?? body.totalSleepHours ?? 7.9),
+        restingHeartRate: isSimulated ? Math.floor(Math.random() * 8) + 56 : Number(body.roomMetrics?.restingHeartRate ?? body.restingHeartRate ?? 60),
+        spo2: Number(body.roomMetrics?.spo2 ?? body.spo2 ?? 99),
+        caloriesBurned: isSimulated ? Math.floor(Math.random() * 500) + 2300 : Number(body.roomMetrics?.caloriesBurned ?? body.caloriesBurned ?? 2400),
       };
 
-      const hevySummary = body.hevyWorkouts || {
-        lastWorkoutName: body.hevyWorkouts?.lastWorkoutName || 'Pull Day B - Hipertrofia',
-        totalVolumeKg: Number(body.hevyWorkouts?.totalVolumeKg || 15420),
-        setsCompleted: Number(body.hevyWorkouts?.setsCompleted || 20),
-        date: body.hevyWorkouts?.date || nowIso.slice(0, 10),
+      const hevySummary = {
+        lastWorkoutName: body.hevyWorkouts?.lastWorkoutName || body.lastWorkoutName || 'Pull Day B - Hipertrofia',
+        totalVolumeKg: Number(body.hevyWorkouts?.totalVolumeKg ?? body.totalVolumeKg ?? 15420),
+        setsCompleted: Number(body.hevyWorkouts?.setsCompleted ?? body.setsCompleted ?? 20),
+        date: body.hevyWorkouts?.date || body.workoutDate || nowIso.slice(0, 10),
       };
 
       // Generar observaciones FHIR a partir de Room Database
