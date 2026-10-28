@@ -83,9 +83,19 @@ export async function POST(req: NextRequest) {
     if (body.source === 'RELOAD_REAL_DATA' || body.reloadReal) {
       const diskData = loadStateFromDisk();
       if (diskData) {
+        diskData.lastSyncTime = nowIso;
+        if (diskData.vyfithData) {
+          diskData.vyfithData.lastSyncTimestamp = nowIso;
+        }
+        if (Array.isArray(diskData.recentObservations)) {
+          diskData.recentObservations.forEach((obs: any) => {
+            obs.effectiveDateTime = nowIso;
+          });
+        }
         const updated = updateHealthSyncState((state) => {
           Object.assign(state, diskData);
         });
+        persistStateToDisk(updated);
         return NextResponse.json(
           {
             success: true,
@@ -199,6 +209,66 @@ export async function POST(req: NextRequest) {
           valueQuantity: {
             value: roomMetrics.restingHeartRate,
             unit: 'bpm',
+          },
+          effectiveDateTime: nowIso,
+        },
+        {
+          id: `vyfith-sleep-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Health Connect - Sueño',
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '93832-4',
+                display: 'Sleep duration total',
+              },
+            ],
+          },
+          valueQuantity: {
+            value: roomMetrics.totalSleepHours,
+            unit: 'hours',
+          },
+          effectiveDateTime: nowIso,
+        },
+        {
+          id: `vyfith-spo2-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Oximetría Biométrica',
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '2708-6',
+                display: 'Oxygen saturation (SpO2)',
+              },
+            ],
+          },
+          valueQuantity: {
+            value: roomMetrics.spo2,
+            unit: '%',
+          },
+          effectiveDateTime: nowIso,
+        },
+        {
+          id: `vyfith-cal-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Actividad Física - Calorías',
+          code: {
+            coding: [
+              {
+                system: 'http://loinc.org',
+                code: '41981-2',
+                display: 'Active energy burned',
+              },
+            ],
+          },
+          valueQuantity: {
+            value: roomMetrics.caloriesBurned,
+            unit: 'kcal',
           },
           effectiveDateTime: nowIso,
         },
