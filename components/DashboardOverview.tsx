@@ -409,7 +409,6 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
           <span className="text-[11px] text-teal-700 dark:text-teal-400/90 mt-1">
             25.1 kg MME • IMC 18.8
           </span>
-          </span>
         </div>
       </div>
 
