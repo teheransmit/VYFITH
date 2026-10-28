@@ -391,7 +391,7 @@ export default function GoogleHealthConnector() {
             Salud Biométrica & Conexión Google Health
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl mt-1">
-            Métricas biométricas consolidadas de <strong>Google Health Connect</strong> y <strong>Health Sync</strong> (Google Pixel 8 Pro). Monitoreo continuo de recuperación biológica y fatiga neuromuscular.
+            Métricas biométricas consolidadas de <strong>Google Health Connect</strong> y <strong>Health Sync</strong> (Vivo Y20 V2027 / Xiaomi Band 9 Pro). Monitoreo continuo de recuperación biológica y fatiga neuromuscular.
           </p>
         </div>
 
@@ -594,7 +594,7 @@ export default function GoogleHealthConnector() {
             <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">
               Saturación Perfecta
             </span>
-            <span className="text-[10px] text-slate-400 block font-mono">Pixel 8 Pro Sensor</span>
+            <span className="text-[10px] text-slate-400 block font-mono">Xiaomi Band 9 Pro Sensor</span>
           </div>
         </div>
       </div>

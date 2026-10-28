@@ -47,7 +47,7 @@ export default function UnifiedHealthFitnessSection() {
               Salud Biométrica, Gimnasio UPB & Hevy
             </h1>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Sinergia en tiempo real entre la recuperación neuromuscular (<strong>Google Health Connect</strong> / Pixel 8 Pro),
+              Sinergia en tiempo real entre la recuperación neuromuscular (<strong>Google Health Connect</strong> / Vivo Y20 V2027),
               el estado de apertura del <strong>Gimnasio UPB Montería</strong> y la sobrecarga progresiva de <strong>Hevy Workouts</strong>.
             </p>
 
@@ -56,7 +56,12 @@ export default function UnifiedHealthFitnessSection() {
               <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-emerald-300 flex items-center gap-1.5 font-mono">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Pixel 8 Pro • LAN 192.168.1.8</span>
+                <span>Vivo Y20 (V2027) • LAN 192.168.1.8</span>
+              </span>
+
+              <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-emerald-300 flex items-center gap-1.5 font-mono">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Membresía Pagada (27/Oct) • 4:00 p.m.</span>
               </span>
 
               <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-rose-500/30 text-rose-300 flex items-center gap-1.5 font-mono">

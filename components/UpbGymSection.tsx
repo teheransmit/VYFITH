@@ -99,8 +99,12 @@ export default function UpbGymSection() {
               reserva de tiempo para hipertrofia y validación administrativa obligatoria en <strong>SIGAA Banner</strong>.
             </p>
 
-            {/* Badges de Horarios Oficiales */}
+            {/* Badges de Horarios Oficiales y Membresía */}
             <div className="pt-2 flex flex-wrap items-center gap-2.5 text-xs">
+              <span className="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5 font-mono shadow-xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span><strong>Membresía Pagada:</strong> 27/Oct/2026 • <strong>Horario Santiago:</strong> 4:00 p.m.</span>
+              </span>
               <span className="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-slate-300 flex items-center gap-1.5 font-mono">
                 <Clock className="w-3.5 h-3.5 text-indigo-400" />
                 <strong>Lunes a Jueves:</strong> 6:00 – 11:30 a.m. | 4:00 – 7:00 p.m.

@@ -219,7 +219,7 @@ export function getHealthSyncState(): SyncSessionState {
           id: 'evt-init-1',
           timestamp: '2026-09-26T14:44:50Z',
           source: 'HL7 FHIR R4 Client',
-          deviceId: 'Android-Pixel-8-Santiago',
+          deviceId: 'Vivo-Y20-V2027-Santiago',
           endpoint: '/api/sync/health',
           status: 200,
           recordsCount: 1,

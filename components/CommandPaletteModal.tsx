@@ -75,7 +75,7 @@ export default function CommandPaletteModal({
     {
       id: 'action-sync-health',
       title: 'Sincronizar Salud Google Health Connect',
-      subtitle: 'Recepción de telemetría de pasos y FC desde Google Pixel 8 Pro',
+      subtitle: 'Recepción de telemetría biométrica desde Vivo Y20 (V2027) / Xiaomi Band 9 Pro',
       category: 'Acción Rápida',
       icon: <Activity className="w-4 h-4 text-emerald-500" />,
       action: () => {
