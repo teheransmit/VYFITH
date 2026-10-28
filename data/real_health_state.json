@@ -3,14 +3,14 @@
   "deviceId": "V2027",
   "deviceName": "VYFITH_APP (Google Health Connect)",
   "pairingToken": "MEGA-HC-8924",
-  "lastSyncTime": "2026-10-28T16:19:14.860Z",
-  "syncCount": 221,
-  "changesToken": "vyfith_sync_1793204354860",
+  "lastSyncTime": "2026-10-28T16:34:33.729Z",
+  "syncCount": 225,
+  "changesToken": "vyfith_sync_1793205273729",
   "currentMetrics": {
-    "steps": 1177,
+    "steps": 2354,
     "hrv": 76,
     "heartRate": 62,
-    "sleepHours": 10.2,
+    "sleepHours": 0,
     "hevySummary": {
       "lastWorkoutName": "Horizontal Torso (Chest & Back)",
       "totalVolumeKg": 4484,
@@ -23,10 +23,10 @@
     "appName": "VYFITH_APP (FitSync AI Android)",
     "readinessScore": 67,
     "readinessCategory": "Recuperación Adecuada",
-    "lastSyncTimestamp": "2026-10-28T16:19:14.860Z",
+    "lastSyncTimestamp": "2026-10-28T16:34:33.729Z",
     "geminiAnalysis": {
-      "diagnostico": "Resumen de Salud Diario para miércoles, 28 de octubre de 2026. Tu puntuación de recuperación es 67/100 (Recuperación Moderada). Registraste 10h 12m de sueño. Caminaste 1,177 pasos cubriendo ~0.90 km, quemando aprox. 47 kcal. Tu oxígeno en sangre estuvo óptimo (≥96%) con un promedio de 96.72%. Tu composición es de 72.50 kg (159.83 lbs) con 18.00% de grasa (~59.45 kg masa magra).",
-      "recomendacionMuscular": "Una caminata rápida de 15 minutos te ayudará a completar los 8,823 pasos restantes.",
+      "diagnostico": "Resumen de Salud Diario para miércoles, 28 de octubre de 2026. Tu puntuación de recuperación es 67/100 (Recuperación Moderada). Registraste 10h 12m de sueño. Caminaste 2,354 pasos cubriendo ~1.79 km, quemando aprox. 94 kcal. Tu oxígeno en sangre estuvo óptimo (≥96%) con un promedio de 96.72%. Tu composición es de 72.50 kg (159.83 lbs) con 18.00% de grasa (~59.45 kg masa magra).",
+      "recomendacionMuscular": "Una caminata rápida de 15 minutos te ayudará a completar los 7,646 pasos restantes.",
       "gruposPriorizar": [
         "Pectoral",
         "Deltoides"
@@ -37,12 +37,12 @@
       "tiempoRecuperacionHoras": 0
     },
     "roomMetrics": {
-      "steps": 1177,
-      "deepSleepHours": 2.2,
-      "totalSleepHours": 10.2,
+      "steps": 2354,
+      "deepSleepHours": 0,
+      "totalSleepHours": 0,
       "restingHeartRate": 62,
       "spo2": 96.71698113207547,
-      "caloriesBurned": 47.08
+      "caloriesBurned": 94.16
     },
     "hevySummary": {
       "lastWorkoutName": "Push Day (Pectoral, Deltoides, Tríceps)",
@@ -53,7 +53,7 @@
   },
   "recentObservations": [
     {
-      "id": "vyfith-readiness-1793204354860",
+      "id": "vyfith-readiness-1793205273729",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -70,10 +70,10 @@
         "value": 67,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-10-28T16:19:14.860Z"
+      "effectiveDateTime": "2026-10-28T16:34:33.729Z"
     },
     {
-      "id": "vyfith-steps-1793204354860",
+      "id": "vyfith-steps-1793205273729",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -87,13 +87,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 1177,
+        "value": 2354,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-10-28T16:19:14.860Z"
+      "effectiveDateTime": "2026-10-28T16:34:33.729Z"
     },
     {
-      "id": "vyfith-hr-1793204354860",
+      "id": "vyfith-hr-1793205273729",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Reposo",
@@ -110,10 +110,10 @@
         "value": 62,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-10-28T16:19:14.860Z"
+      "effectiveDateTime": "2026-10-28T16:34:33.729Z"
     },
     {
-      "id": "vyfith-sleep-1793204354860",
+      "id": "vyfith-sleep-1793205273729",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Sueño",
@@ -130,10 +130,10 @@
         "value": 10.2,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-10-28T16:19:14.860Z"
+      "effectiveDateTime": "2026-10-28T16:34:33.729Z"
     },
     {
-      "id": "vyfith-spo2-1793204354860",
+      "id": "vyfith-spo2-1793205273729",
       "resourceType": "Observation",
       "status": "final",
       "category": "Oximetría Biométrica",
@@ -150,10 +150,10 @@
         "value": 96.71698113207547,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-10-28T16:19:14.860Z"
+      "effectiveDateTime": "2026-10-28T16:34:33.729Z"
     },
     {
-      "id": "vyfith-cal-1793204354860",
+      "id": "vyfith-cal-1793205273729",
       "resourceType": "Observation",
       "status": "final",
       "category": "Actividad Física - Calorías",
@@ -167,13 +167,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 47.08,
+        "value": 94.16,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-10-28T16:19:14.860Z"
+      "effectiveDateTime": "2026-10-28T16:34:33.729Z"
     },
     {
-      "id": "vyfith-readiness-1793204353537",
+      "id": "vyfith-readiness-1793205165072",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -187,13 +187,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 85,
+        "value": 67,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-10-28T16:19:13.537Z"
+      "effectiveDateTime": "2026-10-28T16:32:45.072Z"
     },
     {
-      "id": "vyfith-steps-1793204353537",
+      "id": "vyfith-steps-1793205165072",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -207,13 +207,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 8420,
+        "value": 2354,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-10-28T16:19:13.537Z"
+      "effectiveDateTime": "2026-10-28T16:32:45.072Z"
     },
     {
-      "id": "vyfith-hr-1793204353537",
+      "id": "vyfith-hr-1793205165072",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Reposo",
@@ -230,130 +230,10 @@
         "value": 62,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-10-28T16:19:13.537Z"
+      "effectiveDateTime": "2026-10-28T16:32:45.072Z"
     },
     {
-      "id": "vyfith-sleep-1793204353537",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Health Connect - Sueño",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "93832-4",
-            "display": "Sleep duration total"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 7.8,
-        "unit": "hours"
-      },
-      "effectiveDateTime": "2026-10-28T16:19:13.537Z"
-    },
-    {
-      "id": "vyfith-spo2-1793204353537",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Oximetría Biométrica",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "2708-6",
-            "display": "Oxygen saturation (SpO2)"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 98.2,
-        "unit": "%"
-      },
-      "effectiveDateTime": "2026-10-28T16:19:13.537Z"
-    },
-    {
-      "id": "vyfith-cal-1793204353537",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Actividad Física - Calorías",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "41981-2",
-            "display": "Active energy burned"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 336.8,
-        "unit": "kcal"
-      },
-      "effectiveDateTime": "2026-10-28T16:19:13.537Z"
-    },
-    {
-      "id": "vyfith-readiness-1793203941005",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Recuperación / Readiness AI",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "77202-0",
-            "display": "Athlete Readiness Score (0-100)"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 69,
-        "unit": "score"
-      },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
-    },
-    {
-      "id": "vyfith-steps-1793203941005",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Health Connect - Pasos",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "55423-8",
-            "display": "Number of steps"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 77,
-        "unit": "steps"
-      },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
-    },
-    {
-      "id": "vyfith-hr-1793203941005",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Cardiovascular - Reposo",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "8867-4",
-            "display": "Resting Heart Rate"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 62,
-        "unit": "bpm"
-      },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
-    },
-    {
-      "id": "vyfith-sleep-1793203941005",
+      "id": "vyfith-sleep-1793205165072",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Sueño",
@@ -370,10 +250,10 @@
         "value": 10.2,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
+      "effectiveDateTime": "2026-10-28T16:32:45.072Z"
     },
     {
-      "id": "vyfith-spo2-1793203941005",
+      "id": "vyfith-spo2-1793205165072",
       "resourceType": "Observation",
       "status": "final",
       "category": "Oximetría Biométrica",
@@ -387,13 +267,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 97,
+        "value": 96.71698113207547,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
+      "effectiveDateTime": "2026-10-28T16:32:45.072Z"
     },
     {
-      "id": "vyfith-cal-1793203941005",
+      "id": "vyfith-cal-1793205165072",
       "resourceType": "Observation",
       "status": "final",
       "category": "Actividad Física - Calorías",
@@ -407,13 +287,133 @@
         ]
       },
       "valueQuantity": {
-        "value": 3.08,
+        "value": 94.16,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
+      "effectiveDateTime": "2026-10-28T16:32:45.072Z"
     },
     {
-      "id": "vyfith-readiness-1793203339369",
+      "id": "vyfith-readiness-1793205023599",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Recuperación / Readiness AI",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "77202-0",
+            "display": "Athlete Readiness Score (0-100)"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 67,
+        "unit": "score"
+      },
+      "effectiveDateTime": "2026-10-28T16:30:23.599Z"
+    },
+    {
+      "id": "vyfith-steps-1793205023599",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Health Connect - Pasos",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "55423-8",
+            "display": "Number of steps"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 2354,
+        "unit": "steps"
+      },
+      "effectiveDateTime": "2026-10-28T16:30:23.599Z"
+    },
+    {
+      "id": "vyfith-hr-1793205023599",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Cardiovascular - Reposo",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "8867-4",
+            "display": "Resting Heart Rate"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 62,
+        "unit": "bpm"
+      },
+      "effectiveDateTime": "2026-10-28T16:30:23.599Z"
+    },
+    {
+      "id": "vyfith-sleep-1793205023599",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Health Connect - Sueño",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93832-4",
+            "display": "Sleep duration total"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 10.2,
+        "unit": "hours"
+      },
+      "effectiveDateTime": "2026-10-28T16:30:23.599Z"
+    },
+    {
+      "id": "vyfith-spo2-1793205023599",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Oximetría Biométrica",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "2708-6",
+            "display": "Oxygen saturation (SpO2)"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 96.71698113207547,
+        "unit": "%"
+      },
+      "effectiveDateTime": "2026-10-28T16:30:23.599Z"
+    },
+    {
+      "id": "vyfith-cal-1793205023599",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Actividad Física - Calorías",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "41981-2",
+            "display": "Active energy burned"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 94.16,
+        "unit": "kcal"
+      },
+      "effectiveDateTime": "2026-10-28T16:30:23.599Z"
+    },
+    {
+      "id": "vyfith-readiness-1793205001064",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -430,10 +430,10 @@
         "value": 69,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
+      "effectiveDateTime": "2026-10-28T16:30:10.456Z"
     },
     {
-      "id": "vyfith-steps-1793203339369",
+      "id": "vyfith-steps-1793205001064",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -450,7 +450,7 @@
         "value": 77,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-10-28T16:19:12.593Z"
+      "effectiveDateTime": "2026-10-28T16:30:10.456Z"
     }
   ]
 }

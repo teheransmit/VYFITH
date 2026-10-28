@@ -672,7 +672,7 @@ export default function GoogleHealthConnector() {
 
 
       {/* Suite Premium de Salud Mi Fitness (Xiaomi Band 9 Pro) - Sueño, Hipnograma, Zonas FC, Estrés HRV & SpO2 */}
-      <MiFitnessHealthSuite />
+      <MiFitnessHealthSuite syncState={syncState} />
 
       {/* Motor de Inteligencia Biomédica, Fisiología del Ejercicio y Rendimiento Académico UPB */}
       <BiomedicalIntelligencePanel />

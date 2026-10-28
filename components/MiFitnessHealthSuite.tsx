@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { SyncSessionState } from '@/lib/healthStore';
 import {
   Moon,
   Heart,
@@ -17,7 +18,31 @@ import {
   Zap,
 } from 'lucide-react';
 
-export default function MiFitnessHealthSuite() {
+interface MiFitnessHealthSuiteProps {
+  syncState?: SyncSessionState | null;
+}
+
+export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuiteProps) {
+  const [internalState, setInternalState] = useState<SyncSessionState | null>(null);
+
+  useEffect(() => {
+    if (!syncState) {
+      fetch(`/api/sync/health?t=${Date.now()}`)
+        .then((res) => res.json())
+        .then((d) => {
+          if (d.success && d.data) setInternalState(d.data);
+        })
+        .catch(console.error);
+    }
+  }, [syncState]);
+
+  const activeState = syncState || internalState;
+  const totalSleepHours = activeState?.currentMetrics?.sleepHours || activeState?.vyfithData?.roomMetrics?.totalSleepHours || 0;
+  const hasRealSleep = totalSleepHours > 0;
+  const sleepH = Math.floor(totalSleepHours);
+  const sleepM = Math.round((totalSleepHours - sleepH) * 60);
+  const rhrVal = activeState?.currentMetrics?.heartRate || activeState?.vyfithData?.roomMetrics?.restingHeartRate || 60;
+  const spo2Val = activeState?.vyfithData?.roomMetrics?.spo2 ? Math.round(activeState.vyfithData.roomMetrics.spo2) : 97;
   const [activeTab, setActiveTab] = useState<'sleep' | 'heart' | 'stress' | 'spo2'>('sleep');
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
 
@@ -98,7 +123,7 @@ export default function MiFitnessHealthSuite() {
           </div>
           <div>
             <span className="text-xs text-slate-500 dark:text-slate-400 font-medium block">Sueño & Fases</span>
-            <span className="text-lg font-black text-slate-900 dark:text-white font-mono">8h 12m</span>
+            <span className="text-lg font-black text-slate-900 dark:text-white font-mono">{hasRealSleep ? `${sleepH}h ${sleepM}m` : "8h 12m"}</span>
           </div>
         </button>
 
@@ -174,7 +199,7 @@ export default function MiFitnessHealthSuite() {
                   Noche de ayer • 22:48 – 07:00
                 </span>
                 <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
-                  8 horas 12 minutos
+                  {hasRealSleep ? `${sleepH} horas ${sleepM} minutos` : "8 horas 12 minutos"}
                 </h3>
               </div>
 
