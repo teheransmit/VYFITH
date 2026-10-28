@@ -37,10 +37,12 @@ body {
   animation: roulette-credit-roll 0.14s linear infinite alternate;
 }
 
-/* The dashboard expands with the viewport instead of leaving a fixed desktop
-   column centered in a large browser window. */
+/* ==========================================================================
+   ARQUITECTURA ROMPECABEZAS (ADAPTIVE BENTO GRID & SCREEN WIDTH CONTROL)
+   ========================================================================== */
 .app-shell {
   width: 100%;
+  transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (min-width: 640px) {
@@ -49,9 +51,56 @@ body {
   }
 }
 
+/* Modo Rompecabezas (Por Defecto): Encaje modular para pantallas grandes/ultrawide */
+.app-shell,
+.app-shell.puzzle-mode {
+  max-width: 1480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 1600px) {
+  .app-shell,
+  .app-shell.puzzle-mode {
+    max-width: 1580px;
+  }
+}
+
+@media (min-width: 1920px) {
+  .app-shell,
+  .app-shell.puzzle-mode {
+    max-width: 1680px;
+  }
+}
+
+/* Modo Expandido: Si el usuario desactiva el modo rompecabezas */
+.app-shell.expanded-mode {
+  max-width: none !important;
+  width: min(100%, calc(100vw - 4rem));
+}
+
+/* Grillas Modulares Estilo Rompecabezas (Bento Dashboard Grid) */
+.puzzle-bento-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
 @media (min-width: 1280px) {
-  .app-shell {
-    width: min(100%, calc(100vw - 4rem));
+  .puzzle-bento-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .puzzle-bento-split-main {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1680px) {
+  .puzzle-bento-split-main {
+    grid-template-columns: 1.5fr 1fr;
   }
 }
 

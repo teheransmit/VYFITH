@@ -58,10 +58,41 @@ export default function Home() {
 function HomeDashboard() {
   const { session, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+
+  // Permitir navegaci?n directa por query param ?tab=xxx o hash #xxx
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab') as DashboardTab;
+      if (tabParam && DASHBOARD_NAV_ITEMS.some((item) => item.id === tabParam)) {
+        setActiveTab(tabParam);
+      } else if (window.location.hash) {
+        const hashTab = window.location.hash.replace('#', '') as DashboardTab;
+        if (hashTab && DASHBOARD_NAV_ITEMS.some((item) => item.id === hashTab)) {
+          setActiveTab(hashTab);
+        }
+      }
+    }
+  }, []);
   // Por defecto en PC: inicia directamente en el Centro de Mando completo (8 pilares)
   const [viewMode, setViewMode] = useState<'travel' | 'full'>('full');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [isCommandOpen, setIsCommandOpen] = useState<boolean>(false);
+  const [layoutMode, setLayoutMode] = useState<'puzzle' | 'expanded'>('puzzle');
+
+  // Cargar preferencia de layout (Modo Rompecabezas por defecto)
+  useEffect(() => {
+    const saved = localStorage.getItem('vyfith_layout_mode');
+    if (saved === 'expanded' || saved === 'puzzle') {
+      setLayoutMode(saved);
+    }
+  }, []);
+
+  const toggleLayoutMode = () => {
+    const nextMode = layoutMode === 'puzzle' ? 'expanded' : 'puzzle';
+    setLayoutMode(nextMode);
+    localStorage.setItem('vyfith_layout_mode', nextMode);
+  };
 
   // Atajo global de teclado Cmd+K / Ctrl+K (Inspirado en sahnia3/life-os)
   useEffect(() => {
@@ -103,7 +134,8 @@ function HomeDashboard() {
 
   return (
     <main className="min-h-screen bg-slate-50/70 dark:bg-slate-950 py-6 px-3 sm:px-6 lg:px-8 font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200">
-      <div className="app-shell mx-auto w-full min-w-0">
+      <div className={`app-shell mx-auto w-full min-w-0 ${layoutMode === 'puzzle' ? 'puzzle-mode' : 'expanded-mode'}`}>
+        {/* Banner discreto de modo rompecabezas en monitores grandes */}
         {/* VISTA 1: MODO VIAJE MÓVIL (Preservado para móvil / desplazamientos futuros) */}
         {viewMode === 'travel' && (
           <div className="animate-fadeIn">
@@ -119,6 +151,8 @@ function HomeDashboard() {
                   onLogout={logout}
                   isDarkMode={isDarkMode}
                   onToggleTheme={toggleTheme}
+                  layoutMode={layoutMode}
+                  onToggleLayoutMode={toggleLayoutMode}
                 />
                 <button
                   onClick={() => setViewMode('full')}
@@ -159,6 +193,8 @@ function HomeDashboard() {
                   isDarkMode={isDarkMode}
                   onToggleTheme={toggleTheme}
                   onOpenCommands={() => setIsCommandOpen(true)}
+                  layoutMode={layoutMode}
+                  onToggleLayoutMode={toggleLayoutMode}
                 />
 
                 {/* Badge de Ecosistema (Oculto en móviles para evitar saturación de pantalla) */}

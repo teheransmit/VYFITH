@@ -21,6 +21,16 @@ import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 
 export default function UnifiedHealthFitnessSection() {
   const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'mifitness' | 'gym' | 'hevy'>('combined');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const sub = params.get('sub') as any;
+      if (sub && ['combined', 'biometrics', 'mifitness', 'gym', 'hevy'].includes(sub)) {
+        setActiveSubView(sub);
+      }
+    }
+  }, []);
   const [liveGymStatus, setLiveGymStatus] = useState<GymLiveStatus | null>(null);
 
   useEffect(() => {

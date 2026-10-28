@@ -43,6 +43,20 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
   const sleepM = Math.round((totalSleepHours - sleepH) * 60);
   const rhrVal = activeState?.currentMetrics?.heartRate || activeState?.vyfithData?.roomMetrics?.restingHeartRate || 60;
   const spo2Val = activeState?.vyfithData?.roomMetrics?.spo2 ? Math.round(activeState.vyfithData.roomMetrics.spo2) : 97;
+  const deepHours = activeState?.vyfithData?.roomMetrics?.deepSleepHours || (totalSleepHours * 0.22);
+  const deepH = Math.floor(deepHours);
+  const deepM = Math.round((deepHours - deepH) * 60);
+  const deepPct = totalSleepHours > 0 ? Math.round((deepHours / totalSleepHours) * 100) : 22;
+
+  const remHours = totalSleepHours * 0.26;
+  const remH = Math.floor(remHours);
+  const remM = Math.round((remHours - remH) * 60);
+  const remPct = totalSleepHours > 0 ? Math.round((remHours / totalSleepHours) * 100) : 26;
+
+  const lightHours = Math.max(0, totalSleepHours - deepHours - remHours - 0.23);
+  const lightH = Math.floor(lightHours);
+  const lightM = Math.round((lightHours - lightH) * 60);
+  const lightPct = totalSleepHours > 0 ? Math.max(0, 100 - deepPct - remPct - 2) : 52;
   const [activeTab, setActiveTab] = useState<'sleep' | 'heart' | 'stress' | 'spo2'>('sleep');
   const [timeRange, setTimeRange] = useState<'today' | 'week' | 'month'>('today');
 
@@ -283,13 +297,13 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
             <div className="pt-4 border-t border-indigo-900/50 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div className="p-3 rounded-2xl bg-indigo-950/40 border border-indigo-500/20">
                 <span className="text-slate-400 block text-[11px]">RHR Durmiendo</span>
-                <span className="text-lg font-black text-rose-400 font-mono">60 lpm</span>
+                <span className="text-lg font-black text-rose-400 font-mono">{rhrVal} lpm</span>
                 <span className="text-[10px] text-emerald-400 block font-mono">Excelente Tono Vagal</span>
               </div>
 
               <div className="p-3 rounded-2xl bg-indigo-950/40 border border-indigo-500/20">
                 <span className="text-slate-400 block text-[11px]">SpO2 Nocturno</span>
-                <span className="text-lg font-black text-sky-400 font-mono">97%</span>
+                <span className="text-lg font-black text-sky-400 font-mono">{spo2Val}%</span>
                 <span className="text-[10px] text-emerald-400 block font-mono">Oxigenación Perfecta</span>
               </div>
 
