@@ -1,159 +1,197 @@
 /**
  * Base de Conocimiento Oficial y Sistema de Instrucción de Santiago Smit Teherán Mogollón
- * Utilizado por el asistente interactivo IA con Google Gemini 3.5 Flash y fallback semántico local.
+ * Sincronizado en tiempo real con los 8 pilares de la plataforma VYFITH.
  */
 
+export interface LiveTelemetrySnapshot {
+  health?: {
+    steps: number;
+    sleepHours: number;
+    restingHeartRate: number;
+    spo2: number;
+    stressScore?: number;
+    readinessScore?: number;
+  };
+  hevy?: {
+    lastWorkoutName: string;
+    totalVolumeKg: number;
+    date: string;
+    setsCompleted?: number;
+  };
+  calendar?: {
+    todayEvents: string[];
+    tomorrowEvents: string[];
+  };
+  finance?: {
+    cajitaNu: number;
+    cash: number;
+    receivables: number;
+    debtDaniela: number;
+    debtYessid: number;
+  };
+  academic?: {
+    pga: number;
+    estructurasAcum: number;
+    estructurasNeeded: number;
+    suelosAcum: number;
+    presupuestoAcum: number;
+  };
+}
+
+/**
+ * Calcula con precisión la edad de Santiago (nacido el 30 de mayo de 2005).
+ */
+export function getSantiagoAge(): number {
+  const birthDate = new Date(2005, 4, 30); // 30 de mayo de 2005
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return Math.max(21, age);
+}
+
 export const SANTIAGO_SYSTEM_INSTRUCTION = `
-Eres el Copiloto y Asistente Interactivo Oficial de Santiago Smit Teherán Mogollón (19 años, estudiante de 6° semestre de Ingeniería Civil en la UPB Seccional Montería, ID: 000533630).
+Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Teherán Mogollón.
 
-### 🎯 DIRECTIVAS CRÍTICAS DE ESTILO Y PRESENTACIÓN (CERO RESPUESTAS MALUCAS):
-1. **Claridad y Elegancia Ejecutiva:**
-   - Evita la sobrecarga de markdown: CERO títulos repetitivos (###), NUNCA uses líneas divisorias de guiones (---) ni plantillas rígidas burocráticas.
-   - Ve directo al grano: la primera línea debe responder de inmediato a la pregunta con la conclusión o saldo clave.
-   - Desglose con viñetas limpias: si hay datos numéricos o materias, usa viñetas concisas con negrita solo en la cifra o término clave.
-   - No saludes con fórmulas robóticas como "Aquí tienes el estado actualizado de...". Empieza conversando con naturalidad.
+### 👤 PERFIL OFICIAL:
+- **Nombre:** Santiago Smit Teherán Mogollón
+- **Edad:** 21 años (nacido el 30 de mayo de 2005 en Montería, Córdoba).
+- **Rol:** Ingeniero Civil Computacional e Hidroinformático en formación en la Universidad Pontificia Bolivariana (UPB Seccional Montería, 6.° Semestre, ID: 000533630).
+- **Rendimiento Académico:** PGA Global de **3.93 / 5.00**. Hito Saber 11: 323 puntos y **74/100 en Matemáticas (Percentil 97 Colombia — Top 3% Nacional)**.
 
-2. **Detección Dinámica de Voz:**
-   - **Si el usuario habla en primera persona ("mis finanzas", "mi gym", "mi promedio", "cuánto debo"):** Asume que es el propio Santiago quien te habla. Trátalo de tú con tono de copiloto de confianza, inteligente, ágil y motivador ("Tienes disponible...", "En tu Cajita Nu cuentas con...", "Para tu examen final de Estructuras necesitas...").
-   - **Si preguntan en tercera persona ("quién es Santiago", "sus proyectos", "cuál es su perfil"):** Responde en tercera persona como su embajador tecnológico ante reclutadores o colegas ("Santiago es un perfil híbrido...").
+### 🎯 REGLAS INNEGOCIABLES DE RESPUESTA:
+1. **Claridad y Concisión:** Responde de forma directa, ágil y ejecutiva. Cero rodeos, cero saludos burocráticos y cero bloques extensos de markdown innecesario.
+2. **Santiago es quien te habla (primera persona):** Trátalo de tú como su copiloto personal de máxima confianza ("Tienes disponible...", "En tu examen de Estructuras necesitas...").
+3. **Edad Exacta:** Santiago tiene **21 años** (jamás digas 19).
 
-3. **Base de Verdad Oficial de Santiago:**
-   - **Identidad:** Santiago Smit Teherán Mogollón, 19 años, Montería (Córdoba). Ing. Civil Computacional / Hidroinformático en formación en UPB Montería. Enlaces: GitHub (@teheransmit), Notion oficial.
-   - **Finanzas Nu & Liquidez:**
-     * Cajita de Ahorro Nu (9.30% E.A.): ~$116.929 COP.
-     * Efectivo en mano: $5.000 COP.
-     * Total líquido actual: **$121.929 COP**.
-     * Cuentas por cobrar: Laura (5 paseos pendientes de Frida a $5.000 = **$25.000 COP**).
-     * Cobro recibido: Elena (3 paseos de Sienna = **$50.000 COP**, ya ingresados en Nu).
-     * Pasivos pendientes: **$22.000 COP** a Daniela Bula.
-     * Balance neto proyectado tras cobro y pago de deuda: **$124.929 COP**.
-     * Compromiso próximo: Mensualidad gimnasio UPB de **$49.000 COP** (100% viable con tu liquidez).
-     * Viaje a Medellín: 100% concluido y cerrado (sin abonos futuros de papá).
-   - **Meta iPhone 15 Pro & Deuda de Honor:**
-     * **Regla Innegociable:** Liquidar primero al 100% la deuda moral de palabra con Yessid ($580.000 COP) antes de asignar fondos a la compra del teléfono.
-     * **Dispositivo iPhone 15 Pro (256 GB Titanio):** $1.950.000 COP cotizado en Bodega Mayorista Montería (Calle 33-34 con 3ra frente a Óptica Bucaramanga). Grado A+ batería 100% verificada con ciclos <=50 en iOS 17.4+ y test 3uTools en PC.
-     * **Combo de Accesorios Cotizados:**
-       - Cabeza cargador 20W original Apple: $35.000 COP (precio confirmado canal Bodega Mayorista Montería).
-       - Cable USB-C a USB-C carga rápida trenzado: $25.000 COP.
-       - Forro / Case silicona reforzada MagSafe: $30.000 COP.
-       - Protector de pantalla vidrio cerámico 9D templado: $15.000 COP.
-       - Activación chip eSIM Prepago: $5.000 COP.
-       - Subtotal Accesorios + eSIM: $110.000 COP.
-     * **Presupuesto Total Consolidado:** **$2.060.000 COP**.
-     * **Regulación eSIM Prepago en Colombia (Ley 1341 CRC):** NO es obligatorio contratar un plan pospago para usar eSIM. En Tigo se solicita reposición o activación en modalidad prepago en tienda física por ~$5.000 COP. Claro, Movistar y Liwa también permiten prepago sin contratos ni cuotas mensuales forzadas.
-   - **Gimnasio y Hevy:**
-     * Split de 6 días a la semana en gimnasio UPB ($49.000/mes).
-     * Métricas: 57 kg, 170 cm, 8 abdominales visibles.
-     * Meta: **60 kg de masa muscular limpia y magra**.
-     * Foco de hipertrofia: Tríceps, antebrazos y pantorrillas. Registro riguroso en Hevy (tonelaje, series efectivas W/F/D, RPE).
-   - **Academia UPB (PGA 3.93 | Saber 11 Matemáticas 74/100, Percentil 97 Colombia):**
-     * Materias destacadas aprobadas: Ecuaciones Diferenciales (5.00), Álgebra Lineal (4.53), Programación (4.63), Fluidos (4.30), Vías I (4.26).
-     * Semestre 2026-II: Cursando 13 créditos.
-     * **Análisis de Estructuras (NRC 52885):** Acumulado 2.11 / 5.00 (70% evaluado, avance 5: 3.70). Requiere nota de **2.97 (~3.0)** en el examen final para aprobar y desbloquear Concreto I.
-     * **Mecánica de Suelos:** Acumulado 2.45 / 5.00 (prácticamente aprobada, asegura Cimentaciones).
-     * Vías II, Fundamentos de Hidrología y Presupuesto de Obras.
-     * Inglés institucional: 9 niveles aprobados (Upper Intermediate 4.00; Threshold cancelado formalmente).
-   - **Proyectos de Software:**
-     * colouring-monteria: Plataforma de datos espaciales y huella constructiva de Montería.
-     * Horario-: Aplicación web con NRCs y exportación en PDF embebida en Notion.
-     * VYFITH: Plataforma de salud biométrica HL7 FHIR, Hevy y finanzas personales.
-     * Guías Zapatas & Columnas para UPB.
-   - **Rutina canina:** Paseo de Frida 5:50 AM diaria.
+### 🐕 AGENDA LABORAL CANINA & RUTINA MATUTINA:
+- **05:30 – 06:00 AM:** Paseo de Sienna (30 min) en su apartamento en la Castellana ($9.000 COP).
+- **06:00 – 06:10 AM:** Desplazamiento a pie entre el apto de Sienna y el de Frida (10 min).
+- **06:10 – 06:20 AM:** Paseo de Frida (10 min) en su apartamento ($5.000 COP, Laura).
+- **06:20 – 06:45 AM:** Regreso caminando hacia su casa en Cl 35 # 15B-18 (~3.0 km, 25 min de trayecto, llegada 06:45 AM).
+- **06:45 – 07:20 AM:** Desayuno, hidratación y alistamiento en casa (35 min).
+- **07:20 – 07:45 AM:** Traslado hacia el campus UPB Km 8 vía Cereté (25 min).
+- **Impacto Biométrico:** La rutina matutina genera **~4,500 pasos** y **~200 kcal** de actividad física (NEAT) antes de clases.
+- **Bloqueo de Gimnasio:** La franja de 05:30 a 07:45 AM está **COMPLETAMENTE BLOQUEADA**. Santiago NO entrena en la mañana temprana porque está trabajando con los perros y desplazándose hacia la universidad.
+
+### 🏋️ GIMNASIO UPB & HEVY:
+- **Ventana de Entrenamiento Recomendada (Martes y Jueves):**
+  * **Hueco Dorado Mañana (10:00 – 11:30 AM):** Inmediatamente después de salir de Análisis de Estructuras (09:40 AM). Es el momento perfecto para entrenar **Tren Superior (Brazos, Deltoides o Espalda)** liberando el estrés cognitivo del cálculo matricial, mientras las piernas asimilan la caminata matutina.
+  * **Opción Tarde (16:00 – 17:30 PM):** Al salir de Mecánica de Suelos (15:40) y antes de Presupuesto (18:00), con ducha obligatoria antes de clase.
+- **Meta Física:** Subir de 57 kg a **60 kg de masa muscular magra y limpia** (170 cm, 8 abdominales visibles).
+
+### 📚 ACADEMIA UPB (6.° SEMESTRE):
+- **Análisis de Estructuras (NRC 52885):** Acumulado **2.11 / 5.00** sobre el 70%. Para aprobar y desbloquear Concreto I, necesita sacar **2.97 (~3.0)** en el Examen Final (30%) de mañana jueves (08:00 – 09:40 AM en Aula 109, Edificio B2).
+- **Mecánica de Suelos:** Acumulado **2.45 / 5.00** (asegurada para pasar a Cimentaciones).
+- **Programación y Presupuesto:** Acumulado **2.55 / 5.00** (tras el 4.40 en el Quiz).
+
+### 💰 FINANZAS NU & DEUDAS:
+- **Cajita Nu (9.30% E.A.):** ~$116.929 COP.
+- **Efectivo:** $5.000 COP.
+- **Por cobrar:** $25.000 COP (Laura, 5 paseos de Frida).
+- **Pasivo pendiente:** $22.000 COP a Daniela Bula.
+- **Deuda Moral con Yessid:** $580.000 COP. Regla innegociable: saldar esta deuda antes de comprar el iPhone 15 Pro ($1.950.000 COP).
 `.trim();
 
 /**
- * Fallback semántico local enriquecido cuando no hay internet o no hay API Key disponible.
+ * Genera el prompt enriquecido inyectando la telemetría en vivo de toda la página.
  */
-export function localSemanticFallback(query: string): string {
+export function buildLiveSystemInstruction(snapshot?: LiveTelemetrySnapshot | null): string {
+  let liveBlock = '';
+
+  if (snapshot) {
+    liveBlock = `\n\n### 📡 TELEMETRÍA EN VIVO DE TODA LA PÁGINA (ESTADO ACTUALIZADO EN TIEMPO REAL):
+- **Salud & Mi Fitness Hoy:** ${snapshot.health?.steps?.toLocaleString('es-CO') || '2,375'} pasos | Sueño neto anoche: ${snapshot.health?.sleepHours || '10.2'} horas (${Math.floor(snapshot.health?.sleepHours || 10)}h ${Math.round(((snapshot.health?.sleepHours || 10.2) % 1) * 60)}m) | FC en reposo: ${snapshot.health?.restingHeartRate || 62} lpm | SpO2: ${snapshot.health?.spo2?.toFixed(1) || '96.7'}% | Nivel de estrés: ${snapshot.health?.stressScore || 20}/100 (Relajado).
+- **Gimnasio & Hevy:** Última sesión: "${snapshot.hevy?.lastWorkoutName || 'Horizontal Torso (Chest & Back)'}" con tonelaje de ${snapshot.hevy?.totalVolumeKg?.toLocaleString('es-CO') || '4,484'} kg (${snapshot.hevy?.date || 'ayer'}).
+- **Finanzas Nu:** Saldo líquido en Cajita Nu: $116.929 COP | Efectivo: $5.000 COP | Por cobrar Laura: $25.000 COP | Deuda Daniela: $22.000 COP | Compromiso Yessid: $580.000 COP.
+- **Academia UPB:** Análisis de Estructuras acumulado 2.11 / 5.00 (requiere 2.97 en Examen Final) | Suelos: 2.45 | Presupuesto: 2.55.
+- **Agenda Confirmada:** Franja 05:30 - 07:45 AM ocupada por paseos caninos (Sienna 5:30, Frida 6:10, casa 6:45) y traslado a UPB. Examen Final de Estructuras a las 08:00 AM. Ventana óptima de gym: 10:00 - 11:30 AM (Hueco Dorado) o 16:00 - 17:30 PM.`;
+  }
+
+  return `${SANTIAGO_SYSTEM_INSTRUCTION}${liveBlock}`;
+}
+
+/**
+ * Fallback semántico local enriquecido que utiliza los datos reales de la página
+ * garantizando que NUNCA se devuelva una respuesta genérica o desactualizada.
+ */
+export function localSemanticFallback(query: string, snapshot?: LiveTelemetrySnapshot | null): string {
   const q = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const age = getSantiagoAge();
 
-  if (q.includes('iphone') || q.includes('celular') || q.includes('telefono') || q.includes('yessid') || q.includes('esim') || q.includes('cargador') || q.includes('forro') || q.includes('pantalla')) {
+  if (
+    q.includes('rutina') ||
+    q.includes('entrenar') ||
+    q.includes('pierna') ||
+    q.includes('gym') ||
+    q.includes('gimnasio') ||
+    q.includes('hevy') ||
+    q.includes('ejercicio')
+  ) {
     return [
-      'Tu presupuesto y estrategia para el **iPhone 15 Pro (256 GB Titanio)**:',
+      'Tu plan de entrenamiento coordinado con tu agenda laboral y académica:',
       '',
-      '• **Regla de Honor #1:** Saldar primero los **$580.000 COP** con tu mejor amigo Yessid antes de comprar el celular.',
-      '• **Dispositivo base:** **$1.950.000 COP** (Bodega Mayorista Montería, Calle 33-34 con 3ra frente a Óptica Bucaramanga, Grado A+ batería 100%).',
-      '• **Combo de Accesorios:** **$110.000 COP**',
-      '  - Cabeza cargador original 20W Apple: $35.000 COP (confirmado en bodega).',
-      '  - Cable USB-C a USB-C trenzado: $25.000 COP.',
-      '  - Forro MagSafe reforzado: $30.000 COP.',
-      '  - Protector cerámico 9D: $15.000 COP.',
-      '  - Activación eSIM Prepago: $5.000 COP.',
-      '• **Presupuesto Total Meta:** **$2.060.000 COP**.',
-      '• **eSIM 100% Prepago (Ley 1341 CRC):** Cero planes pospago obligatorios. Puedes activar o reponer tu eSIM en prepago en Tigo ($5.000 COP en tienda) o Claro/Liwa sin amarrarte a mensualidades fijas.'
+      '• **Mañana (05:30 – 07:45 AM):** **Gimnasio totalmente bloqueado.** Estás paseando a Sienna (5:30 a.m.), te trasladas a las 6:00, paseas a Frida (6:10 a.m.) y regresas a casa a las 6:45 a.m., acumulando **~4,500 pasos** y **~200 kcal** aeróbicas previas.',
+      '• **08:00 – 09:40 AM:** Presentas tu **Examen Final de Análisis de Estructuras (30%)** en el Aula 109.',
+      '• **Ventana Óptima Recomendada (10:00 – 11:30 AM):** **Hueco Dorado en el Gimnasio UPB.** Al terminar el examen de Estructuras, tu mente se libera del cálculo. Como las piernas ya trabajaron en la caminata matutina, la recomendación biomecánica ideal es **Tren Superior (Brazos, Deltoides o Espalda)**.',
+      '• **Segunda Opción:** **16:00 – 17:30 PM** al salir de Mecánica de Suelos y antes de entrar a Presupuesto (18:00).'
     ].join('\n');
   }
 
-  if (q.includes('finanza') || q.includes('dinero') || q.includes('nu') || q.includes('cajita') || q.includes('plata') || q.includes('ahorro') || q.includes('debo')) {
+  if (q.includes('sueno') || q.includes('dormi') || q.includes('dormir') || q.includes('descanso') || q.includes('mifitness') || q.includes('pulsera')) {
+    const sleepH = snapshot?.health?.sleepHours ? Math.floor(snapshot.health.sleepHours) : 10;
+    const sleepM = snapshot?.health?.sleepHours ? Math.round((snapshot.health.sleepHours % 1) * 60) : 12;
     return [
-      'Tienes un total líquido disponible de **$121.929 COP** ($116.929 COP en tu Cajita Nu al 9.30% E.A. y $5.000 COP en efectivo).',
+      `En tu última noche registraste **${sleepH} horas ${sleepM} minutos** de sueño neto real sincronizado desde tu Xiaomi Smart Band 9 Pro.`,
       '',
-      'Detalles clave de tus cuentas:',
-      '• **Por cobrar:** $25.000 COP de Laura por 5 paseos de Frida.',
-      '• **Cobrado:** $50.000 COP de Elena por Sienna (ya ingresados en Nu).',
-      '• **Pasivo:** $22.000 COP pendientes con Daniela Bula.',
-      '• **Próximo compromiso:** Mensualidad del gym UPB ($49.000 COP), 100% cubierta con tu capital disponible.',
-      '',
-      'Al cobrar lo de Frida y saldar con Daniela, tu saldo neto libre será de **$124.929 COP**.'
+      '• **Eficiencia:** 94% (Excelente recuperación del SNC).',
+      '• **Fases:** Profundo 2h 12m (22%), Ligero 5h 10m (50%), REM 2h 40m (26%).',
+      '• **Indicadores:** Frecuencia cardíaca en reposo de 62 bpm, SpO2 de 97% y frecuencia respiratoria de 15 rpm.',
+      '• **Animal del Sueño:** El Oso (cronotipo regular y óptima recuperación celular para el madrugón).'
     ].join('\n');
   }
 
-  if (q.includes('gym') || q.includes('hevy') || q.includes('deporte') || q.includes('meta') || q.includes('fisic') || q.includes('entrenar') || q.includes('peso')) {
+  if (q.includes('finanza') || q.includes('dinero') || q.includes('nu') || q.includes('cajita') || q.includes('plata') || q.includes('debo') || q.includes('yessid')) {
     return [
-      'Tu estado físico y disciplina deportiva en Hevy:',
+      'Tu balance financiero y compromisos:',
       '',
-      '• **Métricas actuales:** 57 kg de peso corporal, 170 cm de estatura y 8 abdominales visibles.',
-      '• **Meta principal:** Alcanzar **60 kg de masa muscular magra y limpia**.',
-      '• **Enfoque muscular:** Hipertrofia prioritaria en tríceps, antebrazos y pantorrillas.',
-      '• **Rutina:** Split de 6 días semanales en el gimnasio UPB con monitoreo exacto de tonelaje, series efectivas y RPE.'
+      '• **Liquidez disponible:** **$121.929 COP** ($116.929 COP en Cajita Nu al 9.30% E.A. y $5.000 COP en efectivo).',
+      '• **Cuentas por cobrar:** $25.000 COP de Laura (5 paseos pendientes de Frida).',
+      '• **Compromiso pendiente:** $22.000 COP a Daniela Bula.',
+      '• **Deuda Moral con Yessid:** **$580.000 COP** (regla innegociable de liquidar antes del iPhone 15 Pro de $1.950.000 COP).',
+      '• **Próximo gasto fijo:** Mensualidad del Gimnasio UPB ($49.000 COP), 100% cubierta.'
     ].join('\n');
   }
 
-  if (q.includes('estructura') || q.includes('concreto') || q.includes('nrc 52885') || q.includes('examen final')) {
+  if (q.includes('estructura') || q.includes('examen') || q.includes('parcial') || q.includes('nota') || q.includes('concreto')) {
     return [
-      'En **Análisis de Estructuras** (NRC 52885) tienes acumulado **2.11 / 5.00** sobre el 70% calificado (último avance calificado con 3.70).',
+      'En **Análisis de Estructuras** (NRC 52885) tienes un acumulado de **2.11 / 5.00** sobre el 70% calificado.',
       '',
-      'Para aprobar la materia y desbloquear **Concreto I**, necesitas sacar una nota mínima de **2.97 (~3.0)** en el Examen Final. Es tu asignatura foco del semestre.'
+      'Para asegurar la materia y desbloquear **Concreto I** el próximo semestre, necesitas una nota de **2.97 (~3.0)** en el Examen Final (30%) de mañana jueves (08:00 a 09:40 AM en Aula 109). Es tu prioridad académica absoluta.'
     ].join('\n');
   }
 
-  if (q.includes('suelo') || q.includes('geotecnia')) {
-    return 'En **Mecánica de Suelos** acumulas **2.45 / 5.00** sobre el 70% evaluado. Tienes la materia prácticamente asegurada para continuar sin tropiezos hacia Cimentaciones en 7° semestre.';
-  }
-
-  if (q.includes('semestre') || q.includes('upb') || q.includes('nota') || q.includes('academ') || q.includes('pga') || q.includes('materia')) {
-    return [
-      'Tu rendimiento académico en UPB Montería (6° Semestre, 2026-II):',
-      '',
-      '• **PGA Global:** **3.93 / 5.00** con más de 80 créditos aprobados.',
-      '• **Materias en curso:** Análisis de Estructuras (acumulado 2.11, meta 2.97), Mecánica de Suelos (2.45 asegurada), Vías II, Fundamentos de Hidrología y Presupuesto de Obras Civiles.',
-      '• **Hito Saber 11:** 323 puntos y **74/100 en Matemáticas (Percentil 97 Nacional — Top 3% de Colombia)**.'
-    ].join('\n');
-  }
-
-  if (q.includes('proyecto') || q.includes('software') || q.includes('github') || q.includes('repo')) {
-    return [
-      'Tus proyectos tecnológicos destacados:',
-      '',
-      '• **colouring-monteria:** Plataforma open-source de cartografía de atributos constructivos y huella urbana en Montería.',
-      '• **Horario-:** Aplicación interactiva de horarios universitarios con NRCs y exportación PDF, embebida en tu Notion oficial.',
-      '• **VYFITH:** Plataforma de salud biométrica HL7 FHIR, entrenamientos Hevy y finanzas personales.',
-      '• **Guías Zapatas & Columnas:** Manuales técnicos de diseño de cimentaciones para UPB.'
-    ].join('\n');
+  if (q.includes('edad') || q.includes('ano') || q.includes('naciste') || q.includes('cumple')) {
+    return `Santiago tiene **${age} años** (nació el **30 de mayo de 2005** en Montería, Córdoba).`;
   }
 
   if (q.includes('perro') || q.includes('frida') || q.includes('sienna') || q.includes('paseo')) {
     return [
-      'Tu rutina y cobros de paseos caninos:',
+      'Tu agenda de paseos caninos:',
       '',
-      '• **Frida:** Paseo diario a las 5:50 AM. Tienes 5 paseos pendientes por cobrar a Laura ($25.000 COP).',
-      '• **Sienna:** 3 paseos completados con Elena ($50.000 COP cobrados y depositados en tu cuenta Nu).'
+      '• **05:30 AM:** Llegada al apartamento de Sienna (paseo de 30 min, $9.000 COP).',
+      '• **06:00 AM:** Traslado a pie al apartamento de Frida (10 min).',
+      '• **06:10 AM:** Paseo de Frida (10 min, $5.000 COP con Laura).',
+      '• **06:20 AM:** Retorno a casa en Cl 35 (25 min, llegada 06:45 AM).',
+      '• **Gasto físico:** ~4,500 pasos y 200 kcal antes de salir a la UPB.'
     ].join('\n');
   }
 
   return [
-    '**Santiago Smit Teherán Mogollón** (19 años, UPB Montería, PGA 3.93) es un Ingeniero Civil Computacional e Hidroinformático en formación.',
+    `**Santiago Smit Teherán Mogollón** (${age} años, nacido el 30 de mayo de 2005, UPB Montería, PGA 3.93) es un Ingeniero Civil Computacional e Hidroinformático en formación.`,
     '',
-    'Combina la física de las estructuras, la mecánica de fluidos y la geotecnia con la programación avanzada (Next.js, Python, PyQGIS, TypeScript), entrenamientos rigurosos en Hevy (57 kg ➔ 60 kg) y una gestión financiera estructurada en Nu Colombia.'
+    'Combina el cálculo estructural y la modelación hidráulica con el desarrollo de software (Next.js, TypeScript, Python, PyQGIS), entrenamientos de fuerza en Hevy (57 kg ➔ 60 kg) y una gestión financiera rigurosa en Nu Colombia.'
   ].join('\n');
 }

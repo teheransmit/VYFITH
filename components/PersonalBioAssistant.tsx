@@ -24,7 +24,7 @@ interface ChatMessage {
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
-  source?: 'gemini-ai' | 'local-fallback' | 'initial';
+  source?: 'gemini-ai' | 'groq-llama-70b' | 'live-telemetry-engine' | 'local-fallback' | 'initial';
   model?: string;
 }
 
@@ -32,19 +32,20 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'assistant',
-    text: '¡Hola! Soy tu asistente y copiloto interactivo de presentación personal, conectado a **Google Gemini**. Puedo responder sobre tu perfil como Ingeniero Civil Computacional en la UPB Montería, tus notas en Análisis de Estructuras, tu meta física en Hevy o el estado consolidado de tus finanzas en Nu. ¿Qué deseas consultar hoy?',
+    text: '¡Hola, Santiago! Soy tu copiloto interactivo de bio y telemetría total de VYFITH, orquestado con **Super-Respuesta Multi-Modelo** (Google AI Studio Gemini + Groq Llama 3.3 70B + Motor en Vivo). Estoy conectado a todos tus módulos en tiempo real: tu sueño y salud de Mi Fitness, tus 237 entrenamientos de Hevy, tus finanzas en Nu y tu agenda universitaria en la UPB Montería. ¿Qué deseas consultar hoy?',
     timestamp: 'Ahora',
     source: 'initial',
+    model: 'Super-Respuesta Multi-Modelo',
   },
 ];
 
 const PREDEFINED_QUESTIONS = [
-  '¿Cómo están mis finanzas y mi Cajita de Nu?',
-  '¿Cuánto necesito en el examen de Estructuras?',
-  '¿Cuál es mi meta en el gimnasio y split en Hevy?',
-  '¿Cuáles son mis proyectos destacados de software?',
-  '¿Qué perros paseo y qué cobros tengo pendientes?',
-  '¿Quién es Santiago Smit Teherán Mogollón?',
+  '¿Cómo amaneció mi sueño en Mi Fitness y qué animal soy?',
+  '¿Cómo está mi agenda de mañana (Sienna 5:30, Frida 6:10, UPB y gimnasio)?',
+  '¿Cómo están mis finanzas en Nu y la deuda de Yessid?',
+  '¿Cuánto necesito en el examen final de Estructuras (30%)?',
+  '¿Cuál fue mi último entrenamiento en Hevy y mi meta física?',
+  '¿Quién es Santiago Smit Teherán Mogollón y cuántos años tiene?',
 ];
 
 /**
@@ -158,21 +159,26 @@ export default function PersonalBioAssistant() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [customApiKey, setCustomApiKey] = useState('');
+  const [groqApiKey, setGroqApiKey] = useState('');
+  const [selectedModel, setSelectedModel] = useState('auto');
   const [showSettings, setShowSettings] = useState(false);
   const [showKeyText, setShowKeyText] = useState(false);
+  const [showGroqText, setShowGroqText] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isTestingKey, setIsTestingKey] = useState(false);
-  const [activeModel, setActiveModel] = useState('Gemini 3.5 Flash');
+  const [activeModel, setActiveModel] = useState('Super-Respuesta Multi-Modelo');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Cargar API Key personalizada desde localStorage si existe
+  // Cargar API Keys y modelo personalizado desde localStorage si existen
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedKey = localStorage.getItem('vyfith_gemini_api_key');
-      if (storedKey) {
-        setCustomApiKey(storedKey);
-      }
+      const storedGroq = localStorage.getItem('vyfith_groq_api_key');
+      const storedModel = localStorage.getItem('vyfith_selected_model');
+      if (storedKey) setCustomApiKey(storedKey);
+      if (storedGroq) setGroqApiKey(storedGroq);
+      if (storedModel) setSelectedModel(storedModel);
     }
   }, []);
 
@@ -181,35 +187,48 @@ export default function PersonalBioAssistant() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSaveKey = () => {
+  const handleSaveSettings = () => {
     if (typeof window !== 'undefined') {
       if (customApiKey.trim()) {
         localStorage.setItem('vyfith_gemini_api_key', customApiKey.trim());
-        setSaveStatus('Clave guardada exitosamente');
       } else {
         localStorage.removeItem('vyfith_gemini_api_key');
-        setSaveStatus('Usando clave oficial del servidor (.env.local)');
       }
+
+      if (groqApiKey.trim()) {
+        localStorage.setItem('vyfith_groq_api_key', groqApiKey.trim());
+      } else {
+        localStorage.removeItem('vyfith_groq_api_key');
+      }
+
+      localStorage.setItem('vyfith_selected_model', selectedModel);
+      setSaveStatus('Ajustes y claves guardadas con éxito 🟢');
       setTimeout(() => setSaveStatus(null), 3500);
     }
   };
 
   const handleTestKey = async () => {
     setIsTestingKey(true);
-    setSaveStatus('Probando conexión con Google Gemini...');
+    setSaveStatus('Probando conexión multi-modelo...');
     try {
       const res = await fetch('/api/bio-assistant', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(customApiKey.trim() ? { 'x-gemini-api-key': customApiKey.trim() } : {}),
+          ...(groqApiKey.trim() ? { 'x-groq-api-key': groqApiKey.trim() } : {}),
+        },
         body: JSON.stringify({
           messages: [{ role: 'user', text: 'Ping de prueba. Responde: Conexión exitosa.' }],
           apiKey: customApiKey.trim() || undefined,
+          groqApiKey: groqApiKey.trim() || undefined,
+          model: selectedModel,
         }),
       });
       const data = await res.json();
-      if (data.success && data.source === 'gemini-ai') {
-        setSaveStatus(`Conexión exitosa con ${data.model || 'Gemini 3.5 Flash'} 🟢`);
-        setActiveModel(data.model || 'Gemini 3.5 Flash');
+      if (data.success) {
+        setSaveStatus(`Conexión exitosa con ${data.model || 'Super-Respuesta'} 🟢`);
+        setActiveModel(data.model || 'Super-Respuesta Multi-Modelo');
       } else {
         setSaveStatus(`Respuesta recibida en modo seguro (${data.source}) 🟡`);
       }
@@ -261,23 +280,26 @@ export default function PersonalBioAssistant() {
         headers: {
           'Content-Type': 'application/json',
           ...(customApiKey.trim() ? { 'x-gemini-api-key': customApiKey.trim() } : {}),
+          ...(groqApiKey.trim() ? { 'x-groq-api-key': groqApiKey.trim() } : {}),
         },
         body: JSON.stringify({
           messages: payloadMessages,
           apiKey: customApiKey.trim() || undefined,
+          groqApiKey: groqApiKey.trim() || undefined,
+          model: selectedModel,
         }),
       });
 
       const data = await res.json();
 
       let replyText = '';
-      let replySource: 'gemini-ai' | 'local-fallback' = 'gemini-ai';
-      let replyModel = 'gemini-3.5-flash';
+      let replySource: ChatMessage['source'] = 'live-telemetry-engine';
+      let replyModel = 'Super-Respuesta Multi-Modelo';
 
       if (data && data.success && data.reply) {
         replyText = data.reply;
-        replySource = data.source === 'gemini-ai' ? 'gemini-ai' : 'local-fallback';
-        replyModel = data.model || 'gemini-3.5-flash';
+        replySource = data.source || 'gemini-ai';
+        replyModel = data.model || 'Super-Respuesta Multi-Modelo';
         setActiveModel(replyModel);
       } else {
         replyText = localSemanticFallback(text);
@@ -303,7 +325,7 @@ export default function PersonalBioAssistant() {
         text: fallbackReply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         source: 'local-fallback',
-        model: 'local',
+        model: 'Telemetría Local (0ms)',
       };
       setMessages((prev) => [...prev, fallbackMsg]);
     } finally {
@@ -322,7 +344,7 @@ export default function PersonalBioAssistant() {
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80">
               <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              Asistente Interactivo IA • Google Gemini
+              Asistente Interactivo IA • Super-Respuesta Multi-Modelo
             </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -371,14 +393,14 @@ export default function PersonalBioAssistant() {
         </div>
       </div>
 
-      {/* Panel Desplegable de Configuración de API Key */}
+      {/* Panel Desplegable de Configuración de API Key y Multi-Modelo */}
       {showSettings && (
         <div className="my-5 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Key className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Configuración de Google Gemini API Key
+                Orquestador de IA Multi-Modelo & Super-Respuesta
               </h3>
             </div>
             <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
@@ -386,54 +408,107 @@ export default function PersonalBioAssistant() {
             </span>
           </div>
 
-          <p className="text-xs text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
-            El sistema ya cuenta con la clave oficial de Santiago configurada en el servidor. Si deseas usar una clave propia de Google AI Studio, puedes ingresarla aquí (se guardará exclusivamente en tu navegador).
+          <p className="text-xs text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
+            VYFITH combina la potencia de <strong>Google AI Studio (Gemini 2.5 Flash / Pro)</strong>, <strong>Groq Cloud (Llama 3.3 70B ultrarrápido)</strong> y la telemetría viva de todos tus módulos (Mi Fitness, Hevy, Nu, UPB, Perros). Si tienes una cuenta paga de AI Studio o una clave de Groq, configúralas aquí.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-            <div className="relative flex-1">
-              <input
-                type={showKeyText ? 'text' : 'password'}
-                value={customApiKey}
-                onChange={(e) => setCustomApiKey(e.target.value)}
-                placeholder="Pega tu API Key de Google AI Studio (ej. AQ.Ab8RN...)"
-                className="w-full px-3.5 py-2 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-              />
-              <button
-                type="button"
-                onClick={() => setShowKeyText(!showKeyText)}
-                className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                {showKeyText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            {/* Clave Google AI Studio */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Google AI Studio API Key (Gemini)
+              </label>
+              <div className="relative">
+                <input
+                  type={showKeyText ? 'text' : 'password'}
+                  value={customApiKey}
+                  onChange={(e) => setCustomApiKey(e.target.value)}
+                  placeholder="Clave de Google AI Studio (ej. AIzaSy...)"
+                  className="w-full px-3.5 py-2 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKeyText(!showKeyText)}
+                  className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  {showKeyText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                Por defecto: clave del servidor o tu cuenta paga de AI Studio.
+              </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleSaveKey}
-                className="cursor-pointer px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
-              >
-                Guardar
-              </button>
-              <button
-                type="button"
-                onClick={handleTestKey}
-                disabled={isTestingKey}
-                className="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center gap-1.5"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isTestingKey ? 'animate-spin' : ''}`} />
-                <span>Probar</span>
-              </button>
+            {/* Clave Groq Cloud */}
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Groq Cloud API Key (Llama 3.3 70B Gratis)
+              </label>
+              <div className="relative">
+                <input
+                  type={showGroqText ? 'text' : 'password'}
+                  value={groqApiKey}
+                  onChange={(e) => setGroqApiKey(e.target.value)}
+                  placeholder="Clave gratuita de Groq (gsk_...)"
+                  className="w-full px-3.5 py-2 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowGroqText(!showGroqText)}
+                  className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  {showGroqText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                Gratis en console.groq.com para inferencia a ~800 tokens/s.
+              </span>
             </div>
           </div>
 
-          {saveStatus && (
-            <p className="mt-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5" />
-              {saveStatus}
-            </p>
-          )}
+          {/* Selector de Modelo y Motor */}
+          <div className="mb-4">
+            <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Motor de Inferencia & Modo de Respuesta
+            </label>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="w-full px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 cursor-pointer"
+            >
+              <option value="auto">⚡ Super-Respuesta Multi-Modelo (Orquestación Inteligente Gemini + Groq Llama + Telemetría)</option>
+              <option value="gemini-2.5-flash">🌟 Google AI Studio — Gemini 2.5 Flash (Equilibrado y Preciso)</option>
+              <option value="gemini-2.5-pro">🚀 Google AI Studio — Gemini 2.5 Pro (Máximo Razonamiento / Cuenta Paga)</option>
+              <option value="gemini-1.5-pro">💎 Google AI Studio — Gemini 1.5 Pro Preview</option>
+              <option value="groq-llama">⚡ Groq Cloud — Llama 3.3 70B Versatile (~800 tok/s, 0 latencia)</option>
+              <option value="live-telemetry">📊 Motor Local de Telemetría Viva (0ms, 100% Determínico)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={handleSaveSettings}
+              className="cursor-pointer px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+            >
+              Guardar Ajustes
+            </button>
+            <button
+              type="button"
+              onClick={handleTestKey}
+              disabled={isTestingKey}
+              className="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center gap-1.5"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isTestingKey ? 'animate-spin' : ''}`} />
+              <span>Probar Conexión</span>
+            </button>
+            {saveStatus && (
+              <p className="ml-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" />
+                {saveStatus}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -449,13 +524,13 @@ export default function PersonalBioAssistant() {
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">Santiago Smit Teherán Mogollón</h3>
                 <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold block">
-                  19 años • Ing. Civil Computacional
+                  21 años • Ing. Civil Computacional
                 </span>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-              Estudiante de 6° semestre en la <strong>UPB Montería</strong> (PGA 3.93). Une el análisis físico de estructuras, mecánica de fluidos y geotecnia con la programación avanzada (Next.js, Python, PyQGIS, algoritmos).
+              Estudiante de 6° semestre en la <strong>UPB Montería</strong> (PGA 3.93). Nacido el <strong>30 de mayo de 2005 (21 años)</strong>. Une el análisis físico de estructuras, mecánica de fluidos y geotecnia con la programación avanzada (Next.js, Python, PyQGIS, algoritmos).
             </p>
 
             <div className="space-y-2 border-t border-slate-200/60 dark:border-slate-800/80 pt-3 text-xs">
@@ -469,7 +544,7 @@ export default function PersonalBioAssistant() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-slate-400">Disciplina Vital:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400">Paseos Frida 5:50 AM</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">Paseos Sienna 5:30 & Frida 6:10 AM</span>
               </div>
             </div>
           </div>
@@ -556,11 +631,11 @@ export default function PersonalBioAssistant() {
                   Chatbot de Presentación: Asistente IA de Santiago
                 </h4>
                 <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                  Gemini Flash Live
+                  Multi-Modelo Live
                 </span>
               </div>
               <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                Responde en tiempo real con datos de su Notion, historial académico, Hevy y finanzas Nu
+                Responde en tiempo real con datos de Mi Fitness, Hevy, Notion, UPB y finanzas Nu
               </span>
             </div>
           </div>
@@ -641,7 +716,7 @@ export default function PersonalBioAssistant() {
                 <div className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce [animation-delay:0.4s]" />
               </div>
               <span className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium ml-1">
-                Gemini procesando respuesta...
+                Procesando super-respuesta en vivo...
               </span>
             </div>
           )}
@@ -675,7 +750,7 @@ export default function PersonalBioAssistant() {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             disabled={isTyping}
-            placeholder="Pregúntale a Gemini sobre Santiago (ej. notas en Estructuras, proyectos de software, meta en Hevy)..."
+            placeholder="Pregúntale a la IA sobre Santiago (ej. sueño Mi Fitness, horario UPB, perros Sienna/Frida, meta Hevy, finanzas Nu)..."
             className="flex-1 px-4 py-2.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-60"
           />
           <button
