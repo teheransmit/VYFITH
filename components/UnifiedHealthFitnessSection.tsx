@@ -16,9 +16,12 @@ import {
   Scale,
 } from 'lucide-react';
 import GoogleHealthConnector from './GoogleHealthConnector';
-import UnifiedGymHevySection from './UnifiedGymHevySection';
+import UnifiedGymHevySection, { UpbGymStatusAndKpis } from './UnifiedGymHevySection';
 import MiFitnessHealthSuite from './MiFitnessHealthSuite';
 import FemmtoBodyCompositionSuite from './FemmtoBodyCompositionSuite';
+import BiomedicalIntelligencePanel from './BiomedicalIntelligencePanel';
+import MuscleHeatmap from './MuscleHeatmap';
+import HevyWorkoutsSection from './HevyWorkoutsSection';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 
 export default function UnifiedHealthFitnessSection() {
