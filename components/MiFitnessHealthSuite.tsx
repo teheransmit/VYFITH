@@ -39,7 +39,7 @@ export default function MiFitnessHealthSuite() {
             Telemetría de Salud, Sueño & Ritmo Cardíaco
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-2xl">
-            Arquitectura idéntica a la app <strong>Mi Fitness</strong> con tus métricas fisiológicas reales: hipnograma de sueño, zonas de FC (VO2 Máx), monitoreo de estrés continuo y animal del sueño.
+            Arquitectura idéntica a la app <strong>Mi Fitness</strong> diseñada según tu app. (Modo plantilla: esperando enlace activo de datos con tu teléfono Vivo Y20).
           </p>
         </div>
 
