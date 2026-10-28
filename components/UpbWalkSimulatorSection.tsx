@@ -25,6 +25,9 @@ import { fetchRoute } from '@/lib/unipaseoRouting';
 import Timeline from '@/components/unipaseo/Timeline';
 import ConfigPanel from '@/components/unipaseo/ConfigPanel';
 import HistoryLog from '@/components/unipaseo/HistoryLog';
+import DogManagerModal from '@/components/unipaseo/DogManagerModal';
+import MovisinuTransitViewer from '@/components/unipaseo/MovisinuTransitViewer';
+import { DynamicDog } from '@/lib/unipaseoTypes';
 
 import {
   Play,
@@ -37,6 +40,9 @@ import {
   Calendar,
   Compass,
   Sparkles,
+  Bike,
+  Dog,
+  Bus,
 } from 'lucide-react';
 
 // Carga asíncrona de mapas Leaflet (Next.js SSR safe)
@@ -62,14 +68,46 @@ const RealWalk = dynamic(() => import('@/components/unipaseo/RealWalk'), {
 
 // Coordenadas físicas oficiales en Montería, Colombia
 const BASE_LOCATIONS = {
-  centro: { lat: 8.76132, lng: -75.87928 }, // Casa Centro (Punto de Partida 1)
-  abuela: { lat: 8.75365, lng: -75.87439 }, // Casa Abuela (Punto de Partida 2)
+  casa: { lat: 8.753656905902142, lng: -75.87434089839805, name: 'Mi Casa', emoji: '🏡' },
+  centro: { lat: 8.76132, lng: -75.87928, name: 'Casa Centro', emoji: '🏢' },
+  abuela: { lat: 8.753656905902142, lng: -75.87434089839805, name: 'Casa Abuela', emoji: '👵' },
   S: { lat: 8.77228, lng: -75.85933, name: 'Sienna', color: '#f97316', emoji: '🍊', address: 'Edificio Palmanova' },
   F: { lat: 8.77418, lng: -75.86532, name: 'Frida', color: '#8b5cf6', emoji: '🍇', address: 'Castellana 101' },
   M: { lat: 8.76630, lng: -75.86490, name: 'Molly', color: '#eab308', emoji: '🍌', address: 'La Castellana' },
   cra14: { lat: 8.77189, lng: -75.86720 }, // Paradero de buseta (Carrera 14)
   upb: { lat: 8.80457, lng: -75.85040 }, // Campus UPB Montería (Km 8 Vía Cereté)
 };
+
+const DEFAULT_CUSTOM_DOGS: DynamicDog[] = [
+  {
+    id: 'S',
+    name: 'Sienna',
+    breed: 'Raza grande activa',
+    owner: 'Elena',
+    rate: 9000,
+    targetMinutes: 30,
+    lat: 8.77228,
+    lng: -75.85933,
+    address: 'Edificio Palmanova',
+    color: '#f97316',
+    emoji: '🍊',
+    active: true,
+  },
+  {
+    id: 'F',
+    name: 'Frida',
+    breed: 'Criolla enérgica',
+    owner: 'Laura',
+    rate: 5000,
+    targetMinutes: 10,
+    lat: 8.77418,
+    lng: -75.86532,
+    address: 'Castellana 101',
+    color: '#8b5cf6',
+    emoji: '🍇',
+    active: true,
+  },
+];
 
 // Horarios oficiales de asignaturas UPB por día
 const CLASS_SCHEDULES: { [key in DayOfWeek]: { time: string; name: string } } = {
@@ -107,17 +145,17 @@ export default function UpbWalkSimulatorSection() {
     const saved = localStorage.getItem('upb_sim_settings');
     if (saved) return JSON.parse(saved);
     return {
-      day: 'lunes',
-      startTime: '06:30',
-      startLocation: 'centro',
-      firstLegTransport: 'pie',
+      day: 'martes',
+      startTime: '06:00',
+      startLocation: 'casa',
+      firstLegTransport: 'bici',
       walkSpeedSolo: 5.5,
       walkSpeedPack: 4.26,
       strategy: 'zigzag',
-      goalSienna: 60,
-      goalFrida: 30,
-      goalMolly: 20,
-      pickupOrder: ['S', 'F', 'M'],
+      goalSienna: 30,
+      goalFrida: 10,
+      goalMolly: 0,
+      pickupOrder: ['S', 'F'],
       scenario: 'normal',
     };
   });
@@ -134,7 +172,16 @@ export default function UpbWalkSimulatorSection() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [activeTab, setActiveTab] = useState<'timeline' | 'config' | 'logs' | 'realwalk'>('timeline');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'config' | 'logs' | 'realwalk' | 'movisinu'>('timeline');
+  const [isDogManagerOpen, setIsDogManagerOpen] = useState(false);
+  const [customDogs, setCustomDogs] = useState<DynamicDog[]>(() => {
+    if (typeof window === 'undefined') return DEFAULT_CUSTOM_DOGS;
+    const saved = localStorage.getItem('upb_sim_dogs_v2');
+    if (saved) {
+      try { return JSON.parse(saved); } catch {}
+    }
+    return DEFAULT_CUSTOM_DOGS;
+  });
   const [isComputing, setIsComputing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -175,6 +222,37 @@ export default function UpbWalkSimulatorSection() {
     }
   }, [realLogs]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('upb_sim_dogs_v2', JSON.stringify(customDogs));
+    }
+  }, [customDogs]);
+
+  const handleSaveCustomDogs = (updated: DynamicDog[]) => {
+    setCustomDogs(updated);
+    setLocations((prev: any) => {
+      const next = { ...prev };
+      updated.forEach((d) => {
+        next[d.id] = {
+          lat: d.lat,
+          lng: d.lng,
+          name: d.name,
+          color: d.color,
+          emoji: d.emoji,
+          address: d.address,
+        };
+      });
+      return next;
+    });
+    const sienna = updated.find((d) => d.id === 'S' || d.name.toLowerCase().includes('sienna'));
+    const frida = updated.find((d) => d.id === 'F' || d.name.toLowerCase().includes('frida'));
+    setSettings((prev) => ({
+      ...prev,
+      goalSienna: sienna ? sienna.targetMinutes : prev.goalSienna,
+      goalFrida: frida ? frida.targetMinutes : prev.goalFrida,
+    }));
+  };
+
   // Manejo de drag & drop de pines en el mapa
   const handleLocationDrag = (key: string, newLatLng: LatLng) => {
     setLocations((prev: any) => ({
@@ -198,18 +276,18 @@ export default function UpbWalkSimulatorSection() {
     let active = true;
     const loadRoutes = async () => {
       setIsComputing(true);
-      const startLoc = locations[settings.startLocation];
+      const startLoc = locations[settings.startLocation] || locations.casa || locations.abuela;
       const order = settings.pickupOrder;
 
       const speedSoloMod = settings.scenario === 'lluvia' ? settings.walkSpeedSolo * 0.8 : settings.walkSpeedSolo;
       const speedPackMod = settings.scenario === 'lluvia' ? settings.walkSpeedPack * 0.8 : settings.walkSpeedPack;
 
       const pFirstLegMode = settings.firstLegTransport === 'moto' ? 'driving' : 'walking';
-      const pFirstLegSpeed = settings.firstLegTransport === 'moto' ? 32 : speedSoloMod;
+      const pFirstLegSpeed = settings.firstLegTransport === 'moto' ? 32 : (settings.firstLegTransport === 'bici' ? 15 : speedSoloMod);
 
       const p1 = locations[order[0]];
       const p2 = locations[order[1]];
-      const p3 = locations[order[2]];
+      const p3 = locations[order[2]] || locations[order[1]] || locations.S;
       const bus = locations.cra14;
       const upb = locations.upb;
 
@@ -257,7 +335,7 @@ export default function UpbWalkSimulatorSection() {
     }
 
     const order = settings.pickupOrder;
-    const goals = { S: settings.goalSienna, F: settings.goalFrida, M: settings.goalMolly };
+    const goals: Record<string, number> = { S: settings.goalSienna, F: settings.goalFrida, M: settings.goalMolly };
 
     const speedSoloMod = settings.scenario === 'lluvia' ? settings.walkSpeedSolo * 0.8 : settings.walkSpeedSolo;
     const speedPackMod = settings.scenario === 'lluvia' ? settings.walkSpeedPack * 0.8 : settings.walkSpeedPack;
@@ -267,7 +345,7 @@ export default function UpbWalkSimulatorSection() {
 
     // Backtrack: Partida desde casa hasta el primer perro
     const startLocToP1Dist = routeDistances['C_P1'] || 0.5;
-    const departureSpeed = settings.firstLegTransport === 'moto' ? 32 : speedSoloMod;
+    const departureSpeed = settings.firstLegTransport === 'moto' ? 32 : (settings.firstLegTransport === 'bici' ? 15 : speedSoloMod);
     const departureMinutes = Math.round((startLocToP1Dist / departureSpeed) * 60);
     const departureTimeDate = new Date(curDate.getTime() - departureMinutes * 60000);
     const departureTimeStr = departureTimeDate.toLocaleTimeString('es-ES', {
@@ -277,13 +355,13 @@ export default function UpbWalkSimulatorSection() {
     });
 
     const steps: RouteStep[] = [];
-    const dogWalkDurations = { S: 0, F: 0, M: 0 };
+    const dogWalkDurations: Record<string, number> = { S: 0, F: 0, M: 0 };
 
     // Paso 1: Salida de casa
     steps.push({
       id: 'step_departure',
-      title: `Partida de Casa (${settings.startLocation === 'centro' ? 'Centro' : 'Abuela'})`,
-      description: `Inicias traslado hacia la casa de ${order[0] === 'S' ? 'Sienna' : order[0] === 'F' ? 'Frida' : 'Molly'}.\nModo: ${settings.firstLegTransport === 'moto' ? '🏍️ Moto (rápido)' : '🚶‍♂️ Caminando'}. Distancia: ${startLocToP1Dist.toFixed(2)} km.`,
+      title: `Partida de Casa (${settings.startLocation === 'casa' ? 'Mi Casa' : settings.startLocation === 'centro' ? 'Centro' : 'Abuela'})`,
+      description: `Inicias traslado hacia la casa de ${order[0] === 'S' ? 'Sienna' : order[0] === 'F' ? 'Frida' : 'Molly'}.\nModo: ${settings.firstLegTransport === 'bici' ? '🚲 Bicicleta (~15 km/h)' : settings.firstLegTransport === 'moto' ? '🏍️ Moto' : '🚶‍♂️ A Pie'}. Distancia: ${startLocToP1Dist.toFixed(2)} km.`,
       startTime: departureTimeStr,
       endTime: settings.startTime,
       durationMinutes: departureMinutes,
@@ -885,7 +963,7 @@ export default function UpbWalkSimulatorSection() {
       stepId: string;
       type: string;
       info: string;
-      dogId?: 'S' | 'F' | 'M';
+      dogId?: string;
     }[] = [];
 
     sequenceData.steps.forEach((step) => {
@@ -974,9 +1052,9 @@ export default function UpbWalkSimulatorSection() {
       {} as { [key: string]: number }
     );
 
-    const pickedUp = { S: false, F: false, M: false };
-    const pickTime = { S: 0, F: 0, M: 0 };
-    const droppedOff = { S: false, F: false, M: false };
+    const pickedUp: Record<string, boolean> = { S: false, F: false, M: false };
+    const pickTime: Record<string, number> = { S: 0, F: 0, M: 0 };
+    const droppedOff: Record<string, boolean> = { S: false, F: false, M: false };
 
     const grouped: { [key: string]: typeof rawTrajectory } = {};
     rawTrajectory.forEach((p) => {
@@ -1009,7 +1087,7 @@ export default function UpbWalkSimulatorSection() {
           droppedOff[pt.dogId] = true;
         }
 
-        const pack: ('S' | 'F' | 'M')[] = [];
+        const pack: string[] = [];
         if (pickedUp.S && !droppedOff.S) pack.push('S');
         if (pickedUp.F && !droppedOff.F) pack.push('F');
         if (pickedUp.M && !droppedOff.M) pack.push('M');
@@ -1140,6 +1218,13 @@ export default function UpbWalkSimulatorSection() {
 
             <div className="flex items-center gap-2">
               <button
+                onClick={() => setIsDogManagerOpen(true)}
+                title="Administrar clientes caninos (agregar, quitar o ajustar tarifas)"
+                className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer border border-emerald-200 dark:border-emerald-800 flex items-center gap-1"
+              >
+                <Dog className="w-3.5 h-3.5" /> Clientes Caninos 🐾
+              </button>
+              <button
                 onClick={handleResetLocations}
                 title="Restablecer coordenadas oficiales en Montería"
                 className="text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer border border-slate-200 dark:border-slate-700"
@@ -1252,6 +1337,16 @@ export default function UpbWalkSimulatorSection() {
           >
             Paseo Real (GPS)
           </button>
+          <button
+            onClick={() => setActiveTab('movisinu')}
+            className={`py-1.5 px-2.5 text-center text-[11px] rounded-lg transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+              activeTab === 'movisinu'
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 font-extrabold'
+                : 'hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Bus className="w-3.5 h-3.5" /> Movisinú MetroSinú 🚍
+          </button>
         </div>
 
         {/* Contenido de la Pestaña Activa */}
@@ -1336,6 +1431,7 @@ export default function UpbWalkSimulatorSection() {
               settings={settings}
               onChangeSettings={setSettings}
               isThreeDogs={isThreeDogs}
+              onOpenDogManager={() => setIsDogManagerOpen(true)}
             />
           )}
 
@@ -1524,6 +1620,12 @@ export default function UpbWalkSimulatorSection() {
           </>
         )}
       </main>
+      <DogManagerModal
+        isOpen={isDogManagerOpen}
+        onClose={() => setIsDogManagerOpen(false)}
+        dogs={customDogs}
+        onSaveDogs={handleSaveCustomDogs}
+      />
     </div>
   );
 }

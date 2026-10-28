@@ -13,10 +13,12 @@ import {
   TrendingUp,
   ShieldCheck,
   Smartphone,
+  Scale,
 } from 'lucide-react';
 import GoogleHealthConnector from './GoogleHealthConnector';
 import UnifiedGymHevySection from './UnifiedGymHevySection';
 import MiFitnessHealthSuite from './MiFitnessHealthSuite';
+import FemmtoBodyCompositionSuite from './FemmtoBodyCompositionSuite';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 
 export default function UnifiedHealthFitnessSection() {

@@ -11,17 +11,9 @@ import 'leaflet/dist/leaflet.css';
 import { LatLng, SimulationFrame } from '@/lib/unipaseoTypes';
 
 interface MapContainerProps {
-  locations: {
-    centro: LatLng;
-    abuela: LatLng;
-    S: LatLng & { name: string; color: string; emoji: string };
-    F: LatLng & { name: string; color: string; emoji: string };
-    M: LatLng & { name: string; color: string; emoji: string };
-    cra14: LatLng;
-    upb: LatLng;
-  };
-  startLocationId: 'centro' | 'abuela';
-  activeDogs: ('S' | 'F' | 'M')[];
+  locations: Record<string, any>;
+  startLocationId: 'casa' | 'centro' | 'abuela';
+  activeDogs: string[];
   routePaths: { [key: string]: LatLng[] };
   onLocationDrag: (key: string, newLatLng: LatLng) => void;
   simulationPlaying: boolean;
@@ -107,7 +99,7 @@ export default function MapContainer({
     // 1. Home Base Marker (depends on starting location id)
     currentActiveKeys.add(startLocationId);
     if (!markersRef.current[startLocationId]) {
-      const position = locations[startLocationId];
+      const position = locations[startLocationId] || locations.casa || locations.abuela;
       const m = L.marker([position.lat, position.lng], {
         icon: createCustomIcon('🏠', '#10b981', 'rgba(16,185,129,0.4)'),
         draggable: !simulationPlaying,
@@ -131,11 +123,12 @@ export default function MapContainer({
     }
 
     // Hide the other starting location
-    const inactiveStartId = startLocationId === 'centro' ? 'abuela' : 'centro';
-    if (markersRef.current[inactiveStartId]) {
-      map.removeLayer(markersRef.current[inactiveStartId]);
-      delete markersRef.current[inactiveStartId];
-    }
+    ['casa', 'centro', 'abuela'].filter((id) => id !== startLocationId).forEach((inactiveId) => {
+      if (markersRef.current[inactiveId]) {
+        map.removeLayer(markersRef.current[inactiveId]);
+        delete markersRef.current[inactiveId];
+      }
+    });
 
     // 2. Dog Pick & Drop Markers
     const dogList: ('S' | 'F' | 'M')[] = ['S', 'F', 'M'];

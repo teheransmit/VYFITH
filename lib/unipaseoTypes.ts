@@ -28,20 +28,38 @@ export interface DayConfig {
 
 export type StrategyType = 'zigzag' | 'lineal' | 'terminar_m';
 
-export type TransportType = 'pie' | 'moto';
+export type TransportType = 'pie' | 'bici' | 'moto';
+
+export type StartLocationType = 'casa' | 'centro' | 'abuela';
+
+export interface DynamicDog {
+  id: string;
+  name: string;
+  breed?: string;
+  owner?: string;
+  rate: number;
+  targetMinutes: number;
+  lat: number;
+  lng: number;
+  address: string;
+  color: string;
+  emoji: string;
+  active: boolean;
+}
 
 export interface RouteSettings {
   day: DayOfWeek;
   startTime: string; // "06:30"
-  startLocation: 'centro' | 'abuela';
+  startLocation: StartLocationType;
   firstLegTransport: TransportType;
+  upbTransport?: 'bici' | 'metro';
   walkSpeedSolo: number; // km/h
   walkSpeedPack: number; // km/h
   strategy: StrategyType;
   goalSienna: number; // minutes
   goalFrida: number; // minutes
   goalMolly: number; // minutes
-  pickupOrder: ('S' | 'F' | 'M')[];
+  pickupOrder: string[];
   scenario: 'normal' | 'lluvia' | 'trafico';
 }
 
@@ -53,8 +71,8 @@ export interface RouteStep {
   endTime: string;
   durationMinutes: number;
   icon: string;
-  type: 'casa' | 'pick' | 'walk' | 'drop' | 'bus_wait' | 'bus_ride' | 'upb';
-  dogId?: 'S' | 'F' | 'M';
+  type: 'casa' | 'pick' | 'walk' | 'drop' | 'bus_wait' | 'bus_ride' | 'upb' | 'bici_ride';
+  dogId?: string;
   distanceKm: number;
 }
 
@@ -77,12 +95,8 @@ export interface SimulationFrame {
   timeStr: string;
   emoji: string;
   message: string;
-  activeTimers: {
-    S?: number;
-    F?: number;
-    M?: number;
-  };
-  finishedDogs: ('S' | 'F' | 'M')[];
+  activeTimers: Record<string, number | undefined>;
+  finishedDogs: string[];
 }
 
 export interface RealWalkEvent {
@@ -90,7 +104,7 @@ export interface RealWalkEvent {
   timestamp: number;
   lat: number;
   lng: number;
-  type: 'start' | 'pick_S' | 'pick_F' | 'pick_M' | 'end';
+  type: string;
 }
 
 export interface RealWalkLog {

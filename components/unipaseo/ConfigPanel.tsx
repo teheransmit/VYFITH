@@ -14,19 +14,23 @@ import {
   Lock,
   CloudLightning,
   Activity,
-  Wind
+  Wind,
+  Bike,
+  Dog,
 } from 'lucide-react';
 
 interface ConfigPanelProps {
   settings: RouteSettings;
   onChangeSettings: (newSettings: RouteSettings) => void;
   isThreeDogs: boolean;
+  onOpenDogManager?: () => void;
 }
 
 export default function ConfigPanel({
   settings,
   onChangeSettings,
   isThreeDogs,
+  onOpenDogManager,
 }: ConfigPanelProps) {
   const updateSetting = <K extends keyof RouteSettings>(key: K, value: RouteSettings[K]) => {
     onChangeSettings({
@@ -101,35 +105,47 @@ export default function ConfigPanel({
             onChange={(e) => updateSetting('startLocation', e.target.value as 'centro' | 'abuela')}
             className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 shadow-xs"
           >
-            <option value="centro">🏡 Casa Centro</option>
+            <option value="casa">🏡 Mi Casa (8.7536, -75.8743)</option>
+            <option value="centro">🏢 Casa Centro</option>
             <option value="abuela">👵 Casa Abuela</option>
           </select>
         </div>
 
         <div className="col-span-2">
-          <label className="font-extrabold text-slate-500 dark:text-slate-400 text-[9px] uppercase tracking-wider block mb-1">Traslado a 1ra Parada</label>
-          <div className="grid grid-cols-2 gap-2">
+          <label className="font-extrabold text-slate-500 dark:text-slate-400 text-[9px] uppercase tracking-wider block mb-1">Traslado a 1ra Parada (Santiago va en Bicicleta)</label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => updateSetting('firstLegTransport', 'bici')}
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                settings.firstLegTransport === 'bici'
+                  ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-400 dark:border-blue-700 text-blue-800 dark:text-blue-300 ring-2 ring-blue-400/20'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <Bike className="w-3.5 h-3.5" /> Bici (15 km/h)
+            </button>
             <button
               type="button"
               onClick={() => updateSetting('firstLegTransport', 'pie')}
-              className={`py-1.5 px-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
                 settings.firstLegTransport === 'pie'
                   ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
               }`}
             >
-              🚶‍♂️ Caminando
+              🚶‍♂️ A Pie
             </button>
             <button
               type="button"
               onClick={() => updateSetting('firstLegTransport', 'moto')}
-              className={`py-1.5 px-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1 ${
                 settings.firstLegTransport === 'moto'
                   ? 'bg-violet-50 dark:bg-violet-950/60 border-violet-300 dark:border-violet-700 text-violet-800 dark:text-violet-300'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50'
               }`}
             >
-              🏍️ En Moto
+              🏍️ Moto
             </button>
           </div>
         </div>
@@ -137,9 +153,20 @@ export default function ConfigPanel({
 
       {/* 3. Pick order list & individual goal timers */}
       <div className="space-y-2.5">
-        <span className="font-bold text-slate-600 dark:text-slate-300 text-[10px] uppercase block">
-          Orden de Recogida y Tiempo Objetivo
-        </span>
+        <div className="flex items-center justify-between pb-1">
+          <span className="font-bold text-slate-600 dark:text-slate-300 text-[10px] uppercase block">
+            Orden de Recogida y Tiempo Objetivo
+          </span>
+          {onOpenDogManager && (
+            <button
+              type="button"
+              onClick={onOpenDogManager}
+              className="flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 px-2.5 py-1 rounded-xl transition-all cursor-pointer border border-emerald-200 dark:border-emerald-800"
+            >
+              <Dog className="w-3.5 h-3.5" /> Administrar Perros (+ / -)
+            </button>
+          )}
+        </div>
 
         {/* 1st position */}
         <div className="flex items-center gap-2 bg-orange-50/70 dark:bg-orange-950/30 p-2.5 rounded-2xl border border-orange-200/50 dark:border-orange-900/40">
