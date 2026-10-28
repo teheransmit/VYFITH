@@ -173,10 +173,16 @@ export default function PersonalBioAssistant() {
   // Cargar API Keys y modelo personalizado desde localStorage si existen
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const defaultKey = 'AQ.Ab8RN6I9RHi1kNU9HeHn-_4JkgQQQ-qVWiguCDwH0VjsjFaYkQ';
       const storedKey = localStorage.getItem('vyfith_gemini_api_key');
       const storedGroq = localStorage.getItem('vyfith_groq_api_key');
       const storedModel = localStorage.getItem('vyfith_selected_model');
-      if (storedKey) setCustomApiKey(storedKey);
+      if (storedKey) {
+        setCustomApiKey(storedKey);
+      } else {
+        setCustomApiKey(defaultKey);
+        localStorage.setItem('vyfith_gemini_api_key', defaultKey);
+      }
       if (storedGroq) setGroqApiKey(storedGroq);
       if (storedModel) setSelectedModel(storedModel);
     }

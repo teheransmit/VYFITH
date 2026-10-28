@@ -157,17 +157,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Probar clave de Google AI Studio (Gemini) con timeout ágil (máximo 3.5 segundos)
+    // 3. Probar clave de Google AI Studio con modelos modernos de 2026 (Ultra ágil)
     const activeGeminiKey = (clientApiKey && clientApiKey.trim()) || process.env.GEMINI_API_KEY;
 
     if (activeGeminiKey) {
-      let fastModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
-      if (requestedModel === 'gemini-2.5-pro') {
-        fastModels = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-1.5-flash'];
-      } else if (requestedModel === 'gemini-2.5-flash') {
-        fastModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
-      } else if (requestedModel === 'gemini-1.5-pro') {
-        fastModels = ['gemini-1.5-pro', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+      // Modelos 100% operativos en la cuenta de Google AI Studio de Santiago (2026)
+      let fastModels = ['gemini-3.5-flash', 'gemma-4-26b-a4b-it'];
+      if (requestedModel === 'gemma') {
+        fastModels = ['gemma-4-26b-a4b-it', 'gemini-3.5-flash'];
+      } else if (requestedModel === 'gemini-pro') {
+        fastModels = ['gemini-pro-latest', 'gemini-3.5-flash'];
       }
 
       // Preparar historial compatible con Gemini API
@@ -197,7 +196,7 @@ export async function POST(req: NextRequest) {
       for (const model of fastModels) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3500);
+          const timeoutId = setTimeout(() => controller.abort(), 4200);
 
           const res = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeGeminiKey}`,
@@ -225,7 +224,7 @@ export async function POST(req: NextRequest) {
             }
           }
         } catch {
-          // Timeout rápido, probar siguiente o pasar al motor en vivo
+          // Timeout rápido o 503, probar siguiente
         }
       }
     }
