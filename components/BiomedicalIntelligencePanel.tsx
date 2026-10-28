@@ -158,7 +158,7 @@ export default function BiomedicalIntelligencePanel() {
       : 'text-rose-700 bg-rose-50 border-rose-200';
 
   return (
-    <div className="my-8 rounded-3xl border border-indigo-200/80 dark:border-indigo-900/60 bg-linear-to-br from-slate-900 via-slate-900 to-indigo-950 text-white p-6 sm:p-8 shadow-lg">
+    <div className="rounded-3xl border border-indigo-200/80 dark:border-indigo-900/60 bg-linear-to-br from-slate-900 via-slate-900 to-indigo-950 text-white p-6 sm:p-7 shadow-lg">
       {/* Encabezado Principal */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
         <div>
@@ -336,7 +336,7 @@ export default function BiomedicalIntelligencePanel() {
       )}
 
       {/* Resumen Biomédico y Métricas Matemáticas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5 mt-6">
         <div className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700/80">
           <span className="text-[11px] font-mono uppercase text-slate-400 block">
             Readiness Global
@@ -406,7 +406,7 @@ export default function BiomedicalIntelligencePanel() {
       </div>
 
       {/* Prescripción de Gimnasio (Hevy / UPB Gym) y Prescripción Cognitiva (UPB Ing. Civil) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-6">
         {/* Gimnasio */}
         <div className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700/80 flex flex-col justify-between">
           <div>

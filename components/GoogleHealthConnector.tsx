@@ -365,7 +365,7 @@ export default function GoogleHealthConnector({
   };
 
   const vyfithData = syncState?.vyfithData;
-  const readiness = vyfithData?.readinessScore ?? 93;
+  const readiness = vyfithData?.readinessScore ?? 67;
   const isOptimal = readiness >= 80;
   const isModerate = readiness >= 60 && readiness < 80;
 
@@ -470,7 +470,7 @@ export default function GoogleHealthConnector({
             }`}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            {vyfithData?.readinessCategory || 'Vitalidad Óptima'}
+            {vyfithData?.readinessCategory || 'Recuperación Adecuada'}
           </span>
 
           <span className="text-[11px] text-slate-400 mt-2">
@@ -482,18 +482,18 @@ export default function GoogleHealthConnector({
         <div className="md:col-span-7 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-indigo-950 font-bold text-sm">
-                <Bot className="w-4 h-4 text-indigo-600" />
+              <div className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 font-bold text-sm">
+                <Bot className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 <span>Tarjeta de Análisis de Gemini AI (Médico Deportivo)</span>
               </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-semibold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
                 gemini-3.1-pro-preview
               </span>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed bg-white p-3.5 rounded-xl border border-slate-200/80 mb-3">
-              {vyfithData?.geminiAnalysis.diagnostico ||
-                'Recuperación excelente del sistema nervioso central (SNC). Frecuencia cardíaca en reposo baja y sueño profundo óptimo.'}
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 mb-3">
+              {vyfithData?.geminiAnalysis?.diagnostico ||
+                'Resumen de Salud Diario para miércoles, 28 de octubre de 2026. Tu puntuación de recuperación es 67/100 (Recuperación Moderada). Registraste 10h 12m de sueño. Caminaste 2,354 pasos cubriendo ~1.79 km, quemando aprox. 94 kcal. Tu oxígeno en sangre estuvo óptimo (≥96%) con un promedio de 96.72%. Tu composición corporal oficial en báscula Femmto es de 55.70 kg (122.80 lbs) con 10.60% de grasa corporal (5.90 kg grasa), 49.80 kg de masa libre de grasa, 25.10 kg de músculo esquelético (MME) e IMC de 18.80 kg/m².'}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -575,18 +575,22 @@ export default function GoogleHealthConnector({
           <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500 dark:text-slate-400">FC en Reposo</span>
-              <span className="font-bold text-emerald-600 font-mono">54 bpm</span>
+              <span className="font-bold text-emerald-600 font-mono">
+                {vyfithData?.roomMetrics?.restingHeartRate ?? 62} bpm
+              </span>
             </div>
             <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">
               Nivel Atleta / Excelente
             </span>
-            <span className="text-[10px] text-slate-400 block font-mono">Guía ESH (&lt; 60 bpm)</span>
+            <span className="text-[10px] text-slate-400 block font-mono">Guía ESH (&lt; 65 bpm)</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500 dark:text-slate-400">Variabilidad (HRV)</span>
-              <span className="font-bold text-indigo-600 font-mono">75 ms</span>
+              <span className="font-bold text-indigo-600 font-mono">
+                {syncState?.currentMetrics?.hrv ?? 76} ms
+              </span>
             </div>
             <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">
               SNC Libre de Estrés
@@ -597,7 +601,9 @@ export default function GoogleHealthConnector({
           <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
             <div className="flex justify-between items-center text-xs">
               <span className="text-slate-500 dark:text-slate-400">Oxigenación SpO2</span>
-              <span className="font-bold text-sky-600 font-mono">99%</span>
+              <span className="font-bold text-sky-600 font-mono">
+                {Math.round(vyfithData?.roomMetrics?.spo2 ?? 96.7)}%
+              </span>
             </div>
             <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold block">
               Saturación Perfecta
@@ -608,7 +614,7 @@ export default function GoogleHealthConnector({
       </div>
 
       {/* Métricas extraídas de Room Database & Health Connect */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3 mb-6">
         <div className="p-3.5 bg-teal-50/50 border border-teal-100 rounded-xl">
           <div className="flex items-center gap-1.5 text-[11px] text-teal-700 font-semibold mb-1">
             <Scale className="w-3.5 h-3.5 text-teal-600" />
@@ -697,77 +703,77 @@ export default function GoogleHealthConnector({
 
           {/* Motor de Inteligencia Biomédica, Fisiología del Ejercicio y Rendimiento Académico UPB */}
           <BiomedicalIntelligencePanel />
-        </>
-      )}
 
-      {/* Lista de Observaciones FHIR Recibidas */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-600" />
-            Últimas Observaciones Biométricas HL7 FHIR (Recibidas por API)
-          </h3>
-          <span className="text-xs text-slate-400">Total: {syncState?.recentObservations?.length || 0} registros</span>
-        </div>
+          {/* Lista de Observaciones FHIR Recibidas */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                Últimas Observaciones Biométricas HL7 FHIR (Recibidas por API)
+              </h3>
+              <span className="text-xs text-slate-400">Total: {syncState?.recentObservations?.length || 0} registros</span>
+            </div>
 
-        <div className="overflow-x-auto border border-slate-200/80 rounded-2xl">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Tipo / LOINC</th>
-                <th className="px-4 py-3 font-semibold">Valor Registrado</th>
-                <th className="px-4 py-3 font-semibold">Categoría</th>
-                <th className="px-4 py-3 font-semibold">Fecha Efectiva</th>
-                <th className="px-4 py-3 font-semibold">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {syncState?.recentObservations && syncState.recentObservations.length > 0 ? (
-                syncState.recentObservations.slice(0, 6).map((obs) => {
-                  const loinc = obs.code?.coding?.[0]?.code || 'N/A';
-                  const display = obs.code?.coding?.[0]?.display || 'Métrica';
-                  const val = obs.valueQuantity?.value;
-                  const unit = obs.valueQuantity?.unit;
+            <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-800 rounded-2xl">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-800/70 text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Tipo / LOINC</th>
+                    <th className="px-4 py-3 font-semibold">Valor Registrado</th>
+                    <th className="px-4 py-3 font-semibold">Categoría</th>
+                    <th className="px-4 py-3 font-semibold">Fecha Efectiva</th>
+                    <th className="px-4 py-3 font-semibold">Estado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {syncState?.recentObservations && syncState.recentObservations.length > 0 ? (
+                    syncState.recentObservations.slice(0, 6).map((obs) => {
+                      const loinc = obs.code?.coding?.[0]?.code || 'N/A';
+                      const display = obs.code?.coding?.[0]?.display || 'Métrica';
+                      const val = obs.valueQuantity?.value;
+                      const unit = obs.valueQuantity?.unit;
 
-                  return (
-                    <tr key={obs.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="px-4 py-3 font-medium text-slate-900">
-                        <div className="font-semibold text-slate-800">{display}</div>
-                        <div className="text-[10px] font-mono text-slate-400">LOINC {loinc}</div>
-                      </td>
-                      <td className="px-4 py-3 font-bold text-slate-900">
-                        <span className="px-2 py-0.5 bg-slate-100 rounded-md">
-                          {typeof val === 'number' ? (val % 1 !== 0 ? val.toFixed(1) : val.toLocaleString()) : val}{' '}
-                          <span className="font-normal text-slate-500">{unit}</span>
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700">
-                          {obs.category || 'Biométrico'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-500 font-mono text-[11px]" suppressHydrationWarning>
-                        {obs.effectiveDateTime ? obs.effectiveDateTime.replace('T', ' ').slice(0, 16) : 'Reciente'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> FHIR {obs.status}
-                        </span>
+                      return (
+                        <tr key={obs.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
+                            <div className="font-semibold text-slate-800 dark:text-slate-200">{display}</div>
+                            <div className="text-[10px] font-mono text-slate-400">LOINC {loinc}</div>
+                          </td>
+                          <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">
+                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-md">
+                              {typeof val === 'number' ? (val % 1 !== 0 ? val.toFixed(1) : val.toLocaleString()) : val}{' '}
+                              <span className="font-normal text-slate-500">{unit}</span>
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                              {obs.category || 'Biométrico'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 font-mono text-[11px]" suppressHydrationWarning>
+                            {obs.effectiveDateTime ? obs.effectiveDateTime.replace('T', ' ').slice(0, 16) : 'Reciente'}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> FHIR {obs.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-xs">
+                        No hay observaciones recientes. Pulsa &quot;Simular Envío VYFITH_APP&quot; para generar un lote de prueba.
                       </td>
                     </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-xs">
-                    No hay observaciones recientes. Pulsa &quot;Simular Envío VYFITH_APP&quot; para generar un lote de prueba.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </section>
   );
 }

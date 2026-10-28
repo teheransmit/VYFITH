@@ -192,15 +192,19 @@ export default function UnifiedHealthFitnessSection() {
             <HevyWorkoutsSection />
           </div>
 
-          {/* FILA 4: COMPOSICIÓN CORPORAL FEMMTO & MATRIZ DE HORARIOS UPB / SIGAA */}
-          <div className="space-y-6 pt-2">
-            <FemmtoBodyCompositionSuite />
-            <UnifiedGymHevySection
-              hideHeader={true}
-              hideKpisAndHeatmap={true}
-              hideHevyWorkouts={true}
-              initialSubTab="schedule"
-            />
+          {/* FILA 4: COMPOSICIÓN CORPORAL FEMMTO (lg:col-span-6) & MATRIZ DE HORARIOS UPB / SIGAA (lg:col-span-6) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start pt-2">
+            <div className="lg:col-span-6 space-y-4">
+              <FemmtoBodyCompositionSuite />
+            </div>
+            <div className="lg:col-span-6 space-y-4">
+              <UnifiedGymHevySection
+                hideHeader={true}
+                hideKpisAndHeatmap={true}
+                hideHevyWorkouts={true}
+                initialSubTab="schedule"
+              />
+            </div>
           </div>
         </div>
       )}
