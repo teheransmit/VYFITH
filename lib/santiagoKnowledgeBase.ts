@@ -13,6 +13,12 @@ export interface LiveTelemetrySnapshot {
     spo2: number;
     stressScore?: number;
     readinessScore?: number;
+    weight?: number;
+    bodyFatPct?: number;
+    skeletalMuscleKg?: number;
+    bmi?: number;
+    waterL?: number;
+    fatFreeMassKg?: number;
   };
   hevy?: {
     lastWorkoutName: string;
@@ -117,11 +123,12 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
   * **Ingreso diario proyectado:** +$14.850 COP directo a tus finanzas.
 - **Tiempos de Traslado y Preparación:**
   * Alistamiento en casa (ducha, hidratación, mochila): 20 min.
-  * Traslado a UPB (Km 8 Vía Cereté): 25 min base (o 15 min en moto).
+  * Mi Casa: Coordenadas exactas [8.753656905902142, -75.87434089839805].
+  * Transporte habitual: 100% en Bicicleta (~15-18 km/h). Traslado a UPB (Km 8 Vía Cereté): ~25-28 min en bicicleta.
   * Margen de seguridad (Buffer de puntualidad): 10 min antes del inicio de clase.
 - **Cronograma Calculado para Días con Clase a las 08:00 AM (Martes / Jueves):**
   * 1. **Alarma / Despertar:** **05:00 AM** (15 min previo con ropa cómoda).
-  * 2. **Salida al Paseo:** **05:15 AM** (70 min totales con correa: Sienna 40m + Frida 30m).
+  * 2. **Salida al Paseo:** **05:45 AM** (40 min totales con correa: Sienna 30m + Frida 10m).
   * 3. **Regreso a Casa:** **06:25 AM** (Ducha rápida de 20 min + hidratación).
   * 4. **Salida a UPB:** **06:45 AM** (Ruta Cereté de 25 min).
   * 5. **Llegada al Aula:** **07:50 AM** (+10 min de holgura antes de clase a las 08:00 AM).
@@ -165,6 +172,7 @@ export function buildLiveSystemInstruction(
   if (snapshot) {
     liveBlock = `\n\n### 📡 TELEMETRÍA EN VIVO DE TODA LA PÁGINA (ESTADO ACTUALIZADO EN TIEMPO REAL):
 - **Salud & Mi Fitness Hoy:** ${snapshot.health?.steps?.toLocaleString('es-CO') || '2,375'} pasos | Sueño neto anoche: ${snapshot.health?.sleepHours || '10.2'} horas (${Math.floor(snapshot.health?.sleepHours || 10)}h ${Math.round(((snapshot.health?.sleepHours || 10.2) % 1) * 60)}m) | FC en reposo: ${snapshot.health?.restingHeartRate || 62} lpm | SpO2: ${snapshot.health?.spo2?.toFixed(1) || '96.7'}% | Nivel de estrés: ${snapshot.health?.stressScore || 20}/100 (Relajado).
+- **Composición Corporal Báscula Femmto (28/Oct):** Peso: ${snapshot.health?.weight || 55.7} kg | Grasa corporal (PGC): ${snapshot.health?.bodyFatPct || 10.6}% (5.9 kg de grasa) | MME (Masa muscular esquelética): ${snapshot.health?.skeletalMuscleKg || 25.1} kg | IMC: ${snapshot.health?.bmi || 18.8} kg/m² | Masa libre de grasa: ${snapshot.health?.fatFreeMassKg || 49.8} kg | Agua: ${snapshot.health?.waterL || 32.8} L | Meta: Superávit limpio hacia 60 kg manteniendo definición.
 - **Simulador de Paseos y Rutinas UPB (${walkAnalysis.day.toUpperCase()}):**
   * Primera clase UPB: ${walkAnalysis.classTime} | Buffer al aula: 10 min (Llegada ${walkAnalysis.sim.upbArrivalTime}).
   * Salida de casa hacia UPB Km 8: ${walkAnalysis.sim.homeDepartureTime} (25 min de viaje).

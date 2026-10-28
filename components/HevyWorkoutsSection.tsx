@@ -125,7 +125,7 @@ export default function HevyWorkoutsSection() {
   };
 
   return (
-    <section id="hevy-workouts-section" className="max-w-4xl mx-auto space-y-6 animate-fadeIn pb-12">
+    <section id="hevy-workouts-section" className="w-full space-y-6 animate-fadeIn pb-12">
       {/* 1. TOP BAR DESCOMPRIMIDA: PERFIL ATLETA + SELECTOR DE UNIDADES (IDÉNTICO A HEVY WEB) */}
       <div className="bg-[#18181b] border border-[#27272a] rounded-3xl p-6 sm:p-7 text-white shadow-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 pb-5 border-b border-[#27272a]">
@@ -322,133 +322,135 @@ export default function HevyWorkoutsSection() {
           </div>
         </div>
 
-        {/* LISTA DE EJERCICIOS CON TABLAS ANCHAS (THE HEVY TABLE) */}
-        <div className="space-y-6 pt-2">
+        {/* GRILLA RESPONSIVA MULTICOLUMNA DE EJERCICIOS (BENTO GRID 2-3 COLUMNAS) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2 items-start">
           {selectedSession.exercises.map((exercise, exIdx) => {
             const muscleColor = getMuscleBadgeColor(exercise.muscleGroup);
 
             return (
               <div
                 key={exIdx}
-                className="bg-[#09090b]/90 border border-[#27272a] rounded-3xl p-6 text-white space-y-4 shadow-sm"
+                className="bg-[#09090b]/90 border border-[#27272a] rounded-2xl p-4 sm:p-5 text-white space-y-3.5 shadow-sm flex flex-col justify-between h-full hover:border-[#3f3f46] transition-all"
               >
-                {/* Encabezado del Ejercicio */}
-                <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-3.5">
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold border ${muscleColor} shadow-inner`}>
-                      <Dumbbell className="w-5 h-5" />
+                <div>
+                  {/* Encabezado del Ejercicio */}
+                  <div className="flex items-start justify-between gap-2.5 mb-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border ${muscleColor} shadow-inner shrink-0`}>
+                        <Dumbbell className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm sm:text-base font-black text-white tracking-tight truncate" title={exercise.name}>
+                          {exercise.name}
+                        </h4>
+                        {exercise.esTitle && (
+                          <span className="text-[11px] text-slate-400 block font-medium truncate" title={exercise.esTitle}>
+                            {exercise.esTitle}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-lg font-black text-white tracking-tight">
-                        {exercise.name}
-                      </h4>
-                      {exercise.esTitle && (
-                        <span className="text-xs text-slate-400 block font-medium">
-                          {exercise.esTitle}
-                        </span>
-                      )}
-                    </div>
+
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${muscleColor}`}>
+                      {exercise.muscleGroup}
+                    </span>
                   </div>
 
-                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${muscleColor}`}>
-                    {exercise.muscleGroup}
-                  </span>
-                </div>
+                  {/* Nota Personal de Santiago (Callout Idéntico a Hevy) */}
+                  {exercise.notes && (
+                    <div className="p-3 rounded-xl bg-[#18181b] border-l-4 border-amber-500 text-xs text-slate-300 flex items-start gap-2 shadow-inner my-2">
+                      <MessageSquare className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                      <p className="leading-snug italic text-[11px]">
+                        "{exercise.notes}"
+                      </p>
+                    </div>
+                  )}
 
-                {/* Nota Personal de Santiago (Callout Idéntico a Hevy) */}
-                {exercise.notes && (
-                  <div className="p-4 rounded-2xl bg-[#18181b] border-l-4 border-amber-500 text-xs sm:text-sm text-slate-300 flex items-start gap-3 shadow-inner">
-                    <MessageSquare className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <p className="leading-relaxed italic">
-                      "{exercise.notes}"
-                    </p>
+                  {/* TABLA DE SERIES OPTIMIZADA PARA GRILLA MULTICOLUMNA */}
+                  <div className="overflow-x-auto pt-1">
+                    <table className="w-full text-left text-xs font-mono">
+                      <thead>
+                        <tr className="text-[10px] text-slate-400 uppercase tracking-wider border-b border-[#27272a] pb-2">
+                          <th className="py-2 px-1.5 w-9 text-center">SET</th>
+                          <th className="py-2 px-2">PESO ({unit.toUpperCase()})</th>
+                          <th className="py-2 px-2">REPS</th>
+                          <th className="py-2 px-1 text-center">RPE</th>
+                          <th className="py-2 px-1 text-right">OK</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#27272a]/70">
+                        {exercise.sets.map((set, sIdx) => {
+                          const isWarmup = set.isWarmup || set.indicator === 'warmup';
+                          const rpeColor = getRpeBadgeColor(set.rpe);
+
+                          return (
+                            <tr
+                              key={sIdx}
+                              className={`transition-colors ${
+                                isWarmup ? 'bg-amber-500/5' : 'hover:bg-[#18181b]/60'
+                              }`}
+                            >
+                              {/* SET BADGE (W para Warmup o 1, 2, 3...) */}
+                              <td className="py-2.5 px-1.5 text-center">
+                                <span
+                                  className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-black shadow-xs ${
+                                    isWarmup
+                                      ? 'bg-amber-500/25 text-amber-400 border border-amber-500/50'
+                                      : 'bg-[#27272a] text-slate-200 border border-[#3f3f46]'
+                                  }`}
+                                >
+                                  {isWarmup ? 'W' : set.setNumber}
+                                </span>
+                              </td>
+
+                              {/* PESO */}
+                              <td className="py-2.5 px-2">
+                                {set.durationSeconds ? (
+                                  <span className="text-slate-300 font-bold text-xs">
+                                    {Math.floor(set.durationSeconds / 60)}m {set.durationSeconds % 60}s
+                                  </span>
+                                ) : (
+                                  <span className="text-white font-extrabold text-xs">
+                                    {formatWeight(set.weightKg, set.weightLbs)}
+                                  </span>
+                                )}
+                              </td>
+
+                              {/* REPETICIONES */}
+                              <td className="py-2.5 px-2">
+                                {set.reps > 0 ? (
+                                  <span className="text-white font-extrabold text-xs">
+                                    {set.reps}{' '}
+                                    <span className="text-[10px] text-slate-400 font-normal">reps</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-500 font-normal">—</span>
+                                )}
+                              </td>
+
+                              {/* RPE */}
+                              <td className="py-2.5 px-1 text-center">
+                                {set.rpe ? (
+                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black border ${rpeColor}`}>
+                                    @{set.rpe}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-600">—</span>
+                                )}
+                              </td>
+
+                              {/* CHECK HEVY */}
+                              <td className="py-2.5 px-1 text-right">
+                                <span className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs">
+                                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-
-                {/* TABLA DE SERIES ANCHA Y ESPACIOSA */}
-                <div className="overflow-x-auto pt-1">
-                  <table className="w-full text-left text-sm font-mono">
-                    <thead>
-                      <tr className="text-xs text-slate-400 uppercase tracking-wider border-b border-[#27272a] pb-3">
-                        <th className="py-3 px-3 w-16 text-center">SET</th>
-                        <th className="py-3 px-4">PESO ({unit.toUpperCase()})</th>
-                        <th className="py-3 px-4">REPETICIONES</th>
-                        <th className="py-3 px-4">RPE</th>
-                        <th className="py-3 px-4 text-right">COMPLETADO</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#27272a]/70">
-                      {exercise.sets.map((set, sIdx) => {
-                        const isWarmup = set.isWarmup || set.indicator === 'warmup';
-                        const rpeColor = getRpeBadgeColor(set.rpe);
-
-                        return (
-                          <tr
-                            key={sIdx}
-                            className={`transition-colors ${
-                              isWarmup ? 'bg-amber-500/5' : 'hover:bg-[#18181b]/60'
-                            }`}
-                          >
-                            {/* SET BADGE (W para Warmup o 1, 2, 3...) */}
-                            <td className="py-3.5 px-3 text-center">
-                              <span
-                                className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-black shadow-xs ${
-                                  isWarmup
-                                    ? 'bg-amber-500/25 text-amber-400 border border-amber-500/50'
-                                    : 'bg-[#27272a] text-slate-200 border border-[#3f3f46]'
-                                }`}
-                              >
-                                {isWarmup ? 'W' : set.setNumber}
-                              </span>
-                            </td>
-
-                            {/* PESO */}
-                            <td className="py-3.5 px-4">
-                              {set.durationSeconds ? (
-                                <span className="text-slate-300 font-bold text-sm">
-                                  {Math.floor(set.durationSeconds / 60)}m {set.durationSeconds % 60}s
-                                </span>
-                              ) : (
-                                <span className="text-white font-extrabold text-base">
-                                  {formatWeight(set.weightKg, set.weightLbs)}
-                                </span>
-                              )}
-                            </td>
-
-                            {/* REPETICIONES */}
-                            <td className="py-3.5 px-4">
-                              {set.reps > 0 ? (
-                                <span className="text-white font-extrabold text-base">
-                                  {set.reps}{' '}
-                                  <span className="text-xs text-slate-400 font-normal">reps</span>
-                                </span>
-                              ) : (
-                                <span className="text-slate-500 font-normal">—</span>
-                              )}
-                            </td>
-
-                            {/* RPE */}
-                            <td className="py-3.5 px-4">
-                              {set.rpe ? (
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black border ${rpeColor}`}>
-                                  @{set.rpe}
-                                </span>
-                              ) : (
-                                <span className="text-slate-600">—</span>
-                              )}
-                            </td>
-
-                            {/* CHECK HEVY */}
-                            <td className="py-3.5 px-4 text-right">
-                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs">
-                                <Check className="w-4 h-4 stroke-[3]" />
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
                 </div>
               </div>
             );

@@ -23,6 +23,7 @@ import {
   Calendar,
   Sparkles,
   ArrowUpRight,
+  Scale,
 } from 'lucide-react';
 import DateRangePicker, { DateRangeDays } from './DateRangePicker';
 
@@ -312,7 +313,7 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
       </div>
 
       {/* KPI Cards Dinámicas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 my-6">
         {/* Pasos */}
         <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div className="flex items-center justify-between text-slate-500 mb-2">
@@ -384,6 +385,30 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
           </div>
           <span className="text-[11px] text-slate-400 mt-1" suppressHydrationWarning>
             {workoutSessions} sesiones registradas
+          </span>
+        </div>
+        {/* Peso & Composición Femmto */}
+        <div
+          onClick={() => onNavigate?.('health')}
+          className="cursor-pointer bg-teal-50/70 dark:bg-slate-900/60 hover:bg-teal-100/60 dark:hover:bg-slate-800/80 transition-colors p-4 rounded-2xl border border-teal-200/80 dark:border-teal-900/50 flex flex-col justify-between col-span-2 sm:col-span-1"
+        >
+          <div className="flex items-center justify-between text-teal-700 dark:text-teal-400 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider">Peso (Femmto)</span>
+            <div className="p-2 bg-teal-100 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300 rounded-lg">
+              <Scale className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
+              55.7 <span className="text-sm font-normal text-slate-500">kg</span>
+            </span>
+            <span className="text-xs text-teal-600 font-semibold flex items-center">
+              10.6% PGC
+            </span>
+          </div>
+          <span className="text-[11px] text-teal-700 dark:text-teal-400/90 mt-1">
+            25.1 kg MME • IMC 18.8
+          </span>
           </span>
         </div>
       </div>

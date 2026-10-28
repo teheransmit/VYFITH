@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHealthSyncState, updateHealthSyncState, HealthObservation } from '@/lib/healthStore';
+import { INITIAL_FEMMTO_STATE, createFemmtoEntry } from '@/lib/femmtoStore';
 import fs from 'fs';
 import path from 'path';
 
@@ -78,6 +79,10 @@ export async function POST(req: NextRequest) {
     let newHrv = 0;
     let newHr = 0;
     let newSleep = 0;
+    let newWeight = 0;
+    let newBodyFat = 0;
+    let newMuscle = 0;
+    let newBmi = 0;
 
     // Caso 0: Recargar datos reales desde data/real_health_state.json (Google Health & Hevy)
     if (body.source === 'RELOAD_REAL_DATA' || body.reloadReal) {
@@ -105,6 +110,91 @@ export async function POST(req: NextRequest) {
           { headers: corsHeaders }
         );
       }
+    }
+
+    // Caso Femmto: Registro / Sincronización de Báscula Femmto
+    if (body.action === 'add_femmto_record' || body.femmtoRecord || (body.weightKg && !body.source)) {
+      const diskData = loadStateFromDisk() || getHealthSyncState();
+      const currentFemmto = diskData.femmtoData || INITIAL_FEMMTO_STATE;
+
+      const newEntry = createFemmtoEntry({
+        weightKg: Number(body.weightKg || body.femmtoRecord?.weightKg || 55.7),
+        skeletalMuscleKg: Number(body.skeletalMuscleKg || body.femmtoRecord?.skeletalMuscleKg || 25.1),
+        bodyFatPct: Number(body.bodyFatPct || body.femmtoRecord?.bodyFatPct || 10.6),
+        date: body.date || body.femmtoRecord?.date,
+        time: body.time || body.femmtoRecord?.time,
+        dateTime: body.dateTime || body.femmtoRecord?.dateTime || nowIso,
+        heightCm: currentFemmto.user?.heightCm || 172,
+      });
+
+      const updatedHistory = [newEntry, ...(currentFemmto.history || [])];
+
+      const updatedLatest = {
+        ...currentFemmto.latest,
+        weight: { ...currentFemmto.latest.weight, value: newEntry.weightKg },
+        skeletalMuscle: { ...currentFemmto.latest.skeletalMuscle, value: newEntry.skeletalMuscleKg },
+        bodyFatPct: { ...currentFemmto.latest.bodyFatPct, value: newEntry.bodyFatPct },
+        bmi: { ...currentFemmto.latest.bmi, value: newEntry.bmi },
+        fatMass: { ...currentFemmto.latest.fatMass, value: newEntry.fatMassKg || currentFemmto.latest.fatMass.value },
+        water: { ...currentFemmto.latest.water, value: newEntry.waterL || currentFemmto.latest.water.value },
+        protein: { ...currentFemmto.latest.protein, value: newEntry.proteinKg || currentFemmto.latest.protein.value },
+        minerals: { ...currentFemmto.latest.minerals, value: newEntry.mineralsKg || currentFemmto.latest.minerals.value },
+        leanBodyMass: { ...currentFemmto.latest.leanBodyMass, value: newEntry.leanBodyMassKg || currentFemmto.latest.leanBodyMass.value },
+        fatFreeMass: { ...currentFemmto.latest.fatFreeMass, value: newEntry.fatFreeMassKg || currentFemmto.latest.fatFreeMass.value },
+      };
+
+      const updatedFemmto = {
+        ...currentFemmto,
+        user: {
+          ...currentFemmto.user,
+          lastMeasurementDateTime: `${newEntry.date} ${newEntry.time}`,
+        },
+        latest: updatedLatest,
+        history: updatedHistory,
+      };
+
+      const nextToken = `femmto_sync_${Date.now()}`;
+      const updated = updateHealthSyncState((state) => {
+        state.lastSyncTime = nowIso;
+        state.syncCount += 1;
+        state.changesToken = nextToken;
+        state.femmtoData = updatedFemmto;
+        state.currentMetrics.weightKg = newEntry.weightKg;
+        state.currentMetrics.bodyFatPct = newEntry.bodyFatPct;
+        state.currentMetrics.skeletalMuscleKg = newEntry.skeletalMuscleKg;
+        state.currentMetrics.bmi = newEntry.bmi;
+        if (newEntry.waterL) state.currentMetrics.waterL = newEntry.waterL;
+        if (newEntry.proteinKg) state.currentMetrics.proteinKg = newEntry.proteinKg;
+        if (newEntry.mineralsKg) state.currentMetrics.mineralsKg = newEntry.mineralsKg;
+        if (newEntry.fatMassKg) state.currentMetrics.fatMassKg = newEntry.fatMassKg;
+        if (newEntry.leanBodyMassKg) state.currentMetrics.leanBodyMassKg = newEntry.leanBodyMassKg;
+        if (newEntry.fatFreeMassKg) state.currentMetrics.fatFreeMassKg = newEntry.fatFreeMassKg;
+
+        const weightObs: HealthObservation = {
+          id: `vyfith-weight-femmto-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Composición Corporal - Báscula Femmto',
+          code: {
+            coding: [{ system: 'http://loinc.org', code: '29463-7', display: 'Body weight' }],
+          },
+          valueQuantity: { value: newEntry.weightKg, unit: 'kg' },
+          effectiveDateTime: newEntry.dateTime,
+        };
+        state.recentObservations = [weightObs, ...state.recentObservations].slice(0, 25);
+      });
+
+      persistStateToDisk(updated);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: `¡Pesaje de ${newEntry.weightKg} kg sincronizado exitosamente en formato Femmto!`,
+          data: updated,
+          record: newEntry,
+        },
+        { headers: corsHeaders }
+      );
     }
 
     // Caso A: Simulación o Envío real desde VYFITH_APP (FitSync AI Android)
@@ -391,6 +481,10 @@ export async function POST(req: NextRequest) {
         else if (code === '80404-7') newHrv = val;
         else if (code === '8867-4') newHr = val;
         else if (code === '93832-4') newSleep = val;
+        else if (code === '29463-7') newWeight = val;
+        else if (code === '41982-0') newBodyFat = val;
+        else if (code === '73964-9') newMuscle = val;
+        else if (code === '39156-5') newBmi = val;
       }
     }
 
@@ -407,6 +501,10 @@ export async function POST(req: NextRequest) {
       if (newHrv > 0) state.currentMetrics.hrv = newHrv;
       if (newHr > 0) state.currentMetrics.heartRate = newHr;
       if (newSleep > 0) state.currentMetrics.sleepHours = newSleep;
+      if (newWeight > 0) state.currentMetrics.weightKg = newWeight;
+      if (newBodyFat > 0) state.currentMetrics.bodyFatPct = newBodyFat;
+      if (newMuscle > 0) state.currentMetrics.skeletalMuscleKg = newMuscle;
+      if (newBmi > 0) state.currentMetrics.bmi = newBmi;
 
       state.recentObservations = [...incomingObservations, ...state.recentObservations].slice(0, 20);
     });

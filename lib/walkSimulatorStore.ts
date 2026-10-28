@@ -29,8 +29,8 @@ export const initialDogs: DogProfile[] = [
     id: 'dog-frida',
     name: 'Frida',
     breed: 'Criolla enérgica',
-    defaultDurationMin: 30,
-    ratePerWalk: 5850,
+    defaultDurationMin: 10,
+    ratePerWalk: 5000,
     owner: 'Laura',
     energyLevel: 'Alto',
     colorTag: 'emerald',
@@ -39,7 +39,7 @@ export const initialDogs: DogProfile[] = [
     id: 'dog-sienna',
     name: 'Sienna',
     breed: 'Raza grande activa',
-    defaultDurationMin: 40,
+    defaultDurationMin: 30,
     ratePerWalk: 9000,
     owner: 'Elena',
     energyLevel: 'Alto',
@@ -53,9 +53,10 @@ export function calculateWalkSchedule(
   commuteMinutes: number = 25,
   prepMinutes: number = 20,
   safetyBufferMin: number = 10,
-  walkDurationOverrides: Record<string, number> = {}
+  walkDurationOverrides: Record<string, number> = {},
+  availableDogs: DogProfile[] = initialDogs
 ): SimulationResult {
-  const selectedDogs = initialDogs.filter((d) => selectedDogIds.includes(d.id));
+  const selectedDogs = availableDogs.filter((d) => selectedDogIds.includes(d.id));
 
   // Si no hay perros seleccionados, duración 0
   const totalWalkDuration = selectedDogs.reduce(

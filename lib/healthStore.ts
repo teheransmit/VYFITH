@@ -1,3 +1,5 @@
+import { FemmtoDataState } from '@/lib/femmtoStore';
+
 export interface HealthObservation {
   id: string;
   resourceType: 'Observation';
@@ -72,9 +74,20 @@ export interface SyncSessionState {
     hrv: number;
     heartRate: number;
     sleepHours: number;
+    weightKg?: number;
+    bodyFatPct?: number;
+    skeletalMuscleKg?: number;
+    bmi?: number;
+    waterL?: number;
+    proteinKg?: number;
+    mineralsKg?: number;
+    fatMassKg?: number;
+    leanBodyMassKg?: number;
+    fatFreeMassKg?: number;
   };
   recentObservations: HealthObservation[];
   vyfithData: VyfithAppIntegration;
+  femmtoData?: FemmtoDataState;
   syncEvents: SyncEventLog[];
 }
 
@@ -103,6 +116,16 @@ export function getHealthSyncState(): SyncSessionState {
         hrv: 72,
         heartRate: 64,
         sleepHours: 7.8,
+        weightKg: 55.7,
+        bodyFatPct: 10.6,
+        skeletalMuscleKg: 25.1,
+        bmi: 18.8,
+        waterL: 32.8,
+        proteinKg: 13.9,
+        mineralsKg: 3.2,
+        fatMassKg: 5.9,
+        leanBodyMassKg: 46.6,
+        fatFreeMassKg: 49.8,
       },
       recentObservations: [
         {

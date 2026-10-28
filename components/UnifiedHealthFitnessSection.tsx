@@ -13,20 +13,22 @@ import {
   TrendingUp,
   ShieldCheck,
   Smartphone,
+  Scale,
 } from 'lucide-react';
 import GoogleHealthConnector from './GoogleHealthConnector';
 import UnifiedGymHevySection from './UnifiedGymHevySection';
 import MiFitnessHealthSuite from './MiFitnessHealthSuite';
+import FemmtoBodyCompositionSuite from './FemmtoBodyCompositionSuite';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 
 export default function UnifiedHealthFitnessSection() {
-  const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'mifitness' | 'gym' | 'hevy'>('combined');
+  const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'femmto' | 'mifitness' | 'gym' | 'hevy'>('combined');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const sub = params.get('sub') as any;
-      if (sub && ['combined', 'biometrics', 'mifitness', 'gym', 'hevy'].includes(sub)) {
+      if (sub && ['combined', 'biometrics', 'femmto', 'mifitness', 'gym', 'hevy'].includes(sub)) {
         setActiveSubView(sub);
       }
     }
@@ -87,6 +89,10 @@ export default function UnifiedHealthFitnessSection() {
                 <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
                 <span>14.280 kg / sem • RPE 8.4</span>
               </span>
+              <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-teal-500/30 text-teal-300 flex items-center gap-1.5 font-mono">
+                <Scale className="w-3.5 h-3.5 text-teal-400" />
+                <span>Femmto: 55.7 kg • 10.6% Grasa • 25.1 kg MME</span>
+              </span>
             </div>
           </div>
 
@@ -113,6 +119,17 @@ export default function UnifiedHealthFitnessSection() {
             >
               <Activity className="w-3.5 h-3.5" />
               <span>Salud & Biometría</span>
+            </button>
+            <button
+              onClick={() => setActiveSubView('femmto')}
+              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                activeSubView === 'femmto'
+                  ? 'bg-teal-600 text-white shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Scale className="w-3.5 h-3.5" />
+              <span>Báscula Femmto</span>
             </button>
             <button
               onClick={() => setActiveSubView('gym')}
@@ -154,6 +171,23 @@ export default function UnifiedHealthFitnessSection() {
             <GoogleHealthConnector />
           </div>
 
+          {/* Bloque 1B: Composición Corporal & Báscula Femmto */}
+          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-100 dark:bg-teal-950/80 text-teal-900 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60 flex items-center gap-1.5 self-start">
+                <Scale className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                <span>Bloque 1B: Composición Corporal (Báscula Femmto)</span>
+              </span>
+              <button
+                onClick={() => setActiveSubView('femmto')}
+                className="cursor-pointer text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
+              >
+                <span>Ver Informe Completo Femmto & Historial (27 Pesajes) →</span>
+              </button>
+            </div>
+            <FemmtoBodyCompositionSuite />
+          </div>
+
           {/* Bloque 2: Gimnasio UPB Montería & Sobrecarga Hevy */}
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className="mb-4 flex items-center gap-2">
@@ -170,6 +204,12 @@ export default function UnifiedHealthFitnessSection() {
       {activeSubView === 'biometrics' && (
         <div className="animate-fadeIn">
           <GoogleHealthConnector />
+        </div>
+      )}
+
+      {activeSubView === 'femmto' && (
+        <div className="animate-fadeIn">
+          <FemmtoBodyCompositionSuite />
         </div>
       )}
 

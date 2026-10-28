@@ -10,6 +10,8 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
+import androidx.health.connect.client.records.WeightRecord
+import androidx.health.connect.client.records.BodyFatRecord
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +57,8 @@ class HealthSyncWorker(
                             is HeartRateRecord -> fhirObservations.put(mapHeartRateToFhir(record))
                             is SleepSessionRecord -> fhirObservations.put(mapSleepToFhir(record))
                             is HeartRateVariabilityRmssdRecord -> fhirObservations.put(mapHrvToFhir(record))
+                            is WeightRecord -> fhirObservations.put(mapWeightToFhir(record))
+                            is BodyFatRecord -> fhirObservations.put(mapBodyFatToFhir(record))
                         }
                     }
                     is DeletionChange -> {
@@ -89,7 +93,9 @@ class HealthSyncWorker(
                 StepsRecord::class,
                 HeartRateRecord::class,
                 SleepSessionRecord::class,
-                HeartRateVariabilityRmssdRecord::class
+                HeartRateVariabilityRmssdRecord::class,
+                WeightRecord::class,
+                BodyFatRecord::class
             )
         )
         return client.getChangesToken(request)
@@ -198,6 +204,54 @@ class HealthSyncWorker(
         val valueQuantity = JSONObject().apply {
             put("value", record.heartRateVariabilityMillis)
             put("unit", "ms")
+        }
+        obs.put("valueQuantity", valueQuantity)
+        obs.put("effectiveDateTime", record.time.toString())
+        return obs
+    }
+
+    private fun mapWeightToFhir(record: WeightRecord): JSONObject {
+        val obs = JSONObject()
+        obs.put("resourceType", "Observation")
+        obs.put("status", "final")
+        obs.put("category", "Composición Corporal - Báscula Femmto")
+        val code = JSONObject().apply {
+            put("coding", JSONArray().apply {
+                put(JSONObject().apply {
+                    put("system", "http://loinc.org")
+                    put("code", "29463-7")
+                    put("display", "Body weight")
+                })
+            })
+        }
+        obs.put("code", code)
+        val valueQuantity = JSONObject().apply {
+            put("value", record.weight.inKilograms)
+            put("unit", "kg")
+        }
+        obs.put("valueQuantity", valueQuantity)
+        obs.put("effectiveDateTime", record.time.toString())
+        return obs
+    }
+
+    private fun mapBodyFatToFhir(record: BodyFatRecord): JSONObject {
+        val obs = JSONObject()
+        obs.put("resourceType", "Observation")
+        obs.put("status", "final")
+        obs.put("category", "Composición Corporal - Báscula Femmto")
+        val code = JSONObject().apply {
+            put("coding", JSONArray().apply {
+                put(JSONObject().apply {
+                    put("system", "http://loinc.org")
+                    put("code", "41982-0")
+                    put("display", "Percentage of body fat")
+                })
+            })
+        }
+        obs.put("code", code)
+        val valueQuantity = JSONObject().apply {
+            put("value", record.percentage.value)
+            put("unit", "%")
         }
         obs.put("valueQuantity", valueQuantity)
         obs.put("effectiveDateTime", record.time.toString())

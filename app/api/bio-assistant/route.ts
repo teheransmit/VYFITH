@@ -82,6 +82,12 @@ function readLivePageSnapshot(): LiveTelemetrySnapshot {
         spo2: room.spo2 || 96.7,
         stressScore: 20,
         readinessScore: healthData.vyfithData?.readinessScore || 67,
+        weight: metrics.weightKg || 55.7,
+        bodyFatPct: metrics.bodyFatPct || 10.6,
+        skeletalMuscleKg: metrics.skeletalMuscleKg || 25.1,
+        bmi: metrics.bmi || 18.8,
+        waterL: metrics.waterL || 32.8,
+        fatFreeMassKg: metrics.fatFreeMassKg || 49.8,
       };
     }
   } catch (err) {

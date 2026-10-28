@@ -36,11 +36,121 @@ import HevyWorkoutsSection from './HevyWorkoutsSection';
 export interface UnifiedGymHevyProps {
   initialSubTab?: 'all' | 'schedule' | 'hevy';
   hideHeader?: boolean;
+  hideKpisAndHeatmap?: boolean;
+  hideHevyWorkouts?: boolean;
+}
+
+export function UpbGymStatusAndKpis() {
+  const [liveStatus, setLiveStatus] = useState<GymLiveStatus | null>(null);
+
+  useEffect(() => {
+    setLiveStatus(getUpbGymLiveStatus());
+    const interval = setInterval(() => {
+      setLiveStatus(getUpbGymLiveStatus());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const sessions = initialHevySessions;
+  const totalWeeklyVolume = sessions.reduce((acc, s) => acc + s.totalVolumeKg, 0);
+  const totalWeeklySets = sessions.reduce((acc, s) => acc + s.totalSets, 0);
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
+              <Dumbbell className="w-3.5 h-3.5 text-rose-500" />
+              Gimnasio UPB & Hevy Workouts
+            </span>
+          </div>
+          <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+            Estado de Horario & KPIs de Volumen
+          </h3>
+        </div>
+
+        {/* Badge en vivo de estado */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80">
+          <span className="relative flex h-2.5 w-2.5">
+            {liveStatus?.isOpenNow ? (
+              <>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              </>
+            ) : (
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500" />
+            )}
+          </span>
+          <span className={`text-xs font-black ${liveStatus?.isOpenNow ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+            {liveStatus?.isOpenNow ? 'ABIERTO AHORA' : 'CERRADO'}
+          </span>
+          <span className="text-[11px] text-slate-400 font-mono">({liveStatus?.currentTimeString || '--:--'})</span>
+        </div>
+      </div>
+
+      {/* Franja horaria y próximo turno */}
+      <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+          <Clock className="w-4 h-4 text-indigo-500 shrink-0" />
+          <span><strong>Turno:</strong> {liveStatus?.currentShiftName || 'L–J: 6–11:30 & 4–7 | Vie: 6–11 & 4–7'}</span>
+        </div>
+        <span className="text-indigo-600 dark:text-indigo-400 font-medium text-[11px]">
+          {liveStatus?.nextOpeningText}
+        </span>
+      </div>
+
+      {/* Grid de 4 KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Volumen Semanal</span>
+          <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+            {totalWeeklyVolume.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">kg</span>
+          </div>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5 truncate">
+            Climatizado UPB
+          </span>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Series Efectivas</span>
+          <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+            {totalWeeklySets} <span className="text-[10px] font-normal text-slate-400">sets</span>
+          </div>
+          <span className="text-[10px] text-slate-400 block mt-0.5">
+            RPE prom 8.4
+          </span>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Esfuerzo Percibido</span>
+          <div className="text-lg font-black text-amber-600 mt-0.5">
+            8.4 <span className="text-[10px] font-normal text-slate-400">/ 10</span>
+          </div>
+          <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium block mt-0.5">
+            Hipertrofia
+          </span>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
+          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Sobrecarga Prog.</span>
+          <div className="text-lg font-black text-emerald-600 mt-0.5 flex items-center gap-1">
+            <TrendingUp className="w-3.5 h-3.5" /> +4.8%
+          </div>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block mt-0.5">
+            vs mes anterior
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function UnifiedGymHevySection({
   initialSubTab = 'all',
   hideHeader = false,
+  hideKpisAndHeatmap = false,
+  hideHevyWorkouts = false,
 }: UnifiedGymHevyProps = {}) {
   // Estado del Gimnasio UPB
   const [liveStatus, setLiveStatus] = useState<GymLiveStatus | null>(null);
@@ -252,7 +362,7 @@ export default function UnifiedGymHevySection({
       )}
 
       {/* 2. DASHBOARD DE MÉTRICAS HEVY (Volumen, Series, RPE, Sobrecarga) */}
-      {(subTab === 'all' || subTab === 'hevy') && (
+      {(subTab === 'all' || subTab === 'hevy') && !hideKpisAndHeatmap && (
         <>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fadeIn">
           <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs">
@@ -482,7 +592,7 @@ export default function UnifiedGymHevySection({
       )}
 
       {/* 5. HISTORIAL DE SESIONES DETALLADAS DE HEVY (Estilo Hevy Web Descomprimido) */}
-      {(subTab === 'all' || subTab === 'hevy') && (
+      {(subTab === 'all' || subTab === 'hevy') && !hideHevyWorkouts && (
         <HevyWorkoutsSection />
       )}
 

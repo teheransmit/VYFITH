@@ -24,10 +24,10 @@ interface TimelineProps {
   finalArrival: string;
   targetClassTime: string;
   targetClassName: string;
-  activeDogs: ('S' | 'F' | 'M')[];
+  activeDogs: string[];
   settings: RouteSettings;
-  metas: { S: number; F: number; M: number };
-  dogWalkDurations: { S: number; F: number; M: number };
+  metas: Record<string, number>;
+  dogWalkDurations: Record<string, number>;
 }
 
 export default function Timeline({

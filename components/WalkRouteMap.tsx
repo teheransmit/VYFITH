@@ -5,12 +5,13 @@ import { MapPin, RefreshCw } from 'lucide-react';
 
 interface WalkRouteMapProps {
   selectedDogIds: string[];
-  startLocation: 'centro' | 'abuela';
+  startLocation: 'casa' | 'centro' | 'abuela';
 }
 
 const locations = {
+  casa: [8.753656905902142, -75.87434089839805] as [number, number],
   centro: [8.76132, -75.87928] as [number, number],
-  abuela: [8.75365, -75.87439] as [number, number],
+  abuela: [8.753656905902142, -75.87434089839805] as [number, number],
   'dog-sienna': [8.77228, -75.85933] as [number, number],
   'dog-frida': [8.77418, -75.86532] as [number, number],
   upb: [8.80457, -75.8504] as [number, number],

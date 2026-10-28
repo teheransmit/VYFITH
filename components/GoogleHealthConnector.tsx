@@ -14,6 +14,7 @@ import {
   Bot,
   Cloud,
   Wifi,
+  Scale,
 } from 'lucide-react';
 import { SyncSessionState, HealthObservation } from '@/lib/healthStore';
 import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
@@ -22,7 +23,13 @@ import { onAuthStateChanged } from 'firebase/auth';
 import BiomedicalIntelligencePanel from '@/components/BiomedicalIntelligencePanel';
 import MiFitnessHealthSuite from '@/components/MiFitnessHealthSuite';
 
-export default function GoogleHealthConnector() {
+export interface GoogleHealthConnectorProps {
+  hideNestedSuites?: boolean;
+}
+
+export default function GoogleHealthConnector({
+  hideNestedSuites = false,
+}: GoogleHealthConnectorProps = {}) {
   const [syncState, setSyncState] = useState<SyncSessionState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [copiedToken, setCopiedToken] = useState(false);
@@ -430,9 +437,9 @@ export default function GoogleHealthConnector() {
       )}
 
       {/* TARJETA EN VIVO: READINESS SCORE & DATOS DE VYFITH_APP */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 my-6">
         {/* Widget Circular del Readiness Score */}
-        <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center">
+        <div className="md:col-span-5 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
             <Activity className="w-4 h-4 text-indigo-600" />
             <span>Nivel de Recuperación (Readiness)</span>
@@ -440,7 +447,7 @@ export default function GoogleHealthConnector() {
 
           <div className="relative flex items-center justify-center my-2">
             <div
-              className={`w-32 h-32 rounded-full border-8 flex flex-col items-center justify-center transition-all ${
+              className={`w-30 h-30 sm:w-32 sm:h-32 rounded-full border-8 flex flex-col items-center justify-center transition-all ${
                 isOptimal
                   ? 'border-emerald-500 bg-emerald-50/50 text-emerald-700'
                   : isModerate
@@ -448,7 +455,7 @@ export default function GoogleHealthConnector() {
                   : 'border-rose-500 bg-rose-50/50 text-rose-700'
               }`}
             >
-              <span className="text-4xl font-extrabold tracking-tight">{readiness}</span>
+              <span className="text-3xl sm:text-4xl font-extrabold tracking-tight">{readiness}</span>
               <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">de 100</span>
             </div>
           </div>
@@ -472,7 +479,7 @@ export default function GoogleHealthConnector() {
         </div>
 
         {/* Tarjeta de Análisis de Gemini (Médico Deportivo) */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+        <div className="md:col-span-7 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 text-indigo-950 font-bold text-sm">
@@ -601,7 +608,19 @@ export default function GoogleHealthConnector() {
       </div>
 
       {/* Métricas extraídas de Room Database & Health Connect */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-6">
+        <div className="p-3.5 bg-teal-50/50 border border-teal-100 rounded-xl">
+          <div className="flex items-center gap-1.5 text-[11px] text-teal-700 font-semibold mb-1">
+            <Scale className="w-3.5 h-3.5 text-teal-600" />
+            <span>Peso (Femmto)</span>
+          </div>
+          <div className="text-lg font-bold text-slate-900">
+            {syncState?.currentMetrics?.weightKg ?? 55.7} <span className="text-xs font-normal text-slate-500">kg</span>
+          </div>
+          <div className="text-[10px] text-teal-700 font-medium truncate">
+            {syncState?.currentMetrics?.bodyFatPct ?? 10.6}% G • {syncState?.currentMetrics?.skeletalMuscleKg ?? 25.1} kg MME
+          </div>
+        </div>
         <div className="p-3.5 bg-slate-50 border border-slate-100 rounded-xl">
           <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium mb-1">
             <Activity className="w-3.5 h-3.5 text-indigo-600" />
@@ -671,11 +690,15 @@ export default function GoogleHealthConnector() {
 
 
 
-      {/* Suite Premium de Salud Mi Fitness (Xiaomi Band 9 Pro) - Sueño, Hipnograma, Zonas FC, Estrés HRV & SpO2 */}
-      <MiFitnessHealthSuite syncState={syncState} />
+      {!hideNestedSuites && (
+        <>
+          {/* Suite Premium de Salud Mi Fitness (Xiaomi Band 9 Pro) - Sueño, Hipnograma, Zonas FC, Estrés HRV & SpO2 */}
+          <MiFitnessHealthSuite syncState={syncState} />
 
-      {/* Motor de Inteligencia Biomédica, Fisiología del Ejercicio y Rendimiento Académico UPB */}
-      <BiomedicalIntelligencePanel />
+          {/* Motor de Inteligencia Biomédica, Fisiología del Ejercicio y Rendimiento Académico UPB */}
+          <BiomedicalIntelligencePanel />
+        </>
+      )}
 
       {/* Lista de Observaciones FHIR Recibidas */}
       <div className="mt-8">

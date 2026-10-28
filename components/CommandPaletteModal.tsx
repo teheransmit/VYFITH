@@ -18,6 +18,7 @@ import {
   Layers,
   X,
   Keyboard,
+  Scale,
 } from 'lucide-react';
 import { DASHBOARD_NAV_ITEMS } from '@/lib/navigation';
 
@@ -85,7 +86,19 @@ export default function CommandPaletteModal({
       badge: 'LAN 192.168.1.8',
     },
     {
-      id: 'action-hevy-overload',
+      id: 'action-femmto-scale',
+      title: 'Báscula Femmto: Composición Corporal y Peso',
+      subtitle: '55.7 kg • 10.6% grasa • 25.1 kg MME • Historial de 27 pesajes y evolución',
+      category: 'Salud & Biometría',
+      icon: <Scale className="w-4 h-4 text-teal-500" />,
+      action: () => {
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(null, '', '?tab=health&sub=femmto');
+        }
+        onNavigate('health');
+        onClose();
+      },
+      badge: 'Báscula Femmto',
       title: 'Sobrecarga Progresiva de Hevy (14.280 kg)',
       subtitle: 'Examinar series efectivas, tonelaje y progresión de cargas',
       category: 'Acción Rápida',
