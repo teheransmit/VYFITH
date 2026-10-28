@@ -12,8 +12,6 @@ import {
   ShieldAlert,
   Sparkles,
   TrendingDown,
-  Copy,
-  Check,
   Sliders,
 } from 'lucide-react';
 import {
@@ -39,7 +37,6 @@ export default function BiomedicalIntelligencePanel() {
   );
   const [engineSource, setEngineSource] = useState<string>('Deterministic Mathematical Matrix');
   const [isCalculating, setIsCalculating] = useState(false);
-  const [copiedJson, setCopiedJson] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
 
   const runBiomedicalEngine = useCallback(
@@ -151,11 +148,7 @@ export default function BiomedicalIntelligencePanel() {
     void runBiomedicalEngine(nextInput, true);
   };
 
-  const copyStrictJson = () => {
-    navigator.clipboard.writeText(JSON.stringify(prescription, null, 2));
-    setCopiedJson(true);
-    setTimeout(() => setCopiedJson(false), 2500);
-  };
+
 
   const acwrColor =
     prescription.biomedicalSummary.acwr >= 0.8 && prescription.biomedicalSummary.acwr <= 1.3
@@ -552,39 +545,7 @@ export default function BiomedicalIntelligencePanel() {
         </div>
       </div>
 
-      {/* Salida Estricta JSON (Esquema Oficial VYFITH / MegaProyecto) */}
-      <div className="mt-6 pt-5 border-t border-slate-800">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-300">
-              Esquema Estricto JSON de Salida (Endpoint: /api/biomedical-engine?format=strict)
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-              {engineSource}
-            </span>
-          </div>
-          <button
-            onClick={copyStrictJson}
-            className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
-          >
-            {copiedJson ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span>JSON Copiado</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Copiar JSON Estricto</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        <pre className="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 text-[11px] font-mono text-emerald-300 overflow-x-auto leading-relaxed">
-          {JSON.stringify(prescription, null, 2)}
-        </pre>
-      </div>
+      
     </div>
   );
 }

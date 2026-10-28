@@ -1122,43 +1122,79 @@
     "updated": "2026-08-12T13:18:04.613Z"
   },
   {
-    "colorId": "4",
-    "created": "2026-07-06T14:29:32.000Z",
-    "creator": {
-      "email": "santiagosmitttt@gmail.com",
-      "self": true
+    "id": "vyfith-sienna-walk-20261029",
+    "summary": "🐾 Paseo de Sienna (Apartamento Sienna)",
+    "description": "Llegada 05:30 AM al apartamento de Sienna. Paseo activo de 30 minutos. Tarifa: .000 COP.",
+    "location": "Apartamento Sienna, Castellana, Montería [8.77228, -75.85933]",
+    "start": {
+      "dateTime": "2026-10-29T05:30:00-05:00",
+      "timeZone": "America/Bogota"
     },
     "end": {
-      "dateTime": "2026-10-29T06:12:00-05:00",
+      "dateTime": "2026-10-29T06:00:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3585022573518654\"",
-    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
-    "eventType": "default",
-    "htmlLink": "https://www.google.com/calendar/event?eid=czd1Ym84dmNjY2sxYjhmOXRyM2tyMWgyc2dfMjAyNjEwMjlUMTA0MjAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
-    "iCalUID": "s7ubo8vccck1b8f9tr3kr1h2sg@google.com",
-    "id": "s7ubo8vccck1b8f9tr3kr1h2sg_20261029T104200Z",
-    "kind": "calendar#event",
-    "location": "Cll 63 # 6-41 Edificio Castellana 101",
-    "organizer": {
-      "email": "santiagosmitttt@gmail.com",
-      "self": true
-    },
-    "originalStartTime": {
-      "dateTime": "2026-10-29T05:42:00-05:00",
-      "timeZone": "America/Bogota"
-    },
-    "recurringEventId": "s7ubo8vccck1b8f9tr3kr1h2sg",
-    "reminders": {
-      "useDefault": true
-    },
+    "status": "confirmed"
+  },
+  {
+    "id": "vyfith-transit-sienna-frida-20261029",
+    "summary": "🚶 Traslado Sienna -> Frida (10 min)",
+    "description": "Desplazamiento a pie entre el apartamento de Sienna y el de Frida (distancia corta 600m).",
+    "location": "La Castellana, Montería",
     "start": {
-      "dateTime": "2026-10-29T05:42:00-05:00",
+      "dateTime": "2026-10-29T06:00:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "status": "confirmed",
-    "summary": "Paseo de Frida",
-    "updated": "2026-10-20T15:48:06.759Z"
+    "end": {
+      "dateTime": "2026-10-29T06:10:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed"
+  },
+  {
+    "id": "vyfith-frida-walk-20261029",
+    "summary": "🐾 Paseo de Frida (Apartamento Frida)",
+    "description": "Llegada 06:10 AM al apartamento de Frida. Paseo matutino de 10 minutos. Tarifa: .000 COP (Laura).",
+    "location": "Apartamento Frida, Castellana, Montería [8.77418, -75.86532]",
+    "start": {
+      "dateTime": "2026-10-29T06:10:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "end": {
+      "dateTime": "2026-10-29T06:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed"
+  },
+  {
+    "id": "vyfith-return-home-20261029",
+    "summary": "🏠 Regreso a Casa Santiago (25 min)",
+    "description": "Retorno desde el apartamento de Frida hasta la casa de Santiago (Cl 35 # 15B-18). Distancia ~3.0 km.",
+    "location": "Cl 35 # 15B-18, Montería [8.7554, -75.8752]",
+    "start": {
+      "dateTime": "2026-10-29T06:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "end": {
+      "dateTime": "2026-10-29T06:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed"
+  },
+  {
+    "id": "vyfith-commute-upb-20261029",
+    "summary": "🚌 Traslado a Campus UPB (Km 8 Cereté)",
+    "description": "Salida hacia UPB tras desayuno y alistamiento en casa. Llegada previa al Examen Final de Estructuras.",
+    "location": "UPB Seccional Montería, Km 8 Vía Cereté [8.80457, -75.8504]",
+    "start": {
+      "dateTime": "2026-10-29T07:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "end": {
+      "dateTime": "2026-10-29T07:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed"
   },
   {
     "attendees": [

@@ -334,6 +334,34 @@ export default function UnifiedGymHevySection({
         </div>
       )}
 
+        {/* 3.1. SINCRONIZACIÓN HOLÍSTICA: AGENDA CANINA + ACADEMIA UPB + GIMNASIO */}
+        <div className="rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 p-5 sm:p-6 text-slate-800 dark:text-slate-200 animate-fadeIn mb-6">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shrink-0">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Sincronización Holística: Agenda Laboral Canina & Gimnasio UPB
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-600 text-white font-mono">
+                  Franja 05:30 – 07:45 Bloqueada
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Tu app de salud y gimnasio tiene vinculada tu agenda real de paseos: 
+                <strong> 05:30 AM</strong> llegada a Apto Sienna (30 min) → <strong>06:00 AM</strong> traslado de 10 min a Apto Frida → 
+                <strong> 06:10 AM</strong> paseo de Frida (10 min) → <strong>06:20 AM</strong> regreso a tu casa en Cl 35 (25 min, llegada 06:45 AM).
+                Esta rutina genera <strong>~4,500 pasos</strong> y <strong>~200 kcal</strong> de NEAT aeróbico antes de tus clases.
+              </p>
+              <div className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-indigo-200/80 dark:border-indigo-800/50 text-xs font-medium text-slate-700 dark:text-slate-300">
+                ✅ <strong>Ventana Óptima de Entrenamiento:</strong> Para no colisionar con tus paseos matutinos ni con tus exámenes de 08:00 AM, tus sesiones de entrenamiento en el Gimnasio UPB se programan exclusivamente en el <strong>Hueco Dorado (10:00 – 11:30 AM)</strong> o en la <strong>Tarde (16:00 – 17:30 PM)</strong>.
+              </div>
+            </div>
+          </div>
+        </div>
+
       {/* 4. MATRIZ DE VENTANAS ÓPTIMAS VS CLASES REALES (GOOGLE CALENDAR) */}
       {(subTab === 'all' || subTab === 'schedule') && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-6 animate-fadeIn">
