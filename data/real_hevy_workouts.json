@@ -3,185 +3,245 @@
     "id": "hevy-real-2026-10-27",
     "name": "Horizontal Torso (Chest & Back)",
     "date": "27 oct 2026, 16:15",
+    "startTimeLocal": "16:15",
+    "endTimeLocal": "17:32",
     "durationMinutes": 77,
     "totalVolumeKg": 4484.0,
+    "totalVolumeLbs": 9886.0,
     "totalSets": 20,
     "rpeAverage": 9.3,
     "exercises": [
       {
         "name": "Stretching",
+        "esTitle": "Estiramiento",
         "muscleGroup": "Core",
         "totalVolume": 0.0,
+        "notes": "",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 0.0,
-            "reps": 1,
-            "rpe": 5.0
+            "weightLbs": 0.0,
+            "reps": 0,
+            "durationSeconds": 169,
+            "rpe": null,
+            "indicator": "normal"
           }
         ]
       },
       {
         "name": "Bench Press (Barbell)",
+        "esTitle": "Press de Banca (Barra)",
         "muscleGroup": "Pecho",
         "totalVolume": 894.6,
+        "notes": "Volví después de + 1 mes, entonces me tocó bajar los pesos (aplica para todos los entornos de hoy )",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 14.97,
+            "weightLbs": 33.0,
             "reps": 16,
             "rpe": 6.0,
-            "isWarmup": true
+            "isWarmup": true,
+            "indicator": "warmup"
           },
           {
             "setNumber": 2,
             "weightKg": 37.65,
+            "weightLbs": 83.0,
             "reps": 9,
-            "rpe": 9.5
+            "rpe": 9.5,
+            "indicator": "normal"
           },
           {
             "setNumber": 3,
             "weightKg": 37.65,
+            "weightLbs": 83.0,
             "reps": 7,
-            "rpe": 9.5
+            "rpe": 9.5,
+            "indicator": "normal"
           }
         ]
       },
       {
         "name": "Incline Bench Press (Dumbbell)",
+        "esTitle": "Press de Banca Inclinado (Mancuerna)",
         "muscleGroup": "Pecho",
         "totalVolume": 666.8,
+        "notes": "",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 31.75,
+            "weightLbs": 70.0,
             "reps": 7,
-            "rpe": 9.5
+            "rpe": 9.5,
+            "indicator": "normal"
           },
           {
             "setNumber": 2,
             "weightKg": 31.75,
+            "weightLbs": 70.0,
             "reps": 6,
-            "rpe": 9.5
+            "rpe": 9.5,
+            "indicator": "normal"
           },
           {
             "setNumber": 3,
             "weightKg": 31.75,
+            "weightLbs": 70.0,
             "reps": 8,
-            "rpe": 9.0
+            "rpe": 9.0,
+            "indicator": "normal"
           }
         ]
       },
       {
         "name": "Wrist Roller",
+        "esTitle": "Rodillo de Antebrazos",
         "muscleGroup": "Brazos",
         "totalVolume": 707.5,
+        "notes": "",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 18.14,
+            "weightLbs": 40.0,
             "reps": 14,
-            "rpe": 9.0
+            "rpe": 9.0,
+            "indicator": "normal"
           },
           {
             "setNumber": 2,
             "weightKg": 18.14,
+            "weightLbs": 40.0,
             "reps": 13,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           },
           {
             "setNumber": 3,
             "weightKg": 18.14,
+            "weightLbs": 40.0,
             "reps": 12,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           }
         ]
       },
       {
         "name": "Bicep Curl (Cable)",
+        "esTitle": "Curl de Bíceps (Polea)",
         "muscleGroup": "Brazos",
         "totalVolume": 239.5,
+        "notes": "",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 14.97,
+            "weightLbs": 33.0,
             "reps": 9,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           },
           {
             "setNumber": 2,
             "weightKg": 14.97,
+            "weightLbs": 33.0,
             "reps": 7,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           }
         ]
       },
       {
         "name": "Behind the Back Wrist Curl (Barbell)",
+        "esTitle": "Curl de Muñeca por Detrás de la Espalda (Barra)",
         "muscleGroup": "Brazos",
         "totalVolume": 1054.2,
+        "notes": "",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 37.65,
+            "weightLbs": 83.0,
             "reps": 11,
-            "rpe": 8.5
+            "rpe": 8.5,
+            "indicator": "normal"
           },
           {
             "setNumber": 2,
             "weightKg": 37.65,
+            "weightLbs": 83.0,
             "reps": 9,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           },
           {
             "setNumber": 3,
             "weightKg": 37.65,
+            "weightLbs": 83.0,
             "reps": 8,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           }
         ]
       },
       {
         "name": "Seated Wrist Extension (Barbell)",
+        "esTitle": "Extensión de Muñeca Sentado (Barra)",
         "muscleGroup": "Brazos",
         "totalVolume": 649.1,
+        "notes": "",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 24.04,
+            "weightLbs": 53.0,
             "reps": 11,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           },
           {
             "setNumber": 2,
             "weightKg": 24.04,
+            "weightLbs": 53.0,
             "reps": 8,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           },
           {
             "setNumber": 3,
             "weightKg": 24.04,
+            "weightLbs": 53.0,
             "reps": 8,
-            "rpe": 10.0
+            "rpe": 10.0,
+            "indicator": "normal"
           }
         ]
       },
       {
         "name": "Seated Cable Row - V Grip (Cable)",
+        "esTitle": "Remo Sentado con Agarre en V (Polea)",
         "muscleGroup": "Espalda",
         "totalVolume": 325.0,
+        "notes": "No levanté mucho peso porque no pude armar bien el ejercicio, decir colocar donde poner los pies, ya que acá en el gimnasio no existe la máquina, entonces ahora mismo no tengo donde poner los pies",
         "sets": [
           {
             "setNumber": 1,
             "weightKg": 25.0,
+            "weightLbs": 55.1,
             "reps": 6,
-            "rpe": 7.5
+            "rpe": 7.5,
+            "indicator": "normal"
           },
           {
             "setNumber": 2,
             "weightKg": 25.0,
+            "weightLbs": 55.1,
             "reps": 7,
-            "rpe": 8.0
+            "rpe": 8.0,
+            "indicator": "normal"
           }
         ]
       }

@@ -16,10 +16,11 @@ import {
 } from 'lucide-react';
 import GoogleHealthConnector from './GoogleHealthConnector';
 import UnifiedGymHevySection from './UnifiedGymHevySection';
+import MiFitnessHealthSuite from './MiFitnessHealthSuite';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 
 export default function UnifiedHealthFitnessSection() {
-  const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'gym' | 'hevy'>('combined');
+  const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'mifitness' | 'gym' | 'hevy'>('combined');
   const [liveGymStatus, setLiveGymStatus] = useState<GymLiveStatus | null>(null);
 
   useEffect(() => {
@@ -159,6 +160,12 @@ export default function UnifiedHealthFitnessSection() {
       {activeSubView === 'biometrics' && (
         <div className="animate-fadeIn">
           <GoogleHealthConnector />
+        </div>
+      )}
+
+      {activeSubView === 'mifitness' && (
+        <div className="animate-fadeIn">
+          <MiFitnessHealthSuite />
         </div>
       )}
 

@@ -20,6 +20,7 @@ import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import BiomedicalIntelligencePanel from '@/components/BiomedicalIntelligencePanel';
+import MiFitnessHealthSuite from '@/components/MiFitnessHealthSuite';
 
 export default function GoogleHealthConnector() {
   const [syncState, setSyncState] = useState<SyncSessionState | null>(null);
@@ -669,6 +670,9 @@ export default function GoogleHealthConnector() {
       </div>
 
 
+
+      {/* Suite Premium de Salud Mi Fitness (Xiaomi Band 9 Pro) - Sueño, Hipnograma, Zonas FC, Estrés HRV & SpO2 */}
+      <MiFitnessHealthSuite />
 
       {/* Motor de Inteligencia Biomédica, Fisiología del Ejercicio y Rendimiento Académico UPB */}
       <BiomedicalIntelligencePanel />
