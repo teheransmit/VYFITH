@@ -3,7 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import {
   buildLiveSystemInstruction,
-  localSemanticFallback,
   LiveTelemetrySnapshot,
 } from '@/lib/santiagoKnowledgeBase';
 
@@ -14,6 +13,8 @@ interface MessagePayload {
   role: 'user' | 'assistant';
   text: string;
 }
+
+const REQUEST_TIMEOUT_MS = 32000; // 32 segundos de timeout estricto (30s solicitados por Santiago)
 
 /**
  * Recopila en tiempo real la telemetría viva de todos los módulos de la página (data/*.json)
@@ -30,7 +31,7 @@ function readLivePageSnapshot(): LiveTelemetrySnapshot {
       const metrics = healthData.currentMetrics || {};
       const room = healthData.vyfithData?.roomMetrics || {};
       snapshot.health = {
-        steps: metrics.steps || room.steps || 2375,
+        steps: metrics.steps || room.steps || 2354,
         sleepHours: metrics.sleepHours || room.totalSleepHours || 10.2,
         restingHeartRate: metrics.heartRate || room.restingHeartRate || 62,
         spo2: room.spo2 || 96.7,
@@ -101,23 +102,26 @@ export async function POST(req: NextRequest) {
     const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
     userQuery = lastUserMsg ? lastUserMsg.text : '';
 
-    if (!userQuery) {
-      return NextResponse.json({
-        success: false,
-        error: 'No se recibió ninguna pregunta del usuario.',
-        reply: 'Hola Santiago, ¿en qué te puedo apoyar hoy con tu agenda, entrenamiento, salud o academia?',
-      });
+    if (!userQuery || !userQuery.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No se recibió ninguna pregunta del usuario.',
+          reply: 'Por favor escribe tu consulta para el asistente.',
+        },
+        { status: 400 }
+      );
     }
 
-    // 1. Obtener la telemetría viva de toda la página
+    // 1. Obtener la telemetría viva de toda la página para el System Prompt
     const liveSnapshot = readLivePageSnapshot();
     const systemPromptWithLiveContext = buildLiveSystemInstruction(liveSnapshot);
 
-    // 2. Si el usuario proporcionó una clave de Groq Cloud (Ultra rápida ~800 tokens/s, 0 latencia)
+    // 2. Si el usuario proporcionó una clave de Groq Cloud
     if (groqKey && (groqKey.startsWith('gsk_') || requestedModel === 'groq-llama')) {
       try {
         const groqController = new AbortController();
-        const timeoutId = setTimeout(() => groqController.abort(), 4000);
+        const timeoutId = setTimeout(() => groqController.abort(), REQUEST_TIMEOUT_MS);
 
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -131,8 +135,8 @@ export async function POST(req: NextRequest) {
               { role: 'system', content: systemPromptWithLiveContext },
               ...messages.map((m) => ({ role: m.role, content: m.text })),
             ],
-            temperature: 0.6,
-            max_tokens: 1024,
+            temperature: 0.65,
+            max_tokens: 2048,
           }),
           signal: groqController.signal,
         });
@@ -151,103 +155,158 @@ export async function POST(req: NextRequest) {
               snapshot: liveSnapshot,
             });
           }
+        } else {
+          console.warn('[BioAssistant API] Groq respondió con error:', groqRes.status, groqRes.statusText);
         }
-      } catch (err) {
-        console.warn('[BioAssistant API] Groq timeout/error, continuando...');
+      } catch (err: any) {
+        console.warn('[BioAssistant API] Groq timeout/error:', err.message);
       }
     }
 
-    // 3. Probar clave de Google AI Studio con modelos modernos de 2026 (Ultra ágil)
-    const activeGeminiKey = (clientApiKey && clientApiKey.trim()) || process.env.GEMINI_API_KEY;
+    // 3. Probar clave de Google AI Studio con modelos modernos y timeout de 30s
+    const activeGeminiKey =
+      (clientApiKey && clientApiKey.trim()) ||
+      process.env.GEMINI_API_KEY ||
+      process.env.GEMINI_API_KEY_BACKUP;
 
-    if (activeGeminiKey) {
-      // Modelos 100% operativos en la cuenta de Google AI Studio de Santiago (2026)
-      let fastModels = ['gemini-3.5-flash', 'gemma-4-26b-a4b-it'];
-      if (requestedModel === 'gemma') {
-        fastModels = ['gemma-4-26b-a4b-it', 'gemini-3.5-flash'];
-      } else if (requestedModel === 'gemini-pro') {
-        fastModels = ['gemini-pro-latest', 'gemini-3.5-flash'];
-      }
-
-      // Preparar historial compatible con Gemini API
-      const contents = messages
-        .filter((m) => m.text && m.text.trim())
-        .map((m) => ({
-          role: m.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: m.text.trim() }],
-        }));
-
-      if (contents.length === 0) {
-        contents.push({ role: 'user', parts: [{ text: userQuery }] });
-      }
-
-      const payload = {
-        system_instruction: {
-          parts: [{ text: systemPromptWithLiveContext }],
+    if (!activeGeminiKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No se encontró API Key de Google AI Studio. Configúrala en la interfaz o en .env.local.',
+          reply: '⚠️ Error de Configuración: No se encontró ninguna API Key de Google AI Studio configurada. Por favor ingresa tu API Key en la barra superior de ajustes.',
+          status: 401,
+          source: 'google-ai-studio-error',
         },
-        contents,
-        generationConfig: {
-          temperature: 0.6,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      };
+        { status: 401 }
+      );
+    }
 
-      for (const model of fastModels) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 4200);
+    // Selección de modelos candidatos operativos en la cuenta de Google AI Studio
+    let candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-lite-latest', 'gemma-4-26b-a4b-it'];
+    if (requestedModel === 'gemma') {
+      candidateModels = ['gemma-4-26b-a4b-it', 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+    } else if (requestedModel === 'gemini-pro') {
+      candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemma-4-26b-a4b-it'];
+    }
 
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeGeminiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload),
-              signal: controller.signal,
-            }
-          );
+    // 4. Mapeo estricto del historial de conversación para Google Gemini API
+    const contents: Array<{ role: 'user' | 'model'; parts: [{ text: string }] }> = [];
 
-          clearTimeout(timeoutId);
+    for (const msg of messages) {
+      if (!msg.text || !msg.text.trim()) continue;
+      const role: 'user' | 'model' = msg.role === 'assistant' ? 'model' : 'user';
+      const text = msg.text.trim();
 
-          if (res.ok) {
-            const data = await res.json();
-            const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (replyText && replyText.trim()) {
-              return NextResponse.json({
-                success: true,
-                reply: replyText.trim(),
-                source: 'gemini-ai',
-                model: `${model} (Google AI Studio)`,
-                snapshot: liveSnapshot,
-              });
-            }
+      // En la API de Gemini, roles consecutivos idénticos se fusionan para evitar error HTTP 400
+      if (contents.length > 0 && contents[contents.length - 1].role === role) {
+        contents[contents.length - 1].parts[0].text += '\n\n' + text;
+      } else {
+        contents.push({ role, parts: [{ text }] });
+      }
+    }
+
+    // Asegurar que el último turno sea obligatoriamente del rol 'user'
+    if (contents.length === 0 || contents[contents.length - 1].role !== 'user') {
+      contents.push({ role: 'user', parts: [{ text: userQuery }] });
+    }
+
+    const payload = {
+      system_instruction: {
+        parts: [{ text: systemPromptWithLiveContext }],
+      },
+      contents,
+      generationConfig: {
+        temperature: 0.65,
+        topP: 0.95,
+        maxOutputTokens: 2048,
+      },
+    };
+
+    let lastError: string = '';
+    let lastStatusCode: number = 500;
+    let lastModelAttempted: string = '';
+
+    for (const model of candidateModels) {
+      lastModelAttempted = model;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeGeminiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
           }
-        } catch {
-          // Timeout rápido o 503, probar siguiente
+        );
+
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (replyText && replyText.trim()) {
+            return NextResponse.json({
+              success: true,
+              reply: replyText.trim(),
+              source: 'gemini-ai',
+              model: `${model} (Google AI Studio)`,
+              snapshot: liveSnapshot,
+            });
+          } else {
+            lastStatusCode = 502;
+            lastError = `El modelo ${model} retornó candidatos vacíos o bloqueados por filtros de seguridad.`;
+          }
+        } else {
+          lastStatusCode = res.status;
+          let errorBody = '';
+          try {
+            const errJson = await res.json();
+            errorBody = errJson.error?.message || JSON.stringify(errJson);
+          } catch {
+            errorBody = await res.text();
+          }
+          lastError = `Google AI Studio respondió HTTP ${res.status} (${res.statusText}): ${errorBody}`;
+          console.error(`[BioAssistant API] Error en ${model}:`, lastError);
         }
+      } catch (fetchErr: any) {
+        if (fetchErr.name === 'AbortError') {
+          lastStatusCode = 504;
+          lastError = `Timeout de 30 segundos alcanzado al consultar el modelo ${model} en Google AI Studio.`;
+        } else {
+          lastStatusCode = 500;
+          lastError = `Error de red al conectar con Google AI Studio (${model}): ${fetchErr.message}`;
+        }
+        console.error(`[BioAssistant API] Excepción en ${model}:`, fetchErr);
       }
     }
 
-    // 4. Fallback instantáneo (0ms) con la TELEMETRÍA EN VIVO DE TODA LA PÁGINA
-    const fallbackReply = localSemanticFallback(userQuery, liveSnapshot);
-    return NextResponse.json({
-      success: true,
-      reply: fallbackReply,
-      source: 'live-telemetry-engine',
-      model: 'Copiloto Determínico Telemetría en Vivo (0ms)',
-      snapshot: liveSnapshot,
-    });
+    // 5. SI FALLA LA PETICIÓN: DEVOLVER EL ERROR HTTP REAL. PROHIBIDO FALLBACK A TEXTOS PREFABRICADOS.
+    return NextResponse.json(
+      {
+        success: false,
+        reply: `⚠️ Error de Google AI Studio [HTTP ${lastStatusCode}]: ${lastError || 'Falla desconocida al generar respuesta.'}`,
+        error: lastError,
+        status: lastStatusCode,
+        model: lastModelAttempted,
+        source: 'google-ai-studio-error',
+      },
+      { status: lastStatusCode >= 400 && lastStatusCode < 600 ? lastStatusCode : 500 }
+    );
   } catch (error: any) {
-    console.error('[BioAssistant API] Error:', error);
-    const liveSnapshot = readLivePageSnapshot();
-    const safeReply = localSemanticFallback(userQuery || 'perfil', liveSnapshot);
-    return NextResponse.json({
-      success: true,
-      reply: safeReply,
-      source: 'live-telemetry-fallback',
-      model: 'Copiloto Telemetría en Vivo (0ms)',
-      snapshot: liveSnapshot,
-    });
+    console.error('[BioAssistant API] Error fatal no capturado:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        reply: `⚠️ Error de Servidor [HTTP 500]: ${error.message || 'Error interno inesperado'}`,
+        error: error.message,
+        status: 500,
+        source: 'server-error',
+      },
+      { status: 500 }
+    );
   }
 }

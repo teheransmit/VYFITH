@@ -17,14 +17,13 @@ import {
   Bot,
   Zap,
 } from 'lucide-react';
-import { localSemanticFallback } from '@/lib/santiagoKnowledgeBase';
 
 interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
-  source?: 'gemini-ai' | 'groq-llama-70b' | 'live-telemetry-engine' | 'local-fallback' | 'initial';
+  source?: 'gemini-ai' | 'groq-llama-70b' | 'google-ai-studio-error' | 'initial';
   model?: string;
 }
 
@@ -215,7 +214,7 @@ export default function PersonalBioAssistant() {
 
   const handleTestKey = async () => {
     setIsTestingKey(true);
-    setSaveStatus('Probando conexión multi-modelo...');
+    setSaveStatus('Probando conexión con Google AI Studio...');
     try {
       const res = await fetch('/api/bio-assistant', {
         method: 'POST',
@@ -225,24 +224,24 @@ export default function PersonalBioAssistant() {
           ...(groqApiKey.trim() ? { 'x-groq-api-key': groqApiKey.trim() } : {}),
         },
         body: JSON.stringify({
-          messages: [{ role: 'user', text: 'Ping de prueba. Responde: Conexión exitosa.' }],
+          messages: [{ role: 'user', text: 'Ping de prueba. Responde brevemente: Conexión exitosa con Google AI Studio.' }],
           apiKey: customApiKey.trim() || undefined,
           groqApiKey: groqApiKey.trim() || undefined,
           model: selectedModel,
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        setSaveStatus(`Conexión exitosa con ${data.model || 'Super-Respuesta'} 🟢`);
-        setActiveModel(data.model || 'Super-Respuesta Multi-Modelo');
+      if (res.ok && data.success) {
+        setSaveStatus(`Conexión exitosa con ${data.model || 'Google AI Studio'} 🟢`);
+        setActiveModel(data.model || 'Google AI Studio');
       } else {
-        setSaveStatus(`Respuesta recibida en modo seguro (${data.source}) 🟡`);
+        setSaveStatus(`Error [HTTP ${res.status}]: ${data.error || data.reply || 'Falla de autenticación'} 🔴`);
       }
-    } catch {
-      setSaveStatus('Error de conexión de red 🔴');
+    } catch (err: any) {
+      setSaveStatus(`Error de red: ${err?.message || 'Falla de conexión'} 🔴`);
     } finally {
       setIsTestingKey(false);
-      setTimeout(() => setSaveStatus(null), 4000);
+      setTimeout(() => setSaveStatus(null), 5000);
     }
   };
 
@@ -275,7 +274,7 @@ export default function PersonalBioAssistant() {
     setIsTyping(true);
 
     try {
-      // Formatear mensajes para el endpoint
+      // Formatear mensajes previos para mantener el hilo de la conversación con la IA
       const payloadMessages = newHistory.map((m) => ({
         role: (m.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
         text: m.text,
@@ -299,17 +298,23 @@ export default function PersonalBioAssistant() {
       const data = await res.json();
 
       let replyText = '';
-      let replySource: ChatMessage['source'] = 'live-telemetry-engine';
-      let replyModel = 'Super-Respuesta Multi-Modelo';
+      let replySource: ChatMessage['source'] = 'gemini-ai';
+      let replyModel = 'Google AI Studio';
 
-      if (data && data.success && data.reply) {
+      if (res.ok && data && data.success && data.reply) {
         replyText = data.reply;
-        replySource = data.source || 'gemini-ai';
-        replyModel = data.model || 'Super-Respuesta Multi-Modelo';
+        replySource = (data.source as any) || 'gemini-ai';
+        replyModel = data.model || 'Google AI Studio';
         setActiveModel(replyModel);
       } else {
-        replyText = localSemanticFallback(text);
-        replySource = 'local-fallback';
+        // PROHIBIDO FALLBACK A TEXTOS PREFABRICADOS O BIOGRAFÍAS: MOSTRAR ERROR HTTP REAL
+        const errorDetail = data?.reply || data?.error || `Error HTTP ${res.status}: ${res.statusText || 'Error en la petición a la IA'}`;
+        replyText = typeof errorDetail === 'string' && errorDetail.startsWith('⚠️')
+          ? errorDetail
+          : `⚠️ Error de Google AI Studio [HTTP ${res.status}]: ${errorDetail}`;
+        replySource = 'google-ai-studio-error';
+        replyModel = data?.model ? `${data.model} (Error)` : 'Google AI Studio Error';
+        setActiveModel(replyModel);
       }
 
       const assistantMsg: ChatMessage = {
@@ -322,18 +327,17 @@ export default function PersonalBioAssistant() {
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err) {
-      console.warn('[PersonalBioAssistant] Error de red, usando fallback semántico:', err);
-      const fallbackReply = localSemanticFallback(text);
-      const fallbackMsg: ChatMessage = {
+    } catch (err: any) {
+      console.error('[PersonalBioAssistant] Error de red:', err);
+      const errorMsg: ChatMessage = {
         id: `a-${Date.now()}`,
         sender: 'assistant',
-        text: fallbackReply,
+        text: `⚠️ Error de Red / Conexión al contactar la IA: ${err?.message || 'Error de red inesperado'}. No se pudo conectar con el servidor local o Google AI Studio.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        source: 'local-fallback',
-        model: 'Telemetría Local (0ms)',
+        source: 'google-ai-studio-error',
+        model: 'Error de Red Local',
       };
-      setMessages((prev) => [...prev, fallbackMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsTyping(false);
     }
