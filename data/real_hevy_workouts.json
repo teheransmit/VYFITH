@@ -1,5 +1,193 @@
 [
   {
+    "id": "hevy-real-2026-10-27",
+    "name": "Horizontal Torso (Chest & Back)",
+    "date": "27 oct 2026, 16:15",
+    "durationMinutes": 77,
+    "totalVolumeKg": 4484.0,
+    "totalSets": 20,
+    "rpeAverage": 9.3,
+    "exercises": [
+      {
+        "name": "Stretching",
+        "muscleGroup": "Core",
+        "totalVolume": 0.0,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 0.0,
+            "reps": 1,
+            "rpe": 5.0
+          }
+        ]
+      },
+      {
+        "name": "Bench Press (Barbell)",
+        "muscleGroup": "Pecho",
+        "totalVolume": 894.6,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 14.97,
+            "reps": 16,
+            "rpe": 6.0,
+            "isWarmup": true
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 37.65,
+            "reps": 9,
+            "rpe": 9.5
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 37.65,
+            "reps": 7,
+            "rpe": 9.5
+          }
+        ]
+      },
+      {
+        "name": "Incline Bench Press (Dumbbell)",
+        "muscleGroup": "Pecho",
+        "totalVolume": 666.8,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 31.75,
+            "reps": 7,
+            "rpe": 9.5
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 31.75,
+            "reps": 6,
+            "rpe": 9.5
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 31.75,
+            "reps": 8,
+            "rpe": 9.0
+          }
+        ]
+      },
+      {
+        "name": "Wrist Roller",
+        "muscleGroup": "Brazos",
+        "totalVolume": 707.5,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 18.14,
+            "reps": 14,
+            "rpe": 9.0
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 18.14,
+            "reps": 13,
+            "rpe": 10.0
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 18.14,
+            "reps": 12,
+            "rpe": 10.0
+          }
+        ]
+      },
+      {
+        "name": "Bicep Curl (Cable)",
+        "muscleGroup": "Brazos",
+        "totalVolume": 239.5,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 14.97,
+            "reps": 9,
+            "rpe": 10.0
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 14.97,
+            "reps": 7,
+            "rpe": 10.0
+          }
+        ]
+      },
+      {
+        "name": "Behind the Back Wrist Curl (Barbell)",
+        "muscleGroup": "Brazos",
+        "totalVolume": 1054.2,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 37.65,
+            "reps": 11,
+            "rpe": 8.5
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 37.65,
+            "reps": 9,
+            "rpe": 10.0
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 37.65,
+            "reps": 8,
+            "rpe": 10.0
+          }
+        ]
+      },
+      {
+        "name": "Seated Wrist Extension (Barbell)",
+        "muscleGroup": "Brazos",
+        "totalVolume": 649.1,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 24.04,
+            "reps": 11,
+            "rpe": 10.0
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 24.04,
+            "reps": 8,
+            "rpe": 10.0
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 24.04,
+            "reps": 8,
+            "rpe": 10.0
+          }
+        ]
+      },
+      {
+        "name": "Seated Cable Row - V Grip (Cable)",
+        "muscleGroup": "Espalda",
+        "totalVolume": 325.0,
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 25.0,
+            "reps": 6,
+            "rpe": 7.5
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 25.0,
+            "reps": 7,
+            "rpe": 8.0
+          }
+        ]
+      }
+    ]
+  },
+  {
     "id": "hevy-real-1",
     "name": "Full Legs",
     "date": "30 sept 2026, 16:08",
