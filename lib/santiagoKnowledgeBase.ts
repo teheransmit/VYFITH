@@ -1,6 +1,8 @@
+import { calculateWalkSchedule, initialDogs, SimulationResult } from '@/lib/walkSimulatorStore';
+
 /**
  * Base de Conocimiento Oficial y Sistema de Instrucción de Santiago Smit Teherán Mogollón
- * Sincronizado en tiempo real con los 8 pilares de la plataforma VYFITH.
+ * Sincronizado en tiempo real con los 8 pilares de la plataforma VYFITH y el Simulador UPB.
  */
 
 export interface LiveTelemetrySnapshot {
@@ -39,6 +41,47 @@ export interface LiveTelemetrySnapshot {
 }
 
 /**
+ * Horario oficial de inicio de clases en la UPB Montería por día.
+ */
+export const UPB_DAY_CLASSES = {
+  lunes: '10:00',
+  martes: '08:00', // Análisis de Estructuras (NRC 52885)
+  miercoles: '10:00',
+  jueves: '08:00',
+  viernes: '10:00',
+} as const;
+
+/**
+ * Calcula con precisión matemática el itinerario matutino usando el motor
+ * de backtracking del Simulador de Paseos y Rutinas UPB (walkSimulatorStore).
+ */
+export function getSantiagoWalkScheduleAnalysis(targetDay?: 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes') {
+  const day = targetDay || 'martes'; // Martes por defecto (día clave de Estructuras)
+  const classTime = UPB_DAY_CLASSES[day] || '08:00';
+
+  // Ejecutar el simulador oficial de VYFITH:
+  // Sienna (40m) + Frida (30m) = 70 min paseo, 25 min traslado UPB, 20 min alistamiento, 10 min buffer
+  const sim = calculateWalkSchedule(
+    ['dog-sienna', 'dog-frida'],
+    classTime,
+    25, // commuteMinutes (Montería Centro -> Campus Km 8)
+    20, // prepMinutes (ducha, hidratación, maleta)
+    10  // safetyBufferMin (llegada antes de clase)
+  );
+
+  const isClassAt10 = classTime === '10:00';
+
+  return {
+    day,
+    classTime,
+    sim,
+    isClassAt10,
+    dogs: initialDogs.filter((d) => d.id === 'dog-sienna' || d.id === 'dog-frida'),
+    incomeDay: 9000 + 5850, // Sienna ($9.000) + Frida ($5.850) = $14.850 COP
+  };
+}
+
+/**
  * Calcula con precisión la edad de Santiago (nacido el 30 de mayo de 2005).
  */
 export function getSantiagoAge(): number {
@@ -66,15 +109,28 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
 2. **Santiago es quien te habla (primera persona):** Trátalo de tú como su copiloto personal de máxima confianza ("Tienes disponible...", "En tu examen de Estructuras necesitas...").
 3. **Edad Exacta:** Santiago tiene **21 años** (jamás digas 19).
 
-### 🐕 AGENDA LABORAL CANINA & RUTINA MATUTINA:
-- **05:30 – 06:00 AM:** Paseo de Sienna (30 min) en su apartamento en la Castellana ($9.000 COP).
-- **06:00 – 06:10 AM:** Desplazamiento a pie entre el apto de Sienna y el de Frida (10 min).
-- **06:10 – 06:20 AM:** Paseo de Frida (10 min) en su apartamento ($5.000 COP, Laura).
-- **06:20 – 06:45 AM:** Regreso caminando hacia su casa en Cl 35 # 15B-18 (~3.0 km, 25 min de trayecto, llegada 06:45 AM).
-- **06:45 – 07:20 AM:** Desayuno, hidratación y alistamiento en casa (35 min).
-- **07:20 – 07:45 AM:** Traslado hacia el campus UPB Km 8 vía Cereté (25 min).
-- **Impacto Biométrico:** La rutina matutina genera **~4,500 pasos** y **~200 kcal** de actividad física (NEAT) antes de clases.
-- **Bloqueo de Gimnasio:** La franja de 05:30 a 07:45 AM está **COMPLETAMENTE BLOQUEADA**. Santiago NO entrena en la mañana temprana porque está trabajando con los perros y desplazándose hacia la universidad.
+### 🐕 SIMULADOR DE PASEOS Y RUTINAS UPB (MOTOR MATEMÁTICO REAL):
+- **Algoritmo de Cálculo Retroactivo (Backtracking):** Implementado en \`components/UpbWalkSimulatorSection.tsx\` y \`lib/walkSimulatorStore.ts\`.
+- **Clientes y Tarifas:**
+  * **Sienna (Elena):** 40 min de paseo base ($9.000 COP) en La Castellana \`[8.77228, -75.85933]\`.
+  * **Frida (Laura):** 30 min de paseo base ($5.850 COP) \`[8.77418, -75.86532]\`.
+  * **Ingreso diario proyectado:** +$14.850 COP directo a tus finanzas.
+- **Tiempos de Traslado y Preparación:**
+  * Alistamiento en casa (ducha, hidratación, mochila): 20 min.
+  * Traslado a UPB (Km 8 Vía Cereté): 25 min base (o 15 min en moto).
+  * Margen de seguridad (Buffer de puntualidad): 10 min antes del inicio de clase.
+- **Cronograma Calculado para Días con Clase a las 08:00 AM (Martes / Jueves):**
+  * 1. **Alarma / Despertar:** **05:00 AM** (15 min previo con ropa cómoda).
+  * 2. **Salida al Paseo:** **05:15 AM** (70 min totales con correa: Sienna 40m + Frida 30m).
+  * 3. **Regreso a Casa:** **06:25 AM** (Ducha rápida de 20 min + hidratación).
+  * 4. **Salida a UPB:** **06:45 AM** (Ruta Cereté de 25 min).
+  * 5. **Llegada al Aula:** **07:50 AM** (+10 min de holgura antes de clase a las 08:00 AM).
+  * **Evaluación Térmica Montería:** **Óptimo (Pata Fresca 🐾)** porque finaliza antes de las 06:45 AM, protegiendo las almohadillas de los perros del calor de Montería.
+- **Días con Clase a las 10:00 AM (Lunes / Miércoles / Viernes):**
+  * El retrocálculo arrojaría paseo a las 07:15 AM y regreso a las 08:25 AM, pero a esa hora el asfalto supera los 35°C (**Alerta Calor Montería 🔥**).
+  * **Regla de Oro:** Siempre aconsejar mantener el paseo en la ventana fresca de la madrugada (**05:30 AM**), dejando un bloque libre de 07:00 a 09:30 AM para desayunar, estudiar o ir al gimnasio institucional UPB.
+- **Impacto Biométrico:** La rutina matutina genera **~4,500 pasos** y **~200 kcal** aeróbicas previas antes de cualquier clase.
+- **Bloqueo Matutino de Gimnasio:** La franja de 05:00 a 07:45 AM está **COMPLETAMENTE BLOQUEADA** por trabajo canino y traslado a la universidad.
 
 ### 🏋️ GIMNASIO UPB & HEVY:
 - **Ventana de Entrenamiento Recomendada (Martes y Jueves):**
@@ -96,18 +152,28 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
 `.trim();
 
 /**
- * Genera el prompt enriquecido inyectando la telemetría en vivo de toda la página.
+ * Genera el prompt enriquecido inyectando la telemetría en vivo de toda la página
+ * y los cálculos matemáticos del Simulador de Paseos y Rutinas UPB.
  */
 export function buildLiveSystemInstruction(snapshot?: LiveTelemetrySnapshot | null): string {
+  const walkAnalysis = getSantiagoWalkScheduleAnalysis();
   let liveBlock = '';
 
   if (snapshot) {
     liveBlock = `\n\n### 📡 TELEMETRÍA EN VIVO DE TODA LA PÁGINA (ESTADO ACTUALIZADO EN TIEMPO REAL):
 - **Salud & Mi Fitness Hoy:** ${snapshot.health?.steps?.toLocaleString('es-CO') || '2,375'} pasos | Sueño neto anoche: ${snapshot.health?.sleepHours || '10.2'} horas (${Math.floor(snapshot.health?.sleepHours || 10)}h ${Math.round(((snapshot.health?.sleepHours || 10.2) % 1) * 60)}m) | FC en reposo: ${snapshot.health?.restingHeartRate || 62} lpm | SpO2: ${snapshot.health?.spo2?.toFixed(1) || '96.7'}% | Nivel de estrés: ${snapshot.health?.stressScore || 20}/100 (Relajado).
+- **Simulador de Paseos y Rutinas UPB (${walkAnalysis.day.toUpperCase()}):**
+  * Primera clase UPB: ${walkAnalysis.classTime} | Buffer al aula: 10 min (Llegada ${walkAnalysis.sim.upbArrivalTime}).
+  * Salida de casa hacia UPB Km 8: ${walkAnalysis.sim.homeDepartureTime} (25 min de viaje).
+  * Regreso de paseos a casa: ${walkAnalysis.sim.walkReturnTime} (20 min para ducha y alistamiento).
+  * Salida a paseos caninos: ${walkAnalysis.sim.recommendedWalkDepartureTime} (Sienna 40m + Frida 30m = 70 min).
+  * Alarma matutina: ${walkAnalysis.sim.recommendedWakeUpTime}.
+  * Confort térmico en Montería: ${walkAnalysis.sim.thermalRisk}.
+  * Ingreso diario proyectado: +$${walkAnalysis.incomeDay.toLocaleString('es-CO')} COP.
 - **Gimnasio & Hevy:** Última sesión: "${snapshot.hevy?.lastWorkoutName || 'Horizontal Torso (Chest & Back)'}" con tonelaje de ${snapshot.hevy?.totalVolumeKg?.toLocaleString('es-CO') || '4,484'} kg (${snapshot.hevy?.date || 'ayer'}).
 - **Finanzas Nu:** Saldo líquido en Cajita Nu: $116.929 COP | Efectivo: $5.000 COP | Por cobrar Laura: $25.000 COP | Deuda Daniela: $22.000 COP | Compromiso Yessid: $580.000 COP.
 - **Academia UPB:** Análisis de Estructuras acumulado 2.11 / 5.00 (requiere 2.97 en Examen Final) | Suelos: 2.45 | Presupuesto: 2.55.
-- **Agenda Confirmada:** Franja 05:30 - 07:45 AM ocupada por paseos caninos (Sienna 5:30, Frida 6:10, casa 6:45) y traslado a UPB. Examen Final de Estructuras a las 08:00 AM. Ventana óptima de gym: 10:00 - 11:30 AM (Hueco Dorado) o 16:00 - 17:30 PM.`;
+- **Ventana óptima de gym:** 10:00 - 11:30 AM (Hueco Dorado) o 16:00 - 17:30 PM.`;
   }
 
   return `${SANTIAGO_SYSTEM_INSTRUCTION}${liveBlock}`;
@@ -131,11 +197,11 @@ export function localSemanticFallback(query: string, snapshot?: LiveTelemetrySna
     q.includes('ejercicio')
   ) {
     return [
-      'Tu plan de entrenamiento coordinado con tu agenda laboral y académica:',
+      'Tu plan de entrenamiento coordinado con el Simulador de Paseos UPB y tu carga académica:',
       '',
-      '• **Mañana (05:30 – 07:45 AM):** **Gimnasio totalmente bloqueado.** Estás paseando a Sienna (5:30 a.m.), te trasladas a las 6:00, paseas a Frida (6:10 a.m.) y regresas a casa a las 6:45 a.m., acumulando **~4,500 pasos** y **~200 kcal** aeróbicas previas.',
+      '• **Mañana Temprana (05:00 – 07:45 AM):** **Gimnasio totalmente bloqueado.** El motor del Simulador UPB calcula salida a paseos a las 05:15 AM (70 min con Sienna y Frida), regreso a casa a las 06:25 AM (ducha de 20 min), salida a las 06:45 AM y llegada al aula a las 07:50 AM (+10 min de holgura). Acumulas **~4,500 pasos** y **~200 kcal** aeróbicas previas.',
       '• **08:00 – 09:40 AM:** Presentas tu **Examen Final de Análisis de Estructuras (30%)** en el Aula 109.',
-      '• **Ventana Óptima Recomendada (10:00 – 11:30 AM):** **Hueco Dorado en el Gimnasio UPB.** Al terminar el examen de Estructuras, tu mente se libera del cálculo. Como las piernas ya trabajaron en la caminata matutina, la recomendación biomecánica ideal es **Tren Superior (Brazos, Deltoides o Espalda)**.',
+      '• **Ventana Óptima Recomendada (10:00 – 11:30 AM):** **Hueco Dorado en el Gimnasio UPB.** Al terminar el examen de Estructuras, tu mente se libera del cálculo. Como las piernas ya tuvieron la carga de la caminata matutina, la recomendación biomecánica ideal es **Tren Superior (Brazos, Deltoides o Espalda)**.',
       '• **Segunda Opción:** **16:00 – 17:30 PM** al salir de Mecánica de Suelos y antes de entrar a Presupuesto (18:00).'
     ].join('\n');
   }
@@ -173,20 +239,47 @@ export function localSemanticFallback(query: string, snapshot?: LiveTelemetrySna
     ].join('\n');
   }
 
-  if (q.includes('edad') || q.includes('ano') || q.includes('naciste') || q.includes('cumple')) {
-    return `Santiago tiene **${age} años** (nació el **30 de mayo de 2005** en Montería, Córdoba).`;
+  if (
+    q.includes('perro') ||
+    q.includes('frida') ||
+    q.includes('sienna') ||
+    q.includes('paseo') ||
+    q.includes('itinerario') ||
+    q.includes('simulador') ||
+    q.includes('tiempo')
+  ) {
+    let targetDay: 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes' = 'martes';
+    if (q.includes('lunes')) targetDay = 'lunes';
+    else if (q.includes('martes') || q.includes('manana')) targetDay = 'martes';
+    else if (q.includes('miercoles')) targetDay = 'miercoles';
+    else if (q.includes('jueves')) targetDay = 'jueves';
+    else if (q.includes('viernes')) targetDay = 'viernes';
+
+    const analysis = getSantiagoWalkScheduleAnalysis(targetDay);
+    const { sim, classTime, day, incomeDay, isClassAt10 } = analysis;
+
+    return [
+      `📐 **Cronograma Matutino Calculado por el Simulador UPB (${day.toUpperCase()})**:`,
+      '',
+      `• **Clase Universitaria:** ${classTime} AM (Campus Km 8 Vía Cereté).`,
+      `• **1. Alarma / Despertar:** **${sim.recommendedWakeUpTime} AM** (15 min previo con ropa cómoda).`,
+      `• **2. Salida al Paseo:** **${sim.recommendedWalkDepartureTime} AM** (${sim.totalWalkDurationMin} min de caminata activa con Sienna y Frida).`,
+      `• **3. Regreso a Casa:** **${sim.walkReturnTime} AM** (20 min para ducha, hidratación y mochila).`,
+      `• **4. Salida hacia UPB:** **${sim.homeDepartureTime} AM** (25 min de trayecto en ruta Cereté).`,
+      `• **5. Llegada al Aula:** **${sim.upbArrivalTime} AM** (+${sim.bufferMarginMin} min de buffer de puntualidad).`,
+      '',
+      `🐾 **Cuidado Térmico Montería:** ${sim.thermalRisk}.`,
+      isClassAt10
+        ? '💡 *Nota de Confort Térmico:* En días con clase a las 10:00 AM, el retrocálculo puro da paseo con asfalto caliente (>35°C). La recomendación del simulador es fijar el paseo a las **05:30 AM** (pata fresca) y ganar un bloque libre de 07:00 a 09:30 AM.'
+        : '✅ *Confort Óptimo:* Terminas antes de que el sol caliente el pavimento, protegiendo las almohadillas caninas.',
+      '',
+      `💰 **Impacto Financiero:** +$${incomeDay.toLocaleString('es-CO')} COP diarios ($9.000 Sienna + $5.850 Frida) sumados a tu liquidez.`,
+      `🏃 **Telemetría Física:** ~4,500 pasos y ~200 kcal sumados a tu Xiaomi Smart Band 9 Pro antes de sentarte en el aula.`
+    ].join('\n');
   }
 
-  if (q.includes('perro') || q.includes('frida') || q.includes('sienna') || q.includes('paseo')) {
-    return [
-      'Tu agenda de paseos caninos:',
-      '',
-      '• **05:30 AM:** Llegada al apartamento de Sienna (paseo de 30 min, $9.000 COP).',
-      '• **06:00 AM:** Traslado a pie al apartamento de Frida (10 min).',
-      '• **06:10 AM:** Paseo de Frida (10 min, $5.000 COP con Laura).',
-      '• **06:20 AM:** Retorno a casa en Cl 35 (25 min, llegada 06:45 AM).',
-      '• **Gasto físico:** ~4,500 pasos y 200 kcal antes de salir a la UPB.'
-    ].join('\n');
+  if (/\b(anos|ano|edad|naciste|cumples|cumpleanos)\b/.test(q) && (q.includes('edad') || q.includes('cuanto') || q.includes('ano') || q.includes('nac'))) {
+    return `Santiago tiene **${age} años** (nació el **30 de mayo de 2005** en Montería, Córdoba).`;
   }
 
   return [
