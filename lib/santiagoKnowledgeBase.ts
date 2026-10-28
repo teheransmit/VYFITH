@@ -155,7 +155,10 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
  * Genera el prompt enriquecido inyectando la telemetría en vivo de toda la página
  * y los cálculos matemáticos del Simulador de Paseos y Rutinas UPB.
  */
-export function buildLiveSystemInstruction(snapshot?: LiveTelemetrySnapshot | null): string {
+export function buildLiveSystemInstruction(
+  snapshot?: LiveTelemetrySnapshot | null,
+  megaProyectoNotes?: string
+): string {
   const walkAnalysis = getSantiagoWalkScheduleAnalysis();
   let liveBlock = '';
 
@@ -176,141 +179,9 @@ export function buildLiveSystemInstruction(snapshot?: LiveTelemetrySnapshot | nu
 - **Ventana óptima de gym:** 10:00 - 11:30 AM (Hueco Dorado) o 16:00 - 17:30 PM.`;
   }
 
-  return `${SANTIAGO_SYSTEM_INSTRUCTION}${liveBlock}`;
-}
+  const megaBlock = megaProyectoNotes && megaProyectoNotes.trim()
+    ? `\n\n### 📓 CONOCIMIENTO INTEGRAL DE MEGAPROYECTO (OBSIDIAN CEREBRO):\n${megaProyectoNotes.trim()}`
+    : '';
 
-/**
- * Fallback semántico local enriquecido que utiliza los datos reales de la página
- * garantizando que NUNCA se devuelva una respuesta genérica o desactualizada.
- */
-export function localSemanticFallback(query: string, snapshot?: LiveTelemetrySnapshot | null): string {
-  const q = query.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const age = getSantiagoAge();
-
-  if (
-    q.includes('rutina') ||
-    q.includes('entrenar') ||
-    q.includes('pierna') ||
-    q.includes('gym') ||
-    q.includes('gimnasio') ||
-    q.includes('hevy') ||
-    q.includes('ejercicio')
-  ) {
-    return [
-      'Tu plan de entrenamiento coordinado con el Simulador de Paseos UPB y tu carga académica:',
-      '',
-      '• **Mañana Temprana (05:00 – 07:45 AM):** **Gimnasio totalmente bloqueado.** El motor del Simulador UPB calcula salida a paseos a las 05:15 AM (70 min con Sienna y Frida), regreso a casa a las 06:25 AM (ducha de 20 min), salida a las 06:45 AM y llegada al aula a las 07:50 AM (+10 min de holgura). Acumulas **~4,500 pasos** y **~200 kcal** aeróbicas previas.',
-      '• **08:00 – 09:40 AM:** Presentas tu **Examen Final de Análisis de Estructuras (30%)** en el Aula 109.',
-      '• **Ventana Óptima Recomendada (10:00 – 11:30 AM):** **Hueco Dorado en el Gimnasio UPB.** Al terminar el examen de Estructuras, tu mente se libera del cálculo. Como las piernas ya tuvieron la carga de la caminata matutina, la recomendación biomecánica ideal es **Tren Superior (Brazos, Deltoides o Espalda)**.',
-      '• **Segunda Opción:** **16:00 – 17:30 PM** al salir de Mecánica de Suelos y antes de entrar a Presupuesto (18:00).'
-    ].join('\n');
-  }
-
-  // Correlación cruzada: Sueño Mi Fitness + Entrenamiento Hevy
-  if (
-    (q.includes('sueno') || q.includes('dormi') || q.includes('dormir') || q.includes('descanso')) &&
-    (q.includes('entrena') || q.includes('ayer') || q.includes('hevy') || q.includes('gym') || q.includes('gimnasio') || q.includes('relacion') || q.includes('pecho') || q.includes('espalda') || q.includes('volumen'))
-  ) {
-    const sleepH = snapshot?.health?.sleepHours ? Math.floor(snapshot.health.sleepHours) : 10;
-    const sleepM = snapshot?.health?.sleepHours ? Math.round((snapshot.health.sleepHours % 1) * 60) : 12;
-    const lastWorkout = snapshot?.hevy?.lastWorkoutName || 'Horizontal Torso (Chest & Back)';
-    const vol = snapshot?.hevy?.totalVolumeKg || 4484;
-
-    return [
-      `🧬 **Análisis de Correlación Biomecánica: Sueño Hoy vs. Entrenamiento de Ayer**:`,
-      '',
-      `1. **Carga Muscular y Demanda Neural Previa:**`,
-      `   En tu sesión de ayer (**${lastWorkout}** en Hevy) moviste **${vol.toLocaleString('es-CO')} kg de tonelaje total** a lo largo de 20 series pesadas. Este volumen masivo en pectorales, dorsales y deltoides generó microtrauma fibrilar significativo y una alta fatiga en el Sistema Nervioso Central (SNC).`,
-      '',
-      `2. **Respuesta Adaptativa del Sueño (${sleepH}h ${sleepM}m netas, 94% Eficiencia):**`,
-      `   • **Fase Profunda (2h 12m · 22%):** Tu cuerpo dedicó más de 2 horas a la liberación máxima de la **Hormona del Crecimiento (GH)** para reconstrucción de tejido miofibrilar y resíntesis de glucógeno.`,
-      `   • **Fase REM (2h 40m · 26%):** Clave para la recuperación neuromuscular y la consolidación de los patrones motores de empuje y tracción.`,
-      `   • **Cardiovascular (FC 62 lpm · SpO2 97%):** Tu ritmo cardíaco en reposo se mantuvo bajo y estable, demostrando que el sistema nervioso parasimpático dominó la noche sin signos de sobreentrenamiento.`,
-      '',
-      `3. **Veredicto para la Jornada de Hoy:**`,
-      `   Tu cuerpo completó una **supercompensación neuromuscular total**. Llegas al Examen de Estructuras (8:00 AM) con claridad cognitiva plena y estás 100% recuperado para aprovechar el **Hueco Dorado en el Gimnasio UPB (10:00 – 11:30 AM)** si deseas estimular tren superior o hipertrofia complementaria.`
-    ].join('\n');
-  }
-
-  if (q.includes('sueno') || q.includes('dormi') || q.includes('dormir') || q.includes('descanso') || q.includes('mifitness') || q.includes('pulsera')) {
-    const sleepH = snapshot?.health?.sleepHours ? Math.floor(snapshot.health.sleepHours) : 10;
-    const sleepM = snapshot?.health?.sleepHours ? Math.round((snapshot.health.sleepHours % 1) * 60) : 12;
-    return [
-      `En tu última noche registraste **${sleepH} horas ${sleepM} minutos** de sueño neto real sincronizado desde tu Xiaomi Smart Band 9 Pro:`,
-      '',
-      `• **Eficiencia del Sueño:** **94%** (Excelente regeneración fisiológica del SNC).`,
-      `• **Arquitectura del Sueño:** Profundo 2h 12m (22%), Ligero 5h 10m (50%), REM 2h 40m (26%), Despertares: 2 (24 min).`,
-      `• **Biometría Nocturna:** Frecuencia cardíaca en reposo de 62 bpm, SpO2 de 97% y frecuencia respiratoria de 15 rpm.`,
-      `• **Animal del Sueño:** **El Oso** (patrón regular de acostarse temprano y alta necesidad de sueño reparador).`
-    ].join('\n');
-  }
-
-  if (q.includes('finanza') || q.includes('dinero') || q.includes('nu') || q.includes('cajita') || q.includes('plata') || q.includes('debo') || q.includes('yessid')) {
-    return [
-      'Tu balance financiero y compromisos:',
-      '',
-      '• **Liquidez disponible:** **$121.929 COP** ($116.929 COP en Cajita Nu al 9.30% E.A. y $5.000 COP en efectivo).',
-      '• **Cuentas por cobrar:** $25.000 COP de Laura (5 paseos pendientes de Frida).',
-      '• **Compromiso pendiente:** $22.000 COP a Daniela Bula.',
-      '• **Deuda Moral con Yessid:** **$580.000 COP** (regla innegociable de liquidar antes del iPhone 15 Pro de $1.950.000 COP).',
-      '• **Próximo gasto fijo:** Mensualidad del Gimnasio UPB ($49.000 COP), 100% cubierta.'
-    ].join('\n');
-  }
-
-  if (q.includes('estructura') || q.includes('examen') || q.includes('parcial') || q.includes('nota') || q.includes('concreto')) {
-    return [
-      'En **Análisis de Estructuras** (NRC 52885) tienes un acumulado de **2.11 / 5.00** sobre el 70% calificado.',
-      '',
-      'Para asegurar la materia y desbloquear **Concreto I** el próximo semestre, necesitas una nota de **2.97 (~3.0)** en el Examen Final (30%) de mañana jueves (08:00 a 09:40 AM en Aula 109). Es tu prioridad académica absoluta.'
-    ].join('\n');
-  }
-
-  if (
-    q.includes('perro') ||
-    q.includes('frida') ||
-    q.includes('sienna') ||
-    q.includes('paseo') ||
-    q.includes('itinerario') ||
-    q.includes('simulador') ||
-    q.includes('tiempo')
-  ) {
-    let targetDay: 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes' = 'martes';
-    if (q.includes('lunes')) targetDay = 'lunes';
-    else if (q.includes('martes') || q.includes('manana')) targetDay = 'martes';
-    else if (q.includes('miercoles')) targetDay = 'miercoles';
-    else if (q.includes('jueves')) targetDay = 'jueves';
-    else if (q.includes('viernes')) targetDay = 'viernes';
-
-    const analysis = getSantiagoWalkScheduleAnalysis(targetDay);
-    const { sim, classTime, day, incomeDay, isClassAt10 } = analysis;
-
-    return [
-      `📐 **Cronograma Matutino Calculado por el Simulador UPB (${day.toUpperCase()})**:`,
-      '',
-      `• **Clase Universitaria:** ${classTime} AM (Campus Km 8 Vía Cereté).`,
-      `• **1. Alarma / Despertar:** **${sim.recommendedWakeUpTime} AM** (15 min previo con ropa cómoda).`,
-      `• **2. Salida al Paseo:** **${sim.recommendedWalkDepartureTime} AM** (${sim.totalWalkDurationMin} min de caminata activa con Sienna y Frida).`,
-      `• **3. Regreso a Casa:** **${sim.walkReturnTime} AM** (20 min para ducha, hidratación y mochila).`,
-      `• **4. Salida hacia UPB:** **${sim.homeDepartureTime} AM** (25 min de trayecto en ruta Cereté).`,
-      `• **5. Llegada al Aula:** **${sim.upbArrivalTime} AM** (+${sim.bufferMarginMin} min de buffer de puntualidad).`,
-      '',
-      `🐾 **Cuidado Térmico Montería:** ${sim.thermalRisk}.`,
-      isClassAt10
-        ? '💡 *Nota de Confort Térmico:* En días con clase a las 10:00 AM, el retrocálculo puro da paseo con asfalto caliente (>35°C). La recomendación del simulador es fijar el paseo a las **05:30 AM** (pata fresca) y ganar un bloque libre de 07:00 a 09:30 AM.'
-        : '✅ *Confort Óptimo:* Terminas antes de que el sol caliente el pavimento, protegiendo las almohadillas caninas.',
-      '',
-      `💰 **Impacto Financiero:** +$${incomeDay.toLocaleString('es-CO')} COP diarios ($9.000 Sienna + $5.850 Frida) sumados a tu liquidez.`,
-      `🏃 **Telemetría Física:** ~4,500 pasos y ~200 kcal sumados a tu Xiaomi Smart Band 9 Pro antes de sentarte en el aula.`
-    ].join('\n');
-  }
-
-  if (/\b(anos|ano|edad|naciste|cumples|cumpleanos)\b/.test(q) && (q.includes('edad') || q.includes('cuanto') || q.includes('ano') || q.includes('nac'))) {
-    return `Santiago tiene **${age} años** (nació el **30 de mayo de 2005** en Montería, Córdoba).`;
-  }
-
-  return [
-    `**Santiago Smit Teherán Mogollón** (${age} años, nacido el 30 de mayo de 2005, UPB Montería, PGA 3.93) es un Ingeniero Civil Computacional e Hidroinformático en formación.`,
-    '',
-    'Combina el cálculo estructural y la modelación hidráulica con el desarrollo de software (Next.js, TypeScript, Python, PyQGIS), entrenamientos de fuerza en Hevy (57 kg ➔ 60 kg) y una gestión financiera rigurosa en Nu Colombia.'
-  ].join('\n');
+  return `${SANTIAGO_SYSTEM_INSTRUCTION}${liveBlock}${megaBlock}`;
 }

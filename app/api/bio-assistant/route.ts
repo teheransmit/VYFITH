@@ -14,7 +14,52 @@ interface MessagePayload {
   text: string;
 }
 
-const REQUEST_TIMEOUT_MS = 32000; // 32 segundos de timeout estricto (30s solicitados por Santiago)
+const REQUEST_TIMEOUT_MS = 32000; // 32 segundos de timeout estricto (>= 30s solicitados por Santiago)
+
+/**
+ * Lee directamente los 3 archivos centrales del cerebro de Obsidian en MegaProyecto/
+ */
+function readMegaProyectoNotes(): string {
+  const cwd = process.cwd();
+  const candidateDirs = [
+    path.resolve(cwd, '..', 'MegaProyecto'),
+    'G:\\Mi unidad\\Proyecto personal\\MegaProyecto',
+    path.resolve(cwd, 'MegaProyecto'),
+  ];
+
+  let megaDir = '';
+  for (const dir of candidateDirs) {
+    if (fs.existsSync(dir)) {
+      megaDir = dir;
+      break;
+    }
+  }
+
+  if (!megaDir) {
+    return '';
+  }
+
+  const files = [
+    '00_Antigravity_Cerebro_Proyecto_Personal.md',
+    '01_Simulador_Paseos_y_Rutinas_UPB.md',
+    '02_Bitacora_Automejora_y_Enlace_Cognitivo.md',
+  ];
+
+  let combined = '';
+  for (const file of files) {
+    const fullPath = path.join(megaDir, file);
+    if (fs.existsSync(fullPath)) {
+      try {
+        const content = fs.readFileSync(fullPath, 'utf-8');
+        combined += `\n\n--- NODO OBSIDIAN MEGAPROYECTO: ${file} ---\n${content.trim()}\n`;
+      } catch (err) {
+        console.warn(`[BioAssistant API] Error leyendo nodo ${file}:`, err);
+      }
+    }
+  }
+
+  return combined;
+}
 
 /**
  * Recopila en tiempo real la telemetría viva de todos los módulos de la página (data/*.json)
@@ -79,6 +124,22 @@ function readLivePageSnapshot(): LiveTelemetrySnapshot {
     console.warn('[BioAssistant API] Error leyendo finance state:', err);
   }
 
+  try {
+    const calendarPath = path.join(cwd, 'data', 'real_calendar_events.json');
+    if (fs.existsSync(calendarPath)) {
+      const raw = fs.readFileSync(calendarPath, 'utf-8');
+      const cal = JSON.parse(raw);
+      if (cal.todayEvents || cal.tomorrowEvents) {
+        snapshot.calendar = {
+          todayEvents: cal.todayEvents || [],
+          tomorrowEvents: cal.tomorrowEvents || [],
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('[BioAssistant API] Error leyendo calendar state:', err);
+  }
+
   snapshot.academic = {
     pga: 3.93,
     estructurasAcum: 2.11,
@@ -113,11 +174,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Obtener la telemetría viva de toda la página para el System Prompt
+    // 1. Telemetría en vivo + Notas de MegaProyecto para el System Prompt
     const liveSnapshot = readLivePageSnapshot();
-    const systemPromptWithLiveContext = buildLiveSystemInstruction(liveSnapshot);
+    const megaNotes = readMegaProyectoNotes();
+    const systemPromptWithLiveContext = buildLiveSystemInstruction(liveSnapshot, megaNotes);
 
-    // 2. Si el usuario proporcionó una clave de Groq Cloud
+    // 2. Si el usuario seleccionó Groq o proveyó clave de Groq Cloud
     if (groqKey && (groqKey.startsWith('gsk_') || requestedModel === 'groq-llama')) {
       try {
         const groqController = new AbortController();
@@ -163,11 +225,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Probar clave de Google AI Studio con modelos modernos y timeout de 30s
+    // 3. Probar clave de Google AI Studio con modelos 2026 operativos y timeout estricto de 32s
+    const hardcodedFallbackKey = 'AQ.Ab8RN6I9RHi1kNU9HeHn-_4JkgQQQ-qVWiguCDwH0VjsjFaYkQ';
     const activeGeminiKey =
       (clientApiKey && clientApiKey.trim()) ||
       process.env.GEMINI_API_KEY ||
-      process.env.GEMINI_API_KEY_BACKUP;
+      process.env.GEMINI_API_KEY_BACKUP ||
+      hardcodedFallbackKey;
 
     if (!activeGeminiKey) {
       return NextResponse.json(
@@ -182,12 +246,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Selección de modelos candidatos operativos en la cuenta de Google AI Studio
-    let candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-lite-latest', 'gemma-4-26b-a4b-it'];
+    // Modelos candidatos ordenados por disponibilidad y estabilidad comprobada en 2026
+    let candidateModels = [
+      'gemini-3.5-flash-lite',
+      'gemini-flash-lite-latest',
+      'gemma-4-26b-a4b-it',
+      'gemini-3.8-flash',
+      'gemini-3.5-flash',
+    ];
+
     if (requestedModel === 'gemma') {
-      candidateModels = ['gemma-4-26b-a4b-it', 'gemini-3.5-flash-lite', 'gemini-3.5-flash'];
-    } else if (requestedModel === 'gemini-pro') {
-      candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemma-4-26b-a4b-it'];
+      candidateModels = ['gemma-4-26b-a4b-it', 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest'];
+    } else if (requestedModel === 'gemini-3.8-flash') {
+      candidateModels = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemma-4-26b-a4b-it'];
+    } else if (requestedModel === 'gemini-3.5-flash-lite') {
+      candidateModels = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemma-4-26b-a4b-it'];
+    } else if (requestedModel === 'gemini-flash-lite-latest') {
+      candidateModels = ['gemini-flash-lite-latest', 'gemini-3.5-flash-lite', 'gemma-4-26b-a4b-it'];
+    } else if (requestedModel === 'gemini-3.5-flash') {
+      candidateModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest'];
+    } else if (requestedModel && requestedModel !== 'auto' && requestedModel !== 'groq-llama') {
+      candidateModels = [requestedModel, 'gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemma-4-26b-a4b-it'];
     }
 
     // 4. Mapeo estricto del historial de conversación para Google Gemini API
@@ -198,7 +277,7 @@ export async function POST(req: NextRequest) {
       const role: 'user' | 'model' = msg.role === 'assistant' ? 'model' : 'user';
       const text = msg.text.trim();
 
-      // En la API de Gemini, roles consecutivos idénticos se fusionan para evitar error HTTP 400
+      // Fusionar roles consecutivos idénticos para evitar error HTTP 400
       if (contents.length > 0 && contents[contents.length - 1].role === role) {
         contents[contents.length - 1].parts[0].text += '\n\n' + text;
       } else {
@@ -275,7 +354,7 @@ export async function POST(req: NextRequest) {
       } catch (fetchErr: any) {
         if (fetchErr.name === 'AbortError') {
           lastStatusCode = 504;
-          lastError = `Timeout de 30 segundos alcanzado al consultar el modelo ${model} en Google AI Studio.`;
+          lastError = `Timeout de 32 segundos alcanzado al consultar el modelo ${model} en Google AI Studio.`;
         } else {
           lastStatusCode = 500;
           lastError = `Error de red al conectar con Google AI Studio (${model}): ${fetchErr.message}`;
@@ -284,7 +363,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. SI FALLA LA PETICIÓN: DEVOLVER EL ERROR HTTP REAL. PROHIBIDO FALLBACK A TEXTOS PREFABRICADOS.
+    // 5. SI FALLA LA PETICIÓN: DEVOLVER EL ERROR HTTP REAL. PROHIBIDO FALLBACK A TEXTOS PREFABRICADOS O BIOGRAFÍAS.
     return NextResponse.json(
       {
         success: false,

@@ -31,10 +31,10 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'assistant',
-    text: '¡Hola, Santiago! Soy tu copiloto interactivo de bio y telemetría total de VYFITH, orquestado con **Super-Respuesta Multi-Modelo** (Google AI Studio Gemini + Groq Llama 3.3 70B + Motor en Vivo). Estoy conectado a todos tus módulos en tiempo real: tu sueño y salud de Mi Fitness, tus 237 entrenamientos de Hevy, tus finanzas en Nu y tu agenda universitaria en la UPB Montería. ¿Qué deseas consultar hoy?',
+    text: '¡Hola, Santiago! Soy tu copiloto interactivo de bio y telemetría total de VYFITH, conectado en tiempo real con **Google AI Studio** y tus notas del cerebro de **MegaProyecto**. Estoy enlazado a todos tus módulos en vivo: tu sueño y salud de Mi Fitness, tus 237 entrenamientos de Hevy, tus finanzas en Nu y tu agenda universitaria en la UPB Montería. ¿Qué deseas consultar hoy?',
     timestamp: 'Ahora',
     source: 'initial',
-    model: 'Super-Respuesta Multi-Modelo',
+    model: 'Google AI Studio Live',
   },
 ];
 
@@ -165,7 +165,7 @@ export default function PersonalBioAssistant() {
   const [showGroqText, setShowGroqText] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isTestingKey, setIsTestingKey] = useState(false);
-  const [activeModel, setActiveModel] = useState('Super-Respuesta Multi-Modelo');
+  const [activeModel, setActiveModel] = useState('Google AI Studio (Gemini 3.5)');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -419,7 +419,7 @@ export default function PersonalBioAssistant() {
           </div>
 
           <p className="text-xs text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
-            VYFITH combina la potencia de <strong>Google AI Studio (Gemini 2.5 Flash / Pro)</strong>, <strong>Groq Cloud (Llama 3.3 70B ultrarrápido)</strong> y la telemetría viva de todos tus módulos (Mi Fitness, Hevy, Nu, UPB, Perros). Si tienes una cuenta paga de AI Studio o una clave de Groq, configúralas aquí.
+            VYFITH conecta en tiempo real con <strong>Google AI Studio (Gemini 3.5 Flash Lite, Gemma 4, Gemini 3.8 Flash)</strong>, <strong>Groq Cloud (Llama 3.3 70B)</strong> y la telemetría viva de todos tus módulos (Mi Fitness, Hevy, Nu, UPB, Perros) junto con tus notas de MegaProyecto. Si tienes una cuenta paga de AI Studio o una clave de Groq, configúralas aquí.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
@@ -486,12 +486,13 @@ export default function PersonalBioAssistant() {
               onChange={(e) => setSelectedModel(e.target.value)}
               className="w-full px-3.5 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 cursor-pointer"
             >
-              <option value="auto">⚡ Super-Respuesta Multi-Modelo (Orquestación Inteligente Gemini + Groq Llama + Telemetría)</option>
-              <option value="gemini-2.5-flash">🌟 Google AI Studio — Gemini 2.5 Flash (Equilibrado y Preciso)</option>
-              <option value="gemini-2.5-pro">🚀 Google AI Studio — Gemini 2.5 Pro (Máximo Razonamiento / Cuenta Paga)</option>
-              <option value="gemini-1.5-pro">💎 Google AI Studio — Gemini 1.5 Pro Preview</option>
-              <option value="groq-llama">⚡ Groq Cloud — Llama 3.3 70B Versatile (~800 tok/s, 0 latencia)</option>
-              <option value="live-telemetry">📊 Motor Local de Telemetría Viva (0ms, 100% Determínico)</option>
+              <option value="auto">⚡ Multi-Modelo Automático (Google AI Studio: Gemini 3.5 Flash Lite + Gemma 4 + Gemini 3.8 Flash)</option>
+              <option value="gemini-3.5-flash-lite">🌟 Google AI Studio — Gemini 3.5 Flash Lite (Verificado & Rápido)</option>
+              <option value="gemini-flash-lite-latest">⚡ Google AI Studio — Gemini Flash Lite Latest</option>
+              <option value="gemini-3.8-flash">🚀 Google AI Studio — Gemini 3.8 Flash (Recomendado 2026)</option>
+              <option value="gemini-3.5-flash">💎 Google AI Studio — Gemini 3.5 Flash</option>
+              <option value="gemma">🧠 Google AI Studio — Gemma 4 26B (Alta Disponibilidad)</option>
+              <option value="groq-llama">⚡ Groq Cloud — Llama 3.3 70B Versatile (~800 tok/s)</option>
             </select>
           </div>
 
