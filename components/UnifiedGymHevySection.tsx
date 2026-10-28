@@ -31,6 +31,7 @@ import {
 } from '@/lib/upbGymStore';
 import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
 import MuscleHeatmap from './MuscleHeatmap';
+import HevyWorkoutsSection from './HevyWorkoutsSection';
 
 export interface UnifiedGymHevyProps {
   initialSubTab?: 'all' | 'schedule' | 'hevy';
@@ -452,100 +453,9 @@ export default function UnifiedGymHevySection({
         </div>
       )}
 
-      {/* 5. HISTORIAL DE SESIONES DETALLADAS DE HEVY (Sets, Cargas, RPE) */}
+      {/* 5. HISTORIAL DE SESIONES DETALLADAS DE HEVY (Estilo Hevy Web Descomprimido) */}
       {(subTab === 'all' || subTab === 'hevy') && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-6 animate-fadeIn">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Dumbbell className="w-4 h-4 text-rose-500" />
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Detalle de Sesiones Hevy</span>
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                Cargas y Ejercicios Registrados
-              </h2>
-            </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Sincronizado con Hevy App API & Export CSV
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Lista de Sesiones Recientes */}
-            <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1.5 scrollbar-thin">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-                Sesiones Disponibles ({sessions.length})
-              </span>
-              {sessions.map((sess) => {
-                const isSelected = sess.id === selectedSession.id;
-                return (
-                  <div
-                    key={sess.id}
-                    onClick={() => setSelectedSessionId(sess.id)}
-                    className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-rose-50/70 dark:bg-rose-950/40 border-rose-300 dark:border-rose-700/80 ring-2 ring-rose-200 dark:ring-rose-900/50'
-                        : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{sess.name}</h4>
-                      <ChevronRight className={`w-4 h-4 ${isSelected ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}`} />
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-2">
-                      <span className="flex items-center gap-1 font-mono">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" /> {sess.durationMinutes} min
-                      </span>
-                      <span>•</span>
-                      <span>{sess.totalVolumeKg.toLocaleString()} kg</span>
-                      <span>•</span>
-                      <span>{sess.totalSets} series</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Desglose de Ejercicios de la Sesión */}
-            <div className="lg:col-span-2 bg-slate-50/60 dark:bg-slate-800/30 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-5">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-4">
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">{selectedSession.name}</h4>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">Desglose de series efectivas y esfuerzo (RPE)</span>
-                </div>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/80 dark:border dark:border-rose-800/60 text-rose-700 dark:text-rose-300">
-                  {selectedSession.totalVolumeKg.toLocaleString()} kg levantados
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                {selectedSession.exercises.map((ex, idx) => (
-                  <div key={idx} className="bg-white dark:bg-slate-800/80 p-3.5 rounded-xl border border-slate-100 dark:border-slate-700/80">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-xs text-slate-900 dark:text-slate-100">{ex.name}</span>
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300">
-                        {ex.muscleGroup}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {ex.sets.map((s) => (
-                        <div
-                          key={s.setNumber}
-                          className="px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/80 border border-slate-100 dark:border-slate-700 text-[11px] font-mono"
-                        >
-                          <span className="text-slate-400 dark:text-slate-500">Set {s.setNumber}:</span>{' '}
-                          <strong className="text-slate-900 dark:text-slate-100">{s.weightKg}kg</strong> x {s.reps} reps{' '}
-                          <span className="text-amber-600 dark:text-amber-400 font-semibold">@{s.rpe}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <HevyWorkoutsSection />
       )}
 
       {/* 6. VALIDACIÓN INSTITUCIONAL SIGAA & CHECKLIST */}
