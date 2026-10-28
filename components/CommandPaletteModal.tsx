@@ -99,6 +99,9 @@ export default function CommandPaletteModal({
         onClose();
       },
       badge: 'Báscula Femmto',
+    },
+    {
+      id: 'action-hevy-load',
       title: 'Sobrecarga Progresiva de Hevy (14.280 kg)',
       subtitle: 'Examinar series efectivas, tonelaje y progresión de cargas',
       category: 'Acción Rápida',
