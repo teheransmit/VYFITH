@@ -1,13 +1,18 @@
 export interface ExerciseSet {
   setNumber: number;
   weightKg: number;
+  weightLbs?: number;
   reps: number;
   rpe?: number;
   isWarmup?: boolean;
+  indicator?: 'warmup' | 'normal' | 'drop' | 'failure';
+  durationSeconds?: number;
 }
 
 export interface HevyExercise {
   name: string;
+  esTitle?: string;
+  notes?: string;
   muscleGroup: 'Pecho' | 'Espalda' | 'Piernas' | 'Hombros' | 'Brazos' | 'Core';
   sets: ExerciseSet[];
   totalVolume: number;
@@ -17,10 +22,14 @@ export interface HevyWorkoutSession {
   id: string;
   name: string;
   date: string;
+  startTimeLocal?: string;
+  endTimeLocal?: string;
   durationMinutes: number;
   totalVolumeKg: number;
+  totalVolumeLbs?: number;
   totalSets: number;
   rpeAverage: number;
+  notes?: string;
   exercises: HevyExercise[];
 }
 
