@@ -160,46 +160,47 @@ export default function UnifiedHealthFitnessSection() {
         </div>
       </div>
 
-      {/* 2. RENDERIZADO CONDICIONAL DE CONTENIDO */}
+      {/* 2. RENDERIZADO CONDICIONAL DE CONTENIDO: ARQUITECTURA BENTO GRID 12 COLUMNAS */}
       {activeSubView === 'combined' && (
-        <div className="space-y-8 animate-fadeIn">
-          {/* Bloque 1: Panel Biométrico y Readiness en Tiempo Real */}
-          <div>
-            <div className="mb-4 flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-900 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                <span>Bloque 1: Biometría, Readiness & Conexión Health Connect</span>
-              </span>
+        <div className="space-y-6 animate-fadeIn">
+          {/* MOSAICO BENTO GRID (FILA 1 Y FILA 2 EN 2 MITADES PARALELAS) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            {/* FILA 1 - MITAD IZQUIERDA (lg:col-span-6): Salud Biométrica & Conexión Google Health + Batería Corporal */}
+            <div className="lg:col-span-6 space-y-4">
+              <GoogleHealthConnector hideNestedSuites={true} />
             </div>
-            <GoogleHealthConnector />
+
+            {/* FILA 1 - MITAD DERECHA (lg:col-span-6): Telemetría de Salud, Sueño & Ritmo Cardíaco (Mi Fitness) */}
+            <div className="lg:col-span-6 space-y-4">
+              <MiFitnessHealthSuite />
+            </div>
+
+            {/* FILA 2 - MITAD IZQUIERDA (lg:col-span-6): Matriz Fisiológica y Cognitiva + Gimnasio UPB & Hevy Workouts (Estado & KPIs) */}
+            <div className="lg:col-span-6 space-y-4">
+              <BiomedicalIntelligencePanel />
+              <UpbGymStatusAndKpis />
+            </div>
+
+            {/* FILA 2 - MITAD DERECHA (lg:col-span-6): Mapa de Calor Muscular & Detección de Estancamientos */}
+            <div className="lg:col-span-6 space-y-4">
+              <MuscleHeatmap />
+            </div>
           </div>
 
-          {/* Bloque 1B: Composición Corporal & Báscula Femmto */}
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-100 dark:bg-teal-950/80 text-teal-900 dark:text-teal-300 border border-teal-200 dark:border-teal-800/60 flex items-center gap-1.5 self-start">
-                <Scale className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-                <span>Bloque 1B: Composición Corporal (Báscula Femmto)</span>
-              </span>
-              <button
-                onClick={() => setActiveSubView('femmto')}
-                className="cursor-pointer text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline flex items-center gap-1"
-              >
-                <span>Ver Informe Completo Femmto & Historial (27 Pesajes) →</span>
-              </button>
-            </div>
+          {/* FILA 3: SINCRONIZACIÓN HEVY / HORIZONTAL TORSO EN GRILLA MULTICOLUMNA RESPONSIVA (CERO ESPACIO MUERTO) */}
+          <div className="pt-2">
+            <HevyWorkoutsSection />
+          </div>
+
+          {/* FILA 4: COMPOSICIÓN CORPORAL FEMMTO & MATRIZ DE HORARIOS UPB / SIGAA */}
+          <div className="space-y-6 pt-2">
             <FemmtoBodyCompositionSuite />
-          </div>
-
-          {/* Bloque 2: Gimnasio UPB Montería & Sobrecarga Hevy */}
-          <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="mb-4 flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-900 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 flex items-center gap-1.5">
-                <Dumbbell className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-                <span>Bloque 2: Gimnasio UPB (Horarios Clases) & Sobrecarga Hevy</span>
-              </span>
-            </div>
-            <UnifiedGymHevySection hideHeader={true} initialSubTab="all" />
+            <UnifiedGymHevySection
+              hideHeader={true}
+              hideKpisAndHeatmap={true}
+              hideHevyWorkouts={true}
+              initialSubTab="schedule"
+            />
           </div>
         </div>
       )}

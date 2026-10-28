@@ -26,7 +26,7 @@ export interface CommandItem {
   id: string;
   title: string;
   subtitle: string;
-  category: 'Pilar Principal' | 'Acción Rápida' | 'Universidad & Academia';
+  category: 'Pilar Principal' | 'Acción Rápida' | 'Universidad & Academia' | 'Salud & Biometría';
   icon: React.ReactNode;
   action: () => void;
   badge?: string;
