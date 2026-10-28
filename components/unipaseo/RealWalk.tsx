@@ -323,12 +323,6 @@ export default function RealWalk({ onSaveWalk }: RealWalkProps) {
               >
                 + Frida 🍇
               </button>
-              <button
-                onClick={() => registerEvent('pick_M')}
-                className="flex-1 bg-amber-100 hover:bg-amber-200 text-amber-800 py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-amber-200 shadow-xs"
-              >
-                + Molly 🍌
-              </button>
             </div>
             <button
               onClick={endWalk}

@@ -11,18 +11,17 @@ import {
   SlidersHorizontal, 
   Shuffle, 
   AlertCircle, 
-  Lock,
-  CloudLightning,
-  Activity,
-  Wind,
-  Bike,
-  Dog,
+  CloudLightning, 
+  Activity, 
+  Wind, 
+  Bike, 
+  Dog, 
 } from 'lucide-react';
 
 interface ConfigPanelProps {
   settings: RouteSettings;
   onChangeSettings: (newSettings: RouteSettings) => void;
-  isThreeDogs: boolean;
+  isThreeDogs?: boolean;
   onOpenDogManager?: () => void;
 }
 
@@ -40,21 +39,12 @@ export default function ConfigPanel({
   };
 
   const handleShuffleOrder = () => {
-    let order: ('S' | 'F' | 'M')[] = ['S', 'F', 'M'];
-    if (isThreeDogs) {
-      for (let i = order.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [order[i], order[j]] = [order[j], order[i]];
-      }
-    } else {
-      const sf: ('S' | 'F')[] = ['S', 'F'];
-      if (Math.random() < 0.5) sf.reverse();
-      order = [sf[0], sf[1], 'M'];
-    }
-    updateSetting('pickupOrder', order);
+    const sf: ('S' | 'F')[] = ['S', 'F'];
+    if (Math.random() < 0.5) sf.reverse();
+    updateSetting('pickupOrder', sf);
   };
 
-  const handleOrderChange = (index: number, value: 'S' | 'F' | 'M') => {
+  const handleOrderChange = (index: number, value: 'S' | 'F') => {
     const newOrder = [...settings.pickupOrder];
     const prevVal = newOrder[index];
     const existingIndex = newOrder.indexOf(value);
@@ -62,11 +52,11 @@ export default function ConfigPanel({
       newOrder[existingIndex] = prevVal;
     }
     newOrder[index] = value;
-    updateSetting('pickupOrder', newOrder as ('S' | 'F' | 'M')[]);
+    updateSetting('pickupOrder', newOrder as ('S' | 'F')[]);
   };
 
   const hasDuplicateInOrder = () => {
-    const activeOrder = isThreeDogs ? settings.pickupOrder : settings.pickupOrder.slice(0, 2);
+    const activeOrder = settings.pickupOrder.slice(0, 2);
     return new Set(activeOrder).size !== activeOrder.length;
   };
 
@@ -173,27 +163,23 @@ export default function ConfigPanel({
           <span className="font-black text-orange-600 dark:text-orange-400 text-xs shrink-0 w-6">1º</span>
           <select
             value={settings.pickupOrder[0]}
-            onChange={(e) => handleOrderChange(0, e.target.value as 'S' | 'F' | 'M')}
+            onChange={(e) => handleOrderChange(0, e.target.value as 'S' | 'F')}
             className="flex-1 px-2 py-1.5 border border-orange-200 dark:border-orange-800 bg-white dark:bg-slate-900 rounded-xl text-xs font-bold text-slate-700 dark:text-white"
           >
             <option value="S">Sienna (Palmanova)</option>
             <option value="F">Frida (Castellana 101)</option>
-            <option value="M" disabled={!isThreeDogs}>
-              Molly (La Castellana)
-            </option>
           </select>
           <div className="flex items-center gap-1.5 w-24 shrink-0">
             <input
               type="number"
               min="5"
               max="120"
-              value={settings.pickupOrder[0] === 'S' ? settings.goalSienna : settings.pickupOrder[0] === 'F' ? settings.goalFrida : settings.goalMolly}
+              value={settings.pickupOrder[0] === 'S' ? settings.goalSienna : settings.goalFrida}
               onChange={(e) => {
                 const id = settings.pickupOrder[0];
                 const v = parseInt(e.target.value) || 30;
                 if (id === 'S') updateSetting('goalSienna', v);
-                else if (id === 'F') updateSetting('goalFrida', v);
-                else updateSetting('goalMolly', v);
+                else updateSetting('goalFrida', v);
               }}
               className="w-full px-1.5 py-1 border border-orange-200 dark:border-orange-800 rounded-lg bg-white dark:bg-slate-900 text-xs text-center font-extrabold text-orange-700 dark:text-orange-400"
             />
@@ -206,77 +192,27 @@ export default function ConfigPanel({
           <span className="font-black text-purple-600 dark:text-purple-400 text-xs shrink-0 w-6">2º</span>
           <select
             value={settings.pickupOrder[1]}
-            onChange={(e) => handleOrderChange(1, e.target.value as 'S' | 'F' | 'M')}
+            onChange={(e) => handleOrderChange(1, e.target.value as 'S' | 'F')}
             className="flex-1 px-2 py-1.5 border border-purple-200 dark:border-purple-800 bg-white dark:bg-slate-900 rounded-xl text-xs font-bold text-slate-700 dark:text-white"
           >
             <option value="F">Frida (Castellana 101)</option>
             <option value="S">Sienna (Palmanova)</option>
-            <option value="M" disabled={!isThreeDogs}>
-              Molly (La Castellana)
-            </option>
           </select>
           <div className="flex items-center gap-1.5 w-24 shrink-0">
             <input
               type="number"
               min="5"
               max="120"
-              value={settings.pickupOrder[1] === 'S' ? settings.goalSienna : settings.pickupOrder[1] === 'F' ? settings.goalFrida : settings.goalMolly}
+              value={settings.pickupOrder[1] === 'S' ? settings.goalSienna : settings.goalFrida}
               onChange={(e) => {
                 const id = settings.pickupOrder[1];
                 const v = parseInt(e.target.value) || 30;
                 if (id === 'S') updateSetting('goalSienna', v);
-                else if (id === 'F') updateSetting('goalFrida', v);
-                else updateSetting('goalMolly', v);
+                else updateSetting('goalFrida', v);
               }}
               className="w-full px-1.5 py-1 border border-purple-200 dark:border-purple-800 rounded-lg bg-white dark:bg-slate-900 text-xs text-center font-extrabold text-purple-700 dark:text-purple-400"
             />
             <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold">m</span>
-          </div>
-        </div>
-
-        {/* 3rd position - Molly row */}
-        <div 
-          className={`flex items-center gap-2 p-2.5 rounded-2xl border transition-all ${
-            isThreeDogs 
-              ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-200/50 dark:border-amber-900/40 opacity-100' 
-              : 'bg-slate-100 dark:bg-slate-800/40 border-slate-200/50 dark:border-slate-800 opacity-50'
-          }`}
-        >
-          <span className="font-black text-amber-600 dark:text-amber-400 text-xs shrink-0 w-6">3º</span>
-          <div className="flex-1 flex items-center justify-between min-w-0">
-            {isThreeDogs ? (
-              <select
-                value={settings.pickupOrder[2]}
-                onChange={(e) => handleOrderChange(2, e.target.value as 'S' | 'F' | 'M')}
-                className="w-full px-2 py-1.5 border border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-900 rounded-xl text-xs font-bold text-slate-700 dark:text-white"
-              >
-                <option value="M">Molly (La Castellana)</option>
-                <option value="S">Sienna (Palmanova)</option>
-                <option value="F">Frida (Castellana 101)</option>
-              </select>
-            ) : (
-              <div className="flex items-center gap-1 text-slate-500 font-medium text-xs select-none">
-                <Lock className="w-3 h-3" /> Molly bloqueada (Solo L/M/V)
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 w-24 shrink-0">
-            <input
-              type="number"
-              min="5"
-              max="120"
-              disabled={!isThreeDogs}
-              value={isThreeDogs ? (settings.pickupOrder[2] === 'S' ? settings.goalSienna : settings.pickupOrder[2] === 'F' ? settings.goalFrida : settings.goalMolly) : 0}
-              onChange={(e) => {
-                const id = settings.pickupOrder[2];
-                const v = parseInt(e.target.value) || 20;
-                if (id === 'S') updateSetting('goalSienna', v);
-                else if (id === 'F') updateSetting('goalFrida', v);
-                else updateSetting('goalMolly', v);
-              }}
-              className="w-full px-1.5 py-1 border border-amber-200 dark:border-amber-800 rounded-lg disabled:bg-slate-50 dark:disabled:bg-slate-800 bg-white dark:bg-slate-900 text-xs text-center font-extrabold text-amber-700 dark:text-amber-400"
-            />
-            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">m</span>
           </div>
         </div>
 

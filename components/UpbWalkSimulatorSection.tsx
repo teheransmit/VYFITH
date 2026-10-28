@@ -122,29 +122,17 @@ export default function UpbWalkSimulatorSection() {
   const [locations, setLocations] = useState(() => {
     if (typeof window === 'undefined') return BASE_LOCATIONS;
     const saved = localStorage.getItem('upb_sim_locations');
-    return saved ? JSON.parse(saved) : BASE_LOCATIONS;
+    if (!saved) return BASE_LOCATIONS;
+    try {
+      const parsed = JSON.parse(saved);
+      return { ...BASE_LOCATIONS, ...parsed, casa: parsed.casa || BASE_LOCATIONS.casa };
+    } catch {
+      return BASE_LOCATIONS;
+    }
   });
 
   const [settings, setSettings] = useState<RouteSettings>(() => {
-    if (typeof window === 'undefined') {
-      return {
-        day: 'lunes',
-        startTime: '06:30',
-        startLocation: 'centro',
-        firstLegTransport: 'pie',
-        walkSpeedSolo: 5.5,
-        walkSpeedPack: 4.26,
-        strategy: 'zigzag',
-        goalSienna: 60,
-        goalFrida: 30,
-        goalMolly: 20,
-        pickupOrder: ['S', 'F', 'M'],
-        scenario: 'normal',
-      };
-    }
-    const saved = localStorage.getItem('upb_sim_settings');
-    if (saved) return JSON.parse(saved);
-    return {
+    const defaultSettings: RouteSettings = {
       day: 'martes',
       startTime: '06:00',
       startLocation: 'casa',
@@ -158,6 +146,21 @@ export default function UpbWalkSimulatorSection() {
       pickupOrder: ['S', 'F'],
       scenario: 'normal',
     };
+    if (typeof window === 'undefined') return defaultSettings;
+    const saved = localStorage.getItem('upb_sim_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const sanitizedOrder = (parsed.pickupOrder || ['S', 'F']).filter((id: string) => id !== 'M');
+        return {
+          ...defaultSettings,
+          ...parsed,
+          goalMolly: 0,
+          pickupOrder: sanitizedOrder.length > 0 ? sanitizedOrder : ['S', 'F'],
+        };
+      } catch {}
+    }
+    return defaultSettings;
   });
 
   const [logs, setLogs] = useState<TripLog[]>(() => {
@@ -193,9 +196,7 @@ export default function UpbWalkSimulatorSection() {
   const [simulationPlaying, setSimulationPlaying] = useState(false);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
 
-  const isThreeDogs = useMemo(() => {
-    return ['lunes', 'miercoles', 'viernes'].includes(settings.day);
-  }, [settings.day]);
+  const isThreeDogs = false;
 
   // Persistencia en localStorage
   useEffect(() => {
@@ -334,8 +335,10 @@ export default function UpbWalkSimulatorSection() {
       return { steps: [], finalArrival: '00:00', dogWalkDurations: { S: 0, F: 0, M: 0 } };
     }
 
-    const order = settings.pickupOrder;
-    const goals: Record<string, number> = { S: settings.goalSienna, F: settings.goalFrida, M: settings.goalMolly };
+    const order = (settings.pickupOrder || ['S', 'F']).filter((id) => id !== 'M');
+    const p1Dog = order[0] || 'S';
+    const p2Dog = order[1] || 'F';
+    const goals: Record<string, number> = { S: settings.goalSienna, F: settings.goalFrida };
 
     const speedSoloMod = settings.scenario === 'lluvia' ? settings.walkSpeedSolo * 0.8 : settings.walkSpeedSolo;
     const speedPackMod = settings.scenario === 'lluvia' ? settings.walkSpeedPack * 0.8 : settings.walkSpeedPack;
@@ -357,11 +360,11 @@ export default function UpbWalkSimulatorSection() {
     const steps: RouteStep[] = [];
     const dogWalkDurations: Record<string, number> = { S: 0, F: 0, M: 0 };
 
-    // Paso 1: Salida de casa
+    // Paso 1: Salida en Bici desde Mi Casa
     steps.push({
       id: 'step_departure',
       title: `Partida de Casa (${settings.startLocation === 'casa' ? 'Mi Casa' : settings.startLocation === 'centro' ? 'Centro' : 'Abuela'})`,
-      description: `Inicias traslado hacia la casa de ${order[0] === 'S' ? 'Sienna' : order[0] === 'F' ? 'Frida' : 'Molly'}.\nModo: ${settings.firstLegTransport === 'bici' ? '🚲 Bicicleta (~15 km/h)' : settings.firstLegTransport === 'moto' ? '🏍️ Moto' : '🚶‍♂️ A Pie'}. Distancia: ${startLocToP1Dist.toFixed(2)} km.`,
+      description: `Inicias traslado hacia la casa de ${p1Dog === 'S' ? 'Sienna' : 'Frida'}.\nModo: ${settings.firstLegTransport === 'bici' ? '🚲 Bicicleta (~15 km/h)' : settings.firstLegTransport === 'moto' ? '🏍️ Moto' : '🚶‍♂️ A Pie'}. Distancia: ${startLocToP1Dist.toFixed(2)} km.`,
       startTime: departureTimeStr,
       endTime: settings.startTime,
       durationMinutes: departureMinutes,
@@ -372,12 +375,11 @@ export default function UpbWalkSimulatorSection() {
 
     let curTimeStr = settings.startTime;
 
-    // Recogida 1
-    const p1Dog = order[0];
+    // Paso 2: Recogida de Sienna
     steps.push({
       id: `pick_${p1Dog}`,
-      title: `Recoger a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}`,
-      description: `Buscas a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'} en ${p1Dog === 'S' ? 'Ed. Palmanova' : p1Dog === 'F' ? 'Castellana 101' : 'La Castellana'}.\nInicia su paseo objetivo de ${goals[p1Dog]} min.`,
+      title: `Recoger a ${p1Dog === 'S' ? 'Sienna' : 'Frida'}`,
+      description: `Buscas a ${p1Dog === 'S' ? 'Sienna' : 'Frida'} en ${p1Dog === 'S' ? 'Ed. Palmanova' : 'Castellana 101'}.\nInicia su paseo objetivo de ${goals[p1Dog]} min.`,
       startTime: curTimeStr,
       endTime: curTimeStr,
       durationMinutes: 0,
@@ -387,18 +389,18 @@ export default function UpbWalkSimulatorSection() {
       distanceKm: 0,
     });
 
-    // Tránsito a Recogida 2
+    // Paso 3: Tránsito con Sienna
     const p1ToP2Dist = routeDistances['P1_P2'] || 0.4;
-    const p1ToP2Mins = Math.round((p1ToP2Dist / speedPackMod) * 60);
+    const p1ToP2Mins = Math.max(1, Math.round((p1ToP2Dist / speedPackMod) * 60));
     let nextDate = new Date(curDate.getTime() + p1ToP2Mins * 60000);
     let nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
 
     dogWalkDurations[p1Dog] += p1ToP2Mins;
 
     steps.push({
-      id: `transit_p1_p2`,
-      title: `Tránsito con ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}`,
-      description: `Recorres con la manada hasta donde ${order[1] === 'S' ? 'Sienna' : order[1] === 'F' ? 'Frida' : 'Molly'}. Distancia: ${p1ToP2Dist.toFixed(2)} km.`,
+      id: 'transit_p1_p2',
+      title: `Tránsito con ${p1Dog === 'S' ? 'Sienna' : 'Frida'}`,
+      description: `Recorres con la manada hasta donde ${p2Dog === 'S' ? 'Sienna' : 'Frida'}. Distancia: ${p1ToP2Dist.toFixed(2)} km.`,
       startTime: curTimeStr,
       endTime: nextTimeStr,
       durationMinutes: p1ToP2Mins,
@@ -409,12 +411,11 @@ export default function UpbWalkSimulatorSection() {
     curDate = nextDate;
     curTimeStr = nextTimeStr;
 
-    // Recogida 2
-    const p2Dog = order[1];
+    // Paso 4: Recogida de Frida
     steps.push({
       id: `pick_${p2Dog}`,
-      title: `Recoger a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}`,
-      description: `Sumas a la manada a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}.\nInicia su tiempo objetivo de ${goals[p2Dog]} min.`,
+      title: `Recoger a ${p2Dog === 'S' ? 'Sienna' : 'Frida'}`,
+      description: `Sumas a la manada a ${p2Dog === 'S' ? 'Sienna' : 'Frida'} en ${p2Dog === 'S' ? 'Ed. Palmanova' : 'Castellana 101'}.\nInicia su tiempo objetivo de ${goals[p2Dog]} min.`,
       startTime: curTimeStr,
       endTime: curTimeStr,
       durationMinutes: 0,
@@ -424,473 +425,100 @@ export default function UpbWalkSimulatorSection() {
       distanceKm: 0,
     });
 
-    if (isThreeDogs) {
-      // Tránsito a Recogida 3 (Molly)
-      const p2ToP3Dist = routeDistances['P2_P3'] || 0.5;
-      const p2ToP3Mins = Math.round((p2ToP3Dist / speedPackMod) * 60);
-      nextDate = new Date(curDate.getTime() + p2ToP3Mins * 60000);
-      nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+    // Paso 5: Paseo conjunto / camino a devolver a Frida (completa 10 min de meta)
+    const p2WalkMins = goals[p2Dog] || 10;
+    const dTransitP2 = routeDistances['P1_P2'] || 0.4;
+    nextDate = new Date(curDate.getTime() + p2WalkMins * 60000);
+    nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-      dogWalkDurations[p1Dog] += p2ToP3Mins;
-      dogWalkDurations[p2Dog] += p2ToP3Mins;
+    dogWalkDurations[p1Dog] += p2WalkMins;
+    dogWalkDurations[p2Dog] += p2WalkMins;
 
-      steps.push({
-        id: `transit_p2_p3`,
-        title: `Tránsito con ${p1Dog} y ${p2Dog}`,
-        description: `Caminas hacia la residencia de ${order[2] === 'S' ? 'Sienna' : order[2] === 'F' ? 'Frida' : 'Molly'}. Distancia: ${p2ToP3Dist.toFixed(2)} km.`,
-        startTime: curTimeStr,
-        endTime: nextTimeStr,
-        durationMinutes: p2ToP3Mins,
-        icon: 'walk',
-        type: 'walk',
-        distanceKm: p2ToP3Dist,
-      });
-      curDate = nextDate;
-      curTimeStr = nextTimeStr;
+    steps.push({
+      id: 'drop_p2_trip',
+      title: `Paseo conjunto / camino a devolver a ${p2Dog === 'S' ? 'Sienna' : 'Frida'}`,
+      description: `Caminas junto a ${p1Dog === 'S' ? 'Sienna' : 'Frida'} y ${p2Dog === 'S' ? 'Sienna' : 'Frida'} completando el recorrido de ${p2Dog === 'S' ? 'Sienna' : 'Frida'}. Distancia: ${dTransitP2.toFixed(2)} km.`,
+      startTime: curTimeStr,
+      endTime: nextTimeStr,
+      durationMinutes: p2WalkMins,
+      icon: 'walk',
+      type: 'walk',
+      distanceKm: dTransitP2,
+    });
+    curDate = nextDate;
+    curTimeStr = nextTimeStr;
 
-      // Recogida 3
-      const p3Dog = order[2];
-      steps.push({
-        id: `pick_${p3Dog}`,
-        title: `Recoger a ${p3Dog === 'S' ? 'Sienna' : p3Dog === 'F' ? 'Frida' : 'Molly'}`,
-        description: `Buscas al tercer perrito. Inicia su paseo objetivo de ${goals[p3Dog]} min.`,
-        startTime: curTimeStr,
-        endTime: curTimeStr,
-        durationMinutes: 0,
-        icon: 'pick',
-        type: 'pick',
-        dogId: p3Dog,
-        distanceKm: 0,
-      });
+    // Paso 6: Devolución de Frida (completa 10m)
+    steps.push({
+      id: `drop_${p2Dog}`,
+      title: `Devolver a ${p2Dog === 'S' ? 'Sienna' : 'Frida'}`,
+      description: `Entregas a ${p2Dog === 'S' ? 'Sienna' : 'Frida'} en ${p2Dog === 'S' ? 'Ed. Palmanova' : 'Castellana 101'}. Paseo completado (${dogWalkDurations[p2Dog]}m cumplidos).`,
+      startTime: curTimeStr,
+      endTime: curTimeStr,
+      durationMinutes: 0,
+      icon: 'drop',
+      type: 'drop',
+      dogId: p2Dog,
+      distanceKm: 0,
+    });
 
-      // ESTRATEGIA DE ENTREGA PARA 3 PERROS
-      const strat = settings.strategy;
-      if (strat === 'zigzag') {
-        const dTransit = routeDistances['P2_P3'] || 0.5;
-        const mTins = Math.round((dTransit / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+    // Paso 7: Camino a devolver a Sienna (completa 30m: 9m iniciales + 10m conjunto + 11m retorno)
+    const p1RemainingMins = Math.max(1, (goals[p1Dog] || 30) - dogWalkDurations[p1Dog]);
+    const dTransitP1 = routeDistances['P1_P2'] || 0.4;
+    nextDate = new Date(curDate.getTime() + p1RemainingMins * 60000);
+    nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-        dogWalkDurations[p1Dog] += mTins;
-        dogWalkDurations[p2Dog] += mTins;
-        dogWalkDurations[p3Dog] += mTins;
+    dogWalkDurations[p1Dog] += p1RemainingMins;
 
-        steps.push({
-          id: 'drop_p2_trip',
-          title: `Camino a devolver a ${p2Dog}`,
-          description: `Regresas para entregar primero a ${p2Dog}. Distancia: ${dTransit.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
+    steps.push({
+      id: 'drop_p1_trip',
+      title: `Camino a devolver a ${p1Dog === 'S' ? 'Sienna' : 'Frida'}`,
+      description: `Regresas para entregar a ${p1Dog === 'S' ? 'Sienna' : 'Frida'} en su hogar. Distancia: ${dTransitP1.toFixed(2)} km.`,
+      startTime: curTimeStr,
+      endTime: nextTimeStr,
+      durationMinutes: p1RemainingMins,
+      icon: 'walk',
+      type: 'walk',
+      distanceKm: dTransitP1,
+    });
+    curDate = nextDate;
+    curTimeStr = nextTimeStr;
 
-        steps.push({
-          id: `drop_${p2Dog}`,
-          title: `Devolver a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Entregas a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}. Paseo completado.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p2Dog,
-          distanceKm: 0,
-        });
+    // Paso 8: Devolución de Sienna (completa 30m)
+    steps.push({
+      id: `drop_${p1Dog}`,
+      title: `Devolver a ${p1Dog === 'S' ? 'Sienna' : 'Frida'}`,
+      description: `Entregas a ${p1Dog === 'S' ? 'Sienna' : 'Frida'} sano y salvo. Paseo completado (${dogWalkDurations[p1Dog]}m cumplidos).`,
+      startTime: curTimeStr,
+      endTime: curTimeStr,
+      durationMinutes: 0,
+      icon: 'drop',
+      type: 'drop',
+      dogId: p1Dog,
+      distanceKm: 0,
+    });
 
-        const dTransit2 = routeDistances['P2_P3'] || 0.5;
-        const mTins2 = Math.round((dTransit2 / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins2 * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+    // Paso 9: Traslado rápido al paradero Cra 14
+    const dBusWalk = routeDistances['P1_Bus'] || 0.5;
+    const mBusWalk = Math.max(1, Math.round((dBusWalk / speedSoloMod) * 60));
+    nextDate = new Date(curDate.getTime() + mBusWalk * 60000);
+    nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
 
-        dogWalkDurations[p1Dog] += mTins2;
-        dogWalkDurations[p3Dog] += mTins2;
+    steps.push({
+      id: 'walk_to_bus',
+      title: 'Traslado rápido al paradero Cra 14',
+      description: `Te diriges hacia el paradero de la Carrera 14. Distancia: ${dBusWalk.toFixed(2)} km a paso veloz (${speedSoloMod} km/h).`,
+      startTime: curTimeStr,
+      endTime: nextTimeStr,
+      durationMinutes: mBusWalk,
+      icon: 'walk',
+      type: 'walk',
+      distanceKm: dBusWalk,
+    });
+    curDate = nextDate;
+    curTimeStr = nextTimeStr;
 
-        steps.push({
-          id: 'drop_p3_trip',
-          title: `Camino a devolver a ${p3Dog}`,
-          description: `Vas de nuevo a la casa de ${p3Dog}. Distancia: ${dTransit2.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins2,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit2,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-        steps.push({
-          id: `drop_${p3Dog}`,
-          title: `Devolver a ${p3Dog === 'S' ? 'Sienna' : p3Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Entregas a ${p3Dog === 'S' ? 'Sienna' : p3Dog === 'F' ? 'Frida' : 'Molly'} en su edificio.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p3Dog,
-          distanceKm: 0,
-        });
-
-        const dTransit3 = routeDistances['P3_P1'] || 0.6;
-        const mTins3 = Math.round((dTransit3 / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins3 * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        dogWalkDurations[p1Dog] += mTins3;
-
-        steps.push({
-          id: 'drop_p1_trip',
-          title: `Camino a devolver a ${p1Dog}`,
-          description: `Caminas al punto de partida de ${p1Dog}. Distancia: ${dTransit3.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins3,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit3,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-        steps.push({
-          id: `drop_${p1Dog}`,
-          title: `Devolver a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Entregas a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'} sano y salvo.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p1Dog,
-          distanceKm: 0,
-        });
-
-        // Caminata P1 -> Paradero
-        const dBusWalk = routeDistances['P1_Bus'] || 0.5;
-        const mBusWalk = Math.round((dBusWalk / speedSoloMod) * 60);
-        nextDate = new Date(curDate.getTime() + mBusWalk * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        steps.push({
-          id: 'walk_to_bus',
-          title: 'Caminata rápida al paradero',
-          description: `Te diriges solo hacia el paradero de la Cra 14. Distancia: ${dBusWalk.toFixed(2)} km a paso veloz (${speedSoloMod} km/h).`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mBusWalk,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dBusWalk,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-      } else if (strat === 'lineal') {
-        steps.push({
-          id: `drop_${p3Dog}`,
-          title: `Devolver a ${p3Dog === 'S' ? 'Sienna' : p3Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Entregas inmediatamente a ${p3Dog === 'S' ? 'Sienna' : p3Dog === 'F' ? 'Frida' : 'Molly'} hoy.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p3Dog,
-          distanceKm: 0,
-        });
-
-        const dTransit = routeDistances['P2_P3'] || 0.5;
-        const mTins = Math.round((dTransit / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        dogWalkDurations[p1Dog] += mTins;
-        dogWalkDurations[p2Dog] += mTins;
-
-        steps.push({
-          id: 'drop_p2_trip',
-          title: `Camino a devolver a ${p2Dog}`,
-          description: `Caminas de vuelta a la residencia de ${p2Dog}. Distancia: ${dTransit.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-        steps.push({
-          id: `drop_${p2Dog}`,
-          title: `Devolver a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Dejas a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'} con su dueño.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p2Dog,
-          distanceKm: 0,
-        });
-
-        const dTransit2 = routeDistances['P1_P2'] || 0.4;
-        const mTins2 = Math.round((dTransit2 / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins2 * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        dogWalkDurations[p1Dog] += mTins2;
-
-        steps.push({
-          id: 'drop_p1_trip',
-          title: `Camino a devolver a ${p1Dog}`,
-          description: `Avanzas con ${p1Dog} a su hogar. Distancia: ${dTransit2.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins2,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit2,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-        steps.push({
-          id: `drop_${p1Dog}`,
-          title: `Devolver a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Finalizas paseo con ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p1Dog,
-          distanceKm: 0,
-        });
-
-        const dBusWalk = routeDistances['P1_Bus'] || 0.5;
-        const mBusWalk = Math.round((dBusWalk / speedSoloMod) * 60);
-        nextDate = new Date(curDate.getTime() + mBusWalk * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        steps.push({
-          id: 'walk_to_bus',
-          title: 'Caminata rápida al paradero',
-          description: `Te diriges solo hacia el paradero de la Cra 14. Distancia: ${dBusWalk.toFixed(2)} km a paso veloz (${speedSoloMod} km/h).`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mBusWalk,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dBusWalk,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-      } else {
-        // terminar_m
-        const dTransit = routeDistances['P3_P1'] || 0.6;
-        const mTins = Math.round((dTransit / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        dogWalkDurations[p1Dog] += mTins;
-        dogWalkDurations[p2Dog] += mTins;
-        dogWalkDurations[p3Dog] += mTins;
-
-        steps.push({
-          id: 'drop_p1_trip',
-          title: `Camino a devolver a ${p1Dog}`,
-          description: `Regresas para entregar primero a ${p1Dog}. Distancia: ${dTransit.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-        steps.push({
-          id: `drop_${p1Dog}`,
-          title: `Devolver a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Entregas a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p1Dog,
-          distanceKm: 0,
-        });
-
-        const dTransit2 = routeDistances['P1_P2'] || 0.4;
-        const mTins2 = Math.round((dTransit2 / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins2 * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        dogWalkDurations[p2Dog] += mTins2;
-        dogWalkDurations[p3Dog] += mTins2;
-
-        steps.push({
-          id: 'drop_p2_trip',
-          title: `Camino a devolver a ${p2Dog}`,
-          description: `Vas a la casa de ${p2Dog}. Distancia: ${dTransit2.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins2,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit2,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-        steps.push({
-          id: `drop_${p2Dog}`,
-          title: `Devolver a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Dejas a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'} con sus dueños.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p2Dog,
-          distanceKm: 0,
-        });
-
-        const dTransit3 = routeDistances['P2_P3'] || 0.5;
-        const mTins3 = Math.round((dTransit3 / speedPackMod) * 60);
-        nextDate = new Date(curDate.getTime() + mTins3 * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        dogWalkDurations[p3Dog] += mTins3;
-
-        steps.push({
-          id: 'drop_p3_trip',
-          title: `Camino a devolver a ${p3Dog}`,
-          description: `Te diriges a casa del último, ${p3Dog}. Distancia: ${dTransit3.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mTins3,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dTransit3,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-
-        steps.push({
-          id: `drop_${p3Dog}`,
-          title: `Devolver a ${p3Dog === 'S' ? 'Sienna' : p3Dog === 'F' ? 'Frida' : 'Molly'}`,
-          description: `Dejas a ${p3Dog === 'S' ? 'Sienna' : p3Dog === 'F' ? 'Frida' : 'Molly'}. Estás al lado del paradero.`,
-          startTime: curTimeStr,
-          endTime: curTimeStr,
-          durationMinutes: 0,
-          icon: 'drop',
-          type: 'drop',
-          dogId: p3Dog,
-          distanceKm: 0,
-        });
-
-        const dBusWalk = routeDistances['P3_Bus'] || 0.3;
-        const mBusWalk = Math.round((dBusWalk / speedSoloMod) * 60);
-        nextDate = new Date(curDate.getTime() + mBusWalk * 60000);
-        nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-        steps.push({
-          id: 'walk_to_bus',
-          title: 'Caminata rápida al paradero',
-          description: `Te trasladas al paradero de la Cra 14. Distancia: ${dBusWalk.toFixed(2)} km.`,
-          startTime: curTimeStr,
-          endTime: nextTimeStr,
-          durationMinutes: mBusWalk,
-          icon: 'walk',
-          type: 'walk',
-          distanceKm: dBusWalk,
-        });
-        curDate = nextDate;
-        curTimeStr = nextTimeStr;
-      }
-
-    } else {
-      // DÍA DE 2 PERROS (Martes, Jueves)
-      const dTransit = routeDistances['P1_P2'] || 0.4;
-      const mTins = Math.round((dTransit / speedPackMod) * 60);
-      nextDate = new Date(curDate.getTime() + mTins * 60000);
-      nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-      dogWalkDurations[p1Dog] += mTins;
-      dogWalkDurations[p2Dog] += mTins;
-
-      steps.push({
-        id: 'drop_p2_trip',
-        title: `Camino a devolver a ${p2Dog}`,
-        description: `Regresas con la manada para entregar a ${p2Dog}. Distancia: ${dTransit.toFixed(2)} km.`,
-        startTime: curTimeStr,
-        endTime: nextTimeStr,
-        durationMinutes: mTins,
-        icon: 'walk',
-        type: 'walk',
-        distanceKm: dTransit,
-      });
-      curDate = nextDate;
-      curTimeStr = nextTimeStr;
-
-      steps.push({
-        id: `drop_${p2Dog}`,
-        title: `Devolver a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}`,
-        description: `Acompañas y entregas a ${p2Dog === 'S' ? 'Sienna' : p2Dog === 'F' ? 'Frida' : 'Molly'}. Paseo finalizado.`,
-        startTime: curTimeStr,
-        endTime: curTimeStr,
-        durationMinutes: 0,
-        icon: 'drop',
-        type: 'drop',
-        dogId: p2Dog,
-        distanceKm: 0,
-      });
-
-      steps.push({
-        id: `drop_${p1Dog}`,
-        title: `Devolver a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}`,
-        description: `Entregas inmediatamente a ${p1Dog === 'S' ? 'Sienna' : p1Dog === 'F' ? 'Frida' : 'Molly'}. Paseo finalizado.`,
-        startTime: curTimeStr,
-        endTime: curTimeStr,
-        durationMinutes: 0,
-        icon: 'drop',
-        type: 'drop',
-        dogId: p1Dog,
-        distanceKm: 0,
-      });
-
-      const dBusWalk = routeDistances['P1_Bus'] || 0.5;
-      const mBusWalk = Math.round((dBusWalk / speedSoloMod) * 60);
-      nextDate = new Date(curDate.getTime() + mBusWalk * 60000);
-      nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-      steps.push({
-        id: 'walk_to_bus',
-        title: 'Caminata rápida al paradero',
-        description: `Te diriges hacia el paradero de la Carrera 14. Distancia: ${dBusWalk.toFixed(2)} km, velocidad solo: ${speedSoloMod} km/h.`,
-        startTime: curTimeStr,
-        endTime: nextTimeStr,
-        durationMinutes: mBusWalk,
-        icon: 'walk',
-        type: 'walk',
-        distanceKm: dBusWalk,
-      });
-      curDate = nextDate;
-      curTimeStr = nextTimeStr;
-    }
-
-    // Buffer de espera en el paradero
+    // Paso 10: Espera en el paradero Cra 14
     const waitMins = 5;
     nextDate = new Date(curDate.getTime() + waitMins * 60000);
     nextTimeStr = nextDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -909,7 +537,7 @@ export default function UpbWalkSimulatorSection() {
     curDate = nextDate;
     curTimeStr = nextTimeStr;
 
-    // Recorrido en buseta hasta la UPB
+    // Paso 11: Colectivo / MetroSinú a UPB
     const busDist = routeDistances['Bus_UPB'] || 4.2;
     let busMins = Math.round((busDist / 20) * 60);
     if (settings.scenario === 'trafico') {
@@ -921,8 +549,8 @@ export default function UpbWalkSimulatorSection() {
 
     steps.push({
       id: 'transit_to_upb',
-      title: 'Colectivo / Recorrido UPB',
-      description: `Buses de Montería rumbo norte hasta campus UPB. Distancia: ${busDist.toFixed(2)} km.${settings.scenario === 'trafico' ? ' 🚗 Tráfico pesado (+12m).' : ''}`,
+      title: 'Colectivo / MetroSinú a UPB',
+      description: `Buses de Montería (MetroSinú) rumbo norte hasta campus UPB. Distancia: ${busDist.toFixed(2)} km.${settings.scenario === 'trafico' ? ' 🚗 Tráfico pesado (+12m).' : ''}`,
       startTime: curTimeStr,
       endTime: nextTimeStr,
       durationMinutes: busMins,
@@ -933,7 +561,7 @@ export default function UpbWalkSimulatorSection() {
     curDate = nextDate;
     curTimeStr = nextTimeStr;
 
-    // Hito de llegada a la UPB
+    // Paso 12: Llegada Campus UPB Montería 🎓
     steps.push({
       id: 'step_upb_arrival',
       title: 'Llegada Campus UPB Montería 🎓',
@@ -951,7 +579,7 @@ export default function UpbWalkSimulatorSection() {
       finalArrival: curTimeStr,
       dogWalkDurations,
     };
-  }, [routeDistances, settings, isThreeDogs, targetClassInfo]);
+  }, [routeDistances, settings, targetClassInfo]);
 
   // Generador de trayectoria continua para simulación animada
   const rawTrajectory = useMemo(() => {
@@ -972,24 +600,12 @@ export default function UpbWalkSimulatorSection() {
 
       if (step.id === 'step_departure') segmentKey = 'C_P1';
       else if (step.id === 'transit_p1_p2') segmentKey = 'P1_P2';
-      else if (step.id === 'transit_p2_p3') segmentKey = 'P2_P3';
-      else if (step.id === 'drop_p2_trip') {
-        segmentKey = 'P2_P3';
+      else if (step.id === 'drop_p2_trip') segmentKey = 'P1_P2';
+      else if (step.id === 'drop_p1_trip') {
+        segmentKey = 'P1_P2';
         isReverseInput = true;
-      } else if (step.id === 'drop_p3_trip') {
-        segmentKey = 'P2_P3';
-        if (settings.strategy !== 'zigzag') isReverseInput = true;
-      } else if (step.id === 'drop_p1_trip') {
-        if (settings.strategy === 'zigzag') segmentKey = 'P3_P1';
-        else if (settings.strategy === 'lineal') {
-          segmentKey = 'P1_P2';
-          isReverseInput = true;
-        } else {
-          segmentKey = 'P3_P1';
-        }
-      } else if (step.id === 'walk_to_bus') {
-        segmentKey = settings.strategy === 'terminar_m' ? 'P3_Bus' : 'P1_Bus';
-      } else if (step.id === 'transit_to_upb') segmentKey = 'Bus_UPB';
+      } else if (step.id === 'walk_to_bus') segmentKey = 'P1_Bus';
+      else if (step.id === 'transit_to_upb') segmentKey = 'Bus_UPB';
 
       const pts = segmentKey ? routePaths[segmentKey] : [];
       if (pts && pts.length > 0) {
@@ -1041,7 +657,7 @@ export default function UpbWalkSimulatorSection() {
 
     const startLocToP1Dist = routeDistances['C_P1'] || 0.5;
     const speedSoloMod = settings.scenario === 'lluvia' ? settings.walkSpeedSolo * 0.8 : settings.walkSpeedSolo;
-    const departureSpeed = settings.firstLegTransport === 'moto' ? 32 : speedSoloMod;
+    const departureSpeed = settings.firstLegTransport === 'moto' ? 32 : (settings.firstLegTransport === 'bici' ? 15 : speedSoloMod);
     const departureMinutes = Math.round((startLocToP1Dist / departureSpeed) * 60);
     const departureTimeDate = new Date(curDate.getTime() - departureMinutes * 60000);
 
@@ -1052,9 +668,9 @@ export default function UpbWalkSimulatorSection() {
       {} as { [key: string]: number }
     );
 
-    const pickedUp: Record<string, boolean> = { S: false, F: false, M: false };
-    const pickTime: Record<string, number> = { S: 0, F: 0, M: 0 };
-    const droppedOff: Record<string, boolean> = { S: false, F: false, M: false };
+    const pickedUp: Record<string, boolean> = { S: false, F: false };
+    const pickTime: Record<string, number> = { S: 0, F: 0 };
+    const droppedOff: Record<string, boolean> = { S: false, F: false };
 
     const grouped: { [key: string]: typeof rawTrajectory } = {};
     rawTrajectory.forEach((p) => {
@@ -1090,19 +706,18 @@ export default function UpbWalkSimulatorSection() {
         const pack: string[] = [];
         if (pickedUp.S && !droppedOff.S) pack.push('S');
         if (pickedUp.F && !droppedOff.F) pack.push('F');
-        if (pickedUp.M && !droppedOff.M) pack.push('M');
 
         let avatarEmoji = '🚶‍♂️';
         if (pt.type === 'bus_ride') avatarEmoji = '🚌';
         else if (pt.type === 'upb') avatarEmoji = '🎓';
         else if (pack.length > 0) {
-          avatarEmoji = '🚶‍♂️' + pack.map((id) => (id === 'S' ? '🍊' : id === 'F' ? '🍇' : '🍌')).join('');
+          avatarEmoji = '🚶‍♂️' + pack.map((id) => (id === 'S' ? '🍊' : '🍇')).join('');
         }
 
-        const activeTimers: { S?: number; F?: number; M?: number } = {};
-        const finishedDogs: ('S' | 'F' | 'M')[] = [];
+        const activeTimers: { S?: number; F?: number } = {};
+        const finishedDogs: ('S' | 'F')[] = [];
 
-        (['S', 'F', 'M'] as const).forEach((dogId) => {
+        (['S', 'F'] as const).forEach((dogId) => {
           if (droppedOff[dogId]) {
             finishedDogs.push(dogId);
           } else if (pickedUp[dogId]) {
@@ -1242,7 +857,7 @@ export default function UpbWalkSimulatorSection() {
           </div>
 
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-normal font-medium mt-2">
-            Planifica tus caminatas con Sienna, Frida y Molly garantizando la puntualidad en tus clases semestrales en la UPB Montería.
+            Planifica tus caminatas con Sienna y Frida garantizando la puntualidad en tus clases semestrales en la UPB Montería.
           </p>
         </div>
 
@@ -1256,26 +871,18 @@ export default function UpbWalkSimulatorSection() {
               value={settings.day}
               onChange={(e) => {
                 const dayValue = e.target.value as DayOfWeek;
-                const three = ['lunes', 'miercoles', 'viernes'].includes(dayValue);
-                let order = [...settings.pickupOrder];
-                if (!three) {
-                  const sf = ['S', 'F'];
-                  if (Math.random() < 0.5) sf.reverse();
-                  order = [sf[0] as any, sf[1] as any, 'M'];
-                }
                 setSettings((prev) => ({
                   ...prev,
                   day: dayValue,
-                  pickupOrder: order,
                 }));
               }}
               className="w-full text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-slate-800 dark:text-slate-100 shadow-xs outline-hidden focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900"
             >
-              <option value="lunes">🗓️ Lunes (3 Perros)</option>
-              <option value="martes">🗓️ Martes (2 Perros)</option>
-              <option value="miercoles">🗓️ Miércoles (3 Perros)</option>
-              <option value="jueves">🗓️ Jueves (2 Perros)</option>
-              <option value="viernes">🗓️ Viernes (3 Perros)</option>
+              <option value="lunes">🗓️ Lunes</option>
+              <option value="martes">🗓️ Martes</option>
+              <option value="miercoles">🗓️ Miércoles</option>
+              <option value="jueves">🗓️ Jueves</option>
+              <option value="viernes">🗓️ Viernes</option>
             </select>
           </div>
 
@@ -1402,7 +1009,7 @@ export default function UpbWalkSimulatorSection() {
                     ? 'El "Zigzag" distribuye equitativamente el cansancio general pero duplica ciertos tramos peatonales.'
                     : settings.strategy === 'lineal'
                     ? 'La ruta "Lineal" minimiza la caminata solitaria, entregando en orden directo.'
-                    : 'La estrategia "Terminar en el último" optimiza el enlace de Molly con la buseta escolar en la Carrera 14.'}
+                    : 'La estrategia "Terminar en el último" optimiza el enlace final con la buseta escolar o MetroSinú en la Carrera 14.'}
                 </div>
               </div>
 
@@ -1417,9 +1024,9 @@ export default function UpbWalkSimulatorSection() {
                   finalArrival={sequenceData.finalArrival}
                   targetClassTime={targetClassInfo.time}
                   targetClassName={targetClassInfo.name}
-                  activeDogs={isThreeDogs ? ['S', 'F', 'M'] : ['S', 'F']}
+                  activeDogs={['S', 'F']}
                   settings={settings}
-                  metas={{ S: settings.goalSienna, F: settings.goalFrida, M: settings.goalMolly }}
+                  metas={{ S: settings.goalSienna, F: settings.goalFrida }}
                   dogWalkDurations={sequenceData.dogWalkDurations}
                 />
               )}
@@ -1430,7 +1037,7 @@ export default function UpbWalkSimulatorSection() {
             <ConfigPanel
               settings={settings}
               onChangeSettings={setSettings}
-              isThreeDogs={isThreeDogs}
+              isThreeDogs={false}
               onOpenDogManager={() => setIsDogManagerOpen(true)}
             />
           )}
@@ -1473,7 +1080,7 @@ export default function UpbWalkSimulatorSection() {
             <MapContainer
               locations={locations}
               startLocationId={settings.startLocation}
-              activeDogs={isThreeDogs ? ['S', 'F', 'M'] : ['S', 'F']}
+              activeDogs={['S', 'F']}
               routePaths={routePaths}
               onLocationDrag={handleLocationDrag}
               simulationPlaying={simulationPlaying}
@@ -1517,7 +1124,7 @@ export default function UpbWalkSimulatorSection() {
                 </div>
 
                 {/* Temporizadores Individuales de Perros */}
-                <div className="grid grid-cols-3 gap-2 border-t border-slate-200/80 dark:border-slate-800 pt-2.5">
+                <div className="grid grid-cols-2 gap-2 border-t border-slate-200/80 dark:border-slate-800 pt-2.5">
                   {/* Sienna */}
                   <div
                     className={`p-2 rounded-xl flex flex-col items-center border transition-all ${
@@ -1561,32 +1168,6 @@ export default function UpbWalkSimulatorSection() {
                         : 'ESPERA'}
                     </span>
                   </div>
-
-                  {/* Molly */}
-                  <div
-                    className={`p-2 rounded-xl flex flex-col items-center border transition-all ${
-                      !isThreeDogs
-                        ? 'bg-slate-50 dark:bg-slate-800 border-transparent opacity-30 text-slate-400'
-                        : activeFrame.finishedDogs.includes('M')
-                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
-                        : activeFrame.activeTimers.M !== undefined
-                        ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300'
-                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
-                    }`}
-                  >
-                    <span className="text-[8px] font-black uppercase tracking-wider block mb-0.5">
-                      MOLLY ({settings.goalMolly}m)
-                    </span>
-                    <span className="font-extrabold text-sm">
-                      {!isThreeDogs
-                        ? 'N/A'
-                        : activeFrame.finishedDogs.includes('M')
-                        ? '✓ FIN'
-                        : activeFrame.activeTimers.M !== undefined
-                        ? `${activeFrame.activeTimers.M} min`
-                        : 'ESPERA'}
-                    </span>
-                  </div>
                 </div>
               </div>
             )}
@@ -1605,11 +1186,6 @@ export default function UpbWalkSimulatorSection() {
               <div className="flex items-center gap-1.5 font-semibold text-slate-600 dark:text-slate-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shrink-0" /> Frida (Castellana 101)
               </div>
-              {isThreeDogs && (
-                <div className="flex items-center gap-1.5 font-semibold text-slate-600 dark:text-slate-300">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#eab308] shrink-0" /> Molly (La Castellana)
-                </div>
-              )}
               <div className="flex items-center gap-1.5 font-semibold text-slate-600 dark:text-slate-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" /> Paradero Carrera 14
               </div>

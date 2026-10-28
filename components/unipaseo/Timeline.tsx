@@ -24,7 +24,7 @@ interface TimelineProps {
   finalArrival: string;
   targetClassTime: string;
   targetClassName: string;
-  activeDogs: string[];
+  activeDogs?: string[];
   settings: RouteSettings;
   metas: Record<string, number>;
   dogWalkDurations: Record<string, number>;
@@ -35,6 +35,7 @@ export default function Timeline({
   finalArrival,
   targetClassTime,
   targetClassName,
+  activeDogs = ['S', 'F'],
   settings,
   metas,
   dogWalkDurations,

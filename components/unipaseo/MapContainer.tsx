@@ -54,9 +54,27 @@ export default function MapContainer({
 
     mapRef.current = map;
 
+    // Invalidate size after layout renders
+    const layoutTimer = setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined' && mapContainerRef.current) {
+      ro = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      ro.observe(mapContainerRef.current);
+    }
+
     return () => {
+      clearTimeout(layoutTimer);
+      if (ro) ro.disconnect();
       map.remove();
       mapRef.current = null;
+      markersRef.current = {};
+      polylinesRef.current = {};
+      simMarkerRef.current = null;
     };
   }, []);
 
@@ -74,7 +92,7 @@ export default function MapContainer({
     ) => {
       const opacityClass = isActive ? 'opacity-100' : 'opacity-30 pointer-events-none';
       return L.divIcon({
-        className: 'custom-map-icon',
+        className: 'custom-map-icon !bg-transparent !border-0',
         html: `
           <div class="relative group transition-all duration-300 ${opacityClass}">
             <div 
@@ -98,27 +116,31 @@ export default function MapContainer({
 
     // 1. Home Base Marker (depends on starting location id)
     currentActiveKeys.add(startLocationId);
-    if (!markersRef.current[startLocationId]) {
-      const position = locations[startLocationId] || locations.casa || locations.abuela;
-      const m = L.marker([position.lat, position.lng], {
-        icon: createCustomIcon('🏠', '#10b981', 'rgba(16,185,129,0.4)'),
-        draggable: !simulationPlaying,
-      }).addTo(map);
+    const startPos = locations[startLocationId] || locations.casa || locations.abuela;
+    if (startPos) {
+      if (!markersRef.current[startLocationId]) {
+        const m = L.marker([startPos.lat, startPos.lng], {
+          icon: createCustomIcon('🏠', '#10b981', 'rgba(16,185,129,0.4)'),
+          draggable: !simulationPlaying,
+          zIndexOffset: 1000,
+        }).addTo(map);
 
-      m.on('dragend', (e) => {
-        const target = e.target as L.Marker;
-        const latlng = target.getLatLng();
-        onLocationDrag(startLocationId, { lat: latlng.lat, lng: latlng.lng });
-      });
+        m.on('dragend', (e) => {
+          const target = e.target as L.Marker;
+          const latlng = target.getLatLng();
+          onLocationDrag(startLocationId, { lat: latlng.lat, lng: latlng.lng });
+        });
 
-      markersRef.current[startLocationId] = m;
-    } else {
-      const position = locations[startLocationId];
-      markersRef.current[startLocationId].setLatLng([position.lat, position.lng]);
-      if (simulationPlaying) {
-        markersRef.current[startLocationId].dragging?.disable();
+        markersRef.current[startLocationId] = m;
       } else {
-        markersRef.current[startLocationId].dragging?.enable();
+        const m = markersRef.current[startLocationId];
+        if (!map.hasLayer(m)) m.addTo(map);
+        m.setLatLng([startPos.lat, startPos.lng]);
+        if (simulationPlaying) {
+          m.dragging?.disable();
+        } else {
+          m.dragging?.enable();
+        }
       }
     }
 
@@ -130,17 +152,17 @@ export default function MapContainer({
       }
     });
 
-    // 2. Dog Pick & Drop Markers
-    const dogList: ('S' | 'F' | 'M')[] = ['S', 'F', 'M'];
-    dogList.forEach((dogId) => {
+    // 2. Dog Pick & Drop Markers (Only active dogs, e.g. Sienna and Frida)
+    activeDogs.forEach((dogId) => {
       const dog = locations[dogId];
-      const isDogActive = activeDogs.includes(dogId);
+      if (!dog || !dog.lat || !dog.lng) return;
       currentActiveKeys.add(dogId);
 
       if (!markersRef.current[dogId]) {
         const m = L.marker([dog.lat, dog.lng], {
-          icon: createCustomIcon(dog.emoji, dog.color, `${dog.color}66`, isDogActive),
-          draggable: isDogActive && !simulationPlaying,
+          icon: createCustomIcon(dog.emoji, dog.color, `${dog.color}66`, true),
+          draggable: !simulationPlaying,
+          zIndexOffset: 1000,
         }).addTo(map);
 
         m.on('dragend', (e) => {
@@ -151,67 +173,85 @@ export default function MapContainer({
 
         markersRef.current[dogId] = m;
       } else {
-        markersRef.current[dogId].setLatLng([dog.lat, dog.lng]);
-        markersRef.current[dogId].setIcon(
-          createCustomIcon(dog.emoji, dog.color, `${dog.color}66`, isDogActive)
+        const m = markersRef.current[dogId];
+        if (!map.hasLayer(m)) m.addTo(map);
+        m.setLatLng([dog.lat, dog.lng]);
+        m.setIcon(
+          createCustomIcon(dog.emoji, dog.color, `${dog.color}66`, true)
         );
-        if (isDogActive && !simulationPlaying) {
-          markersRef.current[dogId].dragging?.enable();
+        if (!simulationPlaying) {
+          m.dragging?.enable();
         } else {
-          markersRef.current[dogId].dragging?.disable();
+          m.dragging?.disable();
         }
       }
     });
 
+    // Remove inactive dogs from map (e.g. Molly if inactive)
+    ['S', 'F', 'M'].filter((id) => !activeDogs.includes(id)).forEach((inactiveDogId) => {
+      if (markersRef.current[inactiveDogId]) {
+        map.removeLayer(markersRef.current[inactiveDogId]);
+        delete markersRef.current[inactiveDogId];
+      }
+    });
+
     // 3. Bus stop Marker
-    currentActiveKeys.add('cra14');
-    if (!markersRef.current['cra14']) {
-      const position = locations['cra14'];
-      const m = L.marker([position.lat, position.lng], {
-        icon: createCustomIcon('🚌', '#06b6d4', 'rgba(6,182,212,0.4)'),
-        draggable: !simulationPlaying,
-      }).addTo(map);
+    const cra14Pos = locations['cra14'];
+    if (cra14Pos) {
+      currentActiveKeys.add('cra14');
+      if (!markersRef.current['cra14']) {
+        const m = L.marker([cra14Pos.lat, cra14Pos.lng], {
+          icon: createCustomIcon('🚌', '#06b6d4', 'rgba(6,182,212,0.4)'),
+          draggable: !simulationPlaying,
+          zIndexOffset: 1000,
+        }).addTo(map);
 
-      m.on('dragend', (e) => {
-        const target = e.target as L.Marker;
-        const latlng = target.getLatLng();
-        onLocationDrag('cra14', { lat: latlng.lat, lng: latlng.lng });
-      });
+        m.on('dragend', (e) => {
+          const target = e.target as L.Marker;
+          const latlng = target.getLatLng();
+          onLocationDrag('cra14', { lat: latlng.lat, lng: latlng.lng });
+        });
 
-      markersRef.current['cra14'] = m;
-    } else {
-      const position = locations['cra14'];
-      markersRef.current['cra14'].setLatLng([position.lat, position.lng]);
-      if (simulationPlaying) {
-        markersRef.current['cra14'].dragging?.disable();
+        markersRef.current['cra14'] = m;
       } else {
-        markersRef.current['cra14'].dragging?.enable();
+        const m = markersRef.current['cra14'];
+        if (!map.hasLayer(m)) m.addTo(map);
+        m.setLatLng([cra14Pos.lat, cra14Pos.lng]);
+        if (simulationPlaying) {
+          m.dragging?.disable();
+        } else {
+          m.dragging?.enable();
+        }
       }
     }
 
     // 4. UPB Marker
-    currentActiveKeys.add('upb');
-    if (!markersRef.current['upb']) {
-      const position = locations['upb'];
-      const m = L.marker([position.lat, position.lng], {
-        icon: createCustomIcon('🎓', '#ef4444', 'rgba(239,68,68,0.4)'),
-        draggable: !simulationPlaying,
-      }).addTo(map);
+    const upbPos = locations['upb'];
+    if (upbPos) {
+      currentActiveKeys.add('upb');
+      if (!markersRef.current['upb']) {
+        const m = L.marker([upbPos.lat, upbPos.lng], {
+          icon: createCustomIcon('🎓', '#ef4444', 'rgba(239,68,68,0.4)'),
+          draggable: !simulationPlaying,
+          zIndexOffset: 1000,
+        }).addTo(map);
 
-      m.on('dragend', (e) => {
-        const target = e.target as L.Marker;
-        const latlng = target.getLatLng();
-        onLocationDrag('upb', { lat: latlng.lat, lng: latlng.lng });
-      });
+        m.on('dragend', (e) => {
+          const target = e.target as L.Marker;
+          const latlng = target.getLatLng();
+          onLocationDrag('upb', { lat: latlng.lat, lng: latlng.lng });
+        });
 
-      markersRef.current['upb'] = m;
-    } else {
-      const position = locations['upb'];
-      markersRef.current['upb'].setLatLng([position.lat, position.lng]);
-      if (simulationPlaying) {
-        markersRef.current['upb'].dragging?.disable();
+        markersRef.current['upb'] = m;
       } else {
-        markersRef.current['upb'].dragging?.enable();
+        const m = markersRef.current['upb'];
+        if (!map.hasLayer(m)) m.addTo(map);
+        m.setLatLng([upbPos.lat, upbPos.lng]);
+        if (simulationPlaying) {
+          m.dragging?.disable();
+        } else {
+          m.dragging?.enable();
+        }
       }
     }
   }, [locations, startLocationId, activeDogs, simulationPlaying, onLocationDrag]);
@@ -287,7 +327,7 @@ export default function MapContainer({
 
     if (!simMarkerRef.current) {
       const customSimIcon = L.divIcon({
-        className: 'sim-moving-avatar',
+        className: 'sim-moving-avatar !bg-transparent !border-0',
         html: `
           <div class="relative flex flex-col items-center">
             <div class="bg-white/95 px-2.5 py-1.5 rounded-full shadow-2xl border-4 border-indigo-600 flex items-center justify-center gap-1.5 animate-bounce-subtle transform -translate-y-2">
@@ -302,16 +342,19 @@ export default function MapContainer({
 
       const m = L.marker([lat, lng], {
         icon: customSimIcon,
-        zIndexOffset: 2000,
+        zIndexOffset: 3000,
       }).addTo(map);
 
       simMarkerRef.current = m;
       map.setView([lat, lng], 15.5, { animate: true, duration: 1.5 });
     } else {
+      if (!map.hasLayer(simMarkerRef.current)) {
+        simMarkerRef.current.addTo(map);
+      }
       simMarkerRef.current.setLatLng([lat, lng]);
       simMarkerRef.current.setIcon(
         L.divIcon({
-          className: 'sim-moving-avatar',
+          className: 'sim-moving-avatar !bg-transparent !border-0',
           html: `
             <div class="relative flex flex-col items-center select-none">
               <div class="bg-white/95 px-3 py-1.5 rounded-xl shadow-2xl border-2 border-indigo-600 flex items-center justify-center gap-2 transform -translate-y-4">
@@ -326,7 +369,7 @@ export default function MapContainer({
         })
       );
 
-      map.panTo([lat, lng], { animate: true, duration: 0.6 });
+      map.panTo([lat, lng], { animate: false });
     }
   }, [simulationPlaying, simulationFrame]);
 
