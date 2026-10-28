@@ -1,5 +1,6 @@
 import type {Metadata, Viewport} from 'next';
 import FetchInterceptor from '@/components/FetchInterceptor';
+import {SpeedInsights} from '@vercel/speed-insights/next';
 import './globals.css'; // Global styles
 
 export const viewport: Viewport = {
@@ -45,6 +46,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body suppressHydrationWarning>
         <FetchInterceptor />
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
