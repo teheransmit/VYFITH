@@ -97,7 +97,7 @@ class HealthSyncWorker(
 
     private fun sendToBackend(payload: JSONArray): Boolean {
         return try {
-            val url = URL("https://api.megaproyecto.com/ingest/health")
+            val url = URL("https://ais-pre-2ihzxs7iiz7evj5q52apo5-472843269573.us-east1.run.app/api/sync/health")
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")

@@ -144,6 +144,10 @@ export async function fetchUserCalendarEvents(token: string): Promise<CalendarEv
     throw new Error(`Google Calendar API (${res.status}): ${errorText}`);
   }
 
-  const data = await res.json();
+  const text = await res.text();
+  if (!text || text.trim().startsWith('<')) {
+    return [];
+  }
+  const data = JSON.parse(text);
   return (data.items || []) as CalendarEvent[];
 }

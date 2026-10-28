@@ -46,6 +46,18 @@ export interface VyfithAppIntegration {
   };
 }
 
+export interface SyncEventLog {
+  id: string;
+  timestamp: string;
+  source: string;
+  deviceId: string;
+  endpoint: string;
+  status: number;
+  recordsCount: number;
+  summary: string;
+  payload?: any;
+}
+
 export interface SyncSessionState {
   isPaired: boolean;
   deviceId: string;
@@ -54,6 +66,7 @@ export interface SyncSessionState {
   lastSyncTime: string | null;
   syncCount: number;
   changesToken: string | null;
+  lastReceivedPayload?: any;
   currentMetrics: {
     steps: number;
     hrv: number;
@@ -62,6 +75,7 @@ export interface SyncSessionState {
   };
   recentObservations: HealthObservation[];
   vyfithData: VyfithAppIntegration;
+  syncEvents: SyncEventLog[];
 }
 
 import realHealthState from '@/data/real_health_state.json';
@@ -78,12 +92,12 @@ export function getHealthSyncState(): SyncSessionState {
     } else {
       global.__HEALTH_SYNC_STATE = {
       isPaired: true,
-      deviceId: 'pixel-8-pro-santiago',
-      deviceName: 'Google Pixel 8 Pro (Android 14)',
+      deviceId: 'V2027',
+      deviceName: 'Vivo Y20 (V2027) • Funtouch OS',
       pairingToken: 'MEGA-HC-8924',
-      lastSyncTime: '2026-09-25T16:20:00Z',
-      syncCount: 14,
-      changesToken: 'token_changes_delta_v2_9823412',
+      lastSyncTime: '2026-09-26T16:45:00Z',
+      syncCount: 15,
+      changesToken: 'token_changes_delta_vivo_v2027',
       currentMetrics: {
         steps: 10450,
         hrv: 72,
@@ -200,6 +214,18 @@ export function getHealthSyncState(): SyncSessionState {
           date: '2026-09-24',
         },
       },
+      syncEvents: [
+        {
+          id: 'evt-init-1',
+          timestamp: '2026-09-26T14:44:50Z',
+          source: 'HL7 FHIR R4 Client',
+          deviceId: 'Android-Pixel-8-Santiago',
+          endpoint: '/api/sync/health',
+          status: 200,
+          recordsCount: 1,
+          summary: 'Observación LOINC 55423-8 (Pasos)',
+        }
+      ],
     };
   }
 }

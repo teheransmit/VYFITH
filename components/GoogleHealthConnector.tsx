@@ -19,6 +19,7 @@ import { SyncSessionState, HealthObservation } from '@/lib/healthStore';
 import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
+import BiomedicalIntelligencePanel from '@/components/BiomedicalIntelligencePanel';
 
 export default function GoogleHealthConnector() {
   const [syncState, setSyncState] = useState<SyncSessionState | null>(null);
@@ -197,6 +198,7 @@ export default function GoogleHealthConnector() {
                       sleepHours: sleepVal,
                     },
                     recentObservations: dynamicObservations,
+                    syncEvents: prev?.syncEvents || [],
                     vyfithData: {
                       connected: true,
                       appName: 'VYFITH_APP (Cloud Firestore)',
@@ -667,6 +669,9 @@ export default function GoogleHealthConnector() {
       </div>
 
 
+
+      {/* Motor de Inteligencia Biomédica, Fisiología del Ejercicio y Rendimiento Académico UPB */}
+      <BiomedicalIntelligencePanel />
 
       {/* Lista de Observaciones FHIR Recibidas */}
       <div className="mt-8">

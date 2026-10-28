@@ -21,25 +21,21 @@ import {
 } from '@/lib/notesStore';
 
 export default function ScientificNotesSection() {
-  const [notes, setNotes] = useState<CuriosityNote[]>(initialCuriosityNotes);
+  const [notes, setNotes] = useState<CuriosityNote[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('megaproyecto_scientific_notes');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return initialCuriosityNotes;
+  });
   const [newTopic, setNewTopic] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newCategory, setNewCategory] = useState<CuriosityNote['category']>('Física & Naturaleza');
   const [isSearching, setIsSearching] = useState(false);
   const [activeNoteId, setActiveNoteId] = useState<string>('note-colibri');
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-
-  // Cargar de LocalStorage al montar
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('megaproyecto_scientific_notes');
-      if (saved) {
-        setNotes(JSON.parse(saved));
-      }
-    } catch {
-      // Ignorar si no está disponible
-    }
-  }, []);
 
   // Guardar en LocalStorage
   const persistNotes = (updated: CuriosityNote[]) => {

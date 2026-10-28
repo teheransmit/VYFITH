@@ -1,6 +1,33 @@
 import * as fs from 'fs';
-import csvParser from 'csv-parser';
-import { AdaptadorEntrenamiento, SesionEntrenamiento, Ejercicio, Serie } from './interfaces';
+import { AdaptadorEntrenamiento, SesionEntrenamiento, Serie } from './interfaces';
+
+/**
+ * Función auxiliar para parsear líneas de CSV respetando comillas.
+ */
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
 
 /**
  * Adaptador para leer exportaciones de Hevy en formato CSV.
@@ -17,22 +44,39 @@ export class AdaptadorCsvHevy implements AdaptadorEntrenamiento {
 
   public async obtenerEntrenamientos(): Promise<SesionEntrenamiento[]> {
     return new Promise((resolver, rechazar) => {
-      // Utilizamos un mapa para agrupar filas que pertenecen al mismo entrenamiento
-      const sesionesMapa = new Map<string, SesionEntrenamiento>();
+      try {
+        if (!fs.existsSync(this.rutaArchivo)) {
+          resolver([]);
+          return;
+        }
 
-      fs.createReadStream(this.rutaArchivo)
-        .pipe(csvParser())
-        .on('data', (fila: Record<string, string>) => {
-          // Generamos una clave única para agrupar las filas (series) que pertenecen 
-          // a la misma fecha y hora de inicio, y que tienen el mismo título de rutina
+        const contenido = fs.readFileSync(this.rutaArchivo, 'utf8');
+        const lineas = contenido.split(/\r?\n/).filter(l => l.trim().length > 0);
+
+        if (lineas.length < 2) {
+          resolver([]);
+          return;
+        }
+
+        const encabezados = parseCsvLine(lineas[0]);
+        const sesionesMapa = new Map<string, SesionEntrenamiento>();
+
+        for (let i = 1; i < lineas.length; i++) {
+          const valores = parseCsvLine(lineas[i]);
+          const fila: Record<string, string> = {};
+          encabezados.forEach((encabezado, idx) => {
+            fila[encabezado] = valores[idx] || '';
+          });
+
+          if (!fila.start_time || !fila.title) continue;
+
           const claveAgrupacion = `${fila.start_time}_${fila.title}`;
 
           if (!sesionesMapa.has(claveAgrupacion)) {
-            // Inicializar la estructura base de la sesión de entrenamiento
             sesionesMapa.set(claveAgrupacion, {
               titulo: fila.title,
               fechaInicio: new Date(fila.start_time),
-              fechaFin: new Date(fila.end_time),
+              fechaFin: fila.end_time ? new Date(fila.end_time) : new Date(fila.start_time),
               descripcion: fila.description || null,
               ejercicios: []
             });
@@ -40,12 +84,11 @@ export class AdaptadorCsvHevy implements AdaptadorEntrenamiento {
 
           const sesion = sesionesMapa.get(claveAgrupacion)!;
 
-          // Buscar si el ejercicio ya fue registrado previamente en esta sesión
           let ejercicio = sesion.ejercicios.find(e => e.tituloEjercicio === fila.exercise_title);
           
           if (!ejercicio) {
             ejercicio = {
-              tituloEjercicio: fila.exercise_title,
+              tituloEjercicio: fila.exercise_title || 'Ejercicio General',
               notas: fila.exercise_notes || null,
               idSuperserie: fila.superset_id || null,
               series: []
@@ -53,10 +96,9 @@ export class AdaptadorCsvHevy implements AdaptadorEntrenamiento {
             sesion.ejercicios.push(ejercicio);
           }
 
-          // Crear y poblar el objeto de la serie individual
           const serie: Serie = {
-            indice: parseInt(fila.set_index, 10),
-            tipoDeSerie: fila.set_type,
+            indice: parseInt(fila.set_index, 10) || 1,
+            tipoDeSerie: fila.set_type || 'normal',
             pesoLibras: parseFloat(fila.weight_lbs) || 0,
             repeticiones: parseInt(fila.reps, 10) || 0,
             rpe: fila.rpe ? parseFloat(fila.rpe) : null,
@@ -64,17 +106,13 @@ export class AdaptadorCsvHevy implements AdaptadorEntrenamiento {
             duracionSegundos: fila.duration_seconds ? parseInt(fila.duration_seconds, 10) : null
           };
 
-          // Agregar la serie al ejercicio correspondiente
           ejercicio.series.push(serie);
-        })
-        .on('end', () => {
-          // Al terminar de leer el CSV, convertimos el mapa de valores en el arreglo estandarizado
-          resolver(Array.from(sesionesMapa.values()));
-        })
-        .on('error', (error) => {
-          rechazar(error);
-        });
+        }
+
+        resolver(Array.from(sesionesMapa.values()));
+      } catch (error) {
+        rechazar(error);
+      }
     });
   }
 }
-

@@ -1337,3 +1337,337 @@ export const initialFinanceData: FinanceSummary = {
     ],
   },
 };
+
+export interface FinancialMovement {
+  id: string;
+  timestamp: string;
+  type: 'ingreso_paseo' | 'ingreso_rappi' | 'ingreso_transporte' | 'cobro_cartera' | 'aporte_familiar' | 'gasto_fijo' | 'gasto_diario' | 'transferencia';
+  title: string;
+  account: 'efectivo' | 'cuentaNu' | 'nequi';
+  amount: number;
+  notes?: string;
+}
+
+export interface SantiagoFinanceState {
+  corteDate: string; // '2026-09-26'
+  travelDates: {
+    start: string; // '2026-10-08'
+    end: string;   // '2026-10-12'
+  };
+  liquidity: {
+    efectivo: number;
+    cuentaNu: number; // Cajita Medayork al 9.30% E.A.
+    nequi: number;
+  };
+  accountsReceivable: {
+    laura: number;  // Paseos atrasados
+    sienna: number; // Paseos directos
+  };
+  familyContributions: {
+    papa: number;
+    mama: number;
+  };
+  structuralDebts: number; // $0 COP
+  fixedExpenses: {
+    motilada: number;
+    suscripciones: number;
+    spotify?: number;
+  };
+  tripBudget: {
+    alojamiento: number;       // $0 COP
+    busAeropuerto: number;     // $40.000 COP
+    transporteCivica: number;  // $35.000 COP
+    alimentacion: number;      // $225.000 COP
+    actividadesSalidas: number;// $70.000 COP
+    reservaImprevistos: number;// $50.000 COP
+  };
+  movements: FinancialMovement[];
+}
+
+export const initialSantiagoFinance: SantiagoFinanceState = {
+  corteDate: '2026-09-26',
+  travelDates: {
+    start: '2026-10-08',
+    end: '2026-10-12',
+  },
+  liquidity: {
+    efectivo: 20000,
+    cuentaNu: 110000,
+    nequi: 0,
+  },
+  accountsReceivable: {
+    laura: 78050,
+    sienna: 45000,
+  },
+  familyContributions: {
+    papa: 210000,
+    mama: 50000,
+  },
+  structuralDebts: 0,
+  fixedExpenses: {
+    motilada: 12000,
+    suscripciones: 10200,
+    spotify: 5100,
+  },
+  tripBudget: {
+    alojamiento: 0,
+    busAeropuerto: 40000,
+    transporteCivica: 35000,
+    alimentacion: 225000,
+    actividadesSalidas: 70000,
+    reservaImprevistos: 50000,
+  },
+  movements: [
+    {
+      id: 'mov-init-1',
+      timestamp: '2026-09-26T08:00:00Z',
+      type: 'ingreso_transporte',
+      title: 'Aporte Transporte Papá (Ahorro pasivo 100% libre)',
+      account: 'efectivo',
+      amount: 35000,
+      notes: 'Tarjeta de hermano activa (costo pasajes $0)',
+    },
+    {
+      id: 'mov-init-2',
+      timestamp: '2026-09-25T17:30:00Z',
+      type: 'ingreso_paseo',
+      title: 'Paseo Canino Frida (Neto tarifa $9.000 - 35% com. Laura)',
+      account: 'cuentaNu',
+      amount: 5850,
+      notes: 'Guardado en Cajita Medayork al 9.30% E.A.',
+    },
+    {
+      id: 'mov-init-3',
+      timestamp: '2026-09-25T11:00:00Z',
+      type: 'ingreso_paseo',
+      title: 'Paseo Canino Molly (Tarifa neta)',
+      account: 'efectivo',
+      amount: 5000,
+    },
+  ],
+};
+
+declare global {
+  var __SANTIAGO_FINANCE: SantiagoFinanceState | undefined;
+}
+
+export function getSantiagoFinance(): SantiagoFinanceState {
+  if (!global.__SANTIAGO_FINANCE) {
+    global.__SANTIAGO_FINANCE = JSON.parse(JSON.stringify(initialSantiagoFinance));
+  }
+  return global.__SANTIAGO_FINANCE!;
+}
+
+export function updateSantiagoFinance(updater: (state: SantiagoFinanceState) => void): SantiagoFinanceState {
+  const state = getSantiagoFinance();
+  updater(state);
+  return state;
+}
+
+export function resetSantiagoFinance(): SantiagoFinanceState {
+  global.__SANTIAGO_FINANCE = JSON.parse(JSON.stringify(initialSantiagoFinance));
+  return global.__SANTIAGO_FINANCE!;
+}
+
+export function formatCop(amount: number): string {
+  if (amount === null || amount === undefined || isNaN(amount)) return '$0';
+  const rounded = Math.round(amount);
+  const formatted = rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `$${formatted}`;
+}
+
+export function generateOfficialReport(state: SantiagoFinanceState): string {
+  const totalLiquido = state.liquidity.efectivo + state.liquidity.cuentaNu + state.liquidity.nequi;
+  const totalCuentasPorCobrar = state.accountsReceivable.laura + state.accountsReceivable.sienna;
+  const totalGastosFijos = (state.fixedExpenses.motilada || 12000) + (state.fixedExpenses.suscripciones || 10200);
+  const totalAportesPendientes = state.familyContributions.papa + state.familyContributions.mama;
+  
+  const excedenteLiquidoLibre = Math.max(0, totalLiquido - totalGastosFijos);
+
+  const costoViaje =
+    state.tripBudget.alojamiento +
+    state.tripBudget.busAeropuerto +
+    state.tripBudget.transporteCivica +
+    state.tripBudget.alimentacion +
+    state.tripBudget.actividadesSalidas +
+    state.tripBudget.reservaImprevistos;
+
+  const capitalTotalAcumulable = totalLiquido + totalCuentasPorCobrar + totalAportesPendientes - totalGastosFijos;
+  const saldoFavorViaje = capitalTotalAcumulable - costoViaje;
+
+  const ahorroPasajesProyectado = 70000;
+  const proyeccionCapital8Oct = capitalTotalAcumulable + ahorroPasajesProyectado;
+  const saldoLujosProyectado = proyeccionCapital8Oct - costoViaje;
+
+  const diagnostico = saldoLujosProyectado >= 0 ? 'BIEN 🟢' : 'MAL 🔴';
+
+  return `### 1. BALANCE EN TABLA (Estado de Cuentas)
+
+| Cuenta / Activo | Saldo Actual (COP) | Rendimiento / Estado |
+| :--- | :--- | :--- |
+| **Efectivo** | ${formatCop(state.liquidity.efectivo)} | Disponible en mano |
+| **Cuenta Nu (Cajita Medayork)** | ${formatCop(state.liquidity.cuentaNu)} | Creciendo al 9.30% E.A. |
+| **Nequi** | ${formatCop(state.liquidity.nequi)} | Disponible para transferencias |
+| **TOTAL LÍQUIDO** | **${formatCop(totalLiquido)}** | **100% de libre disponibilidad** |
+
+* **Cuentas por cobrar en calle:** **${formatCop(totalCuentasPorCobrar)} COP** (Laura: ${formatCop(state.accountsReceivable.laura)} COP por paseos de Frida | Sienna: ${formatCop(state.accountsReceivable.sienna)} COP directos).
+* **Aportes familiares pendientes:** **${formatCop(totalAportesPendientes)} COP** (Papá: ${formatCop(state.familyContributions.papa)} COP | Mamá: ${formatCop(state.familyContributions.mama)} COP).
+* **Gastos fijos próximos comprometidos:** **-${formatCop(totalGastosFijos)} COP** (Motilada: -${formatCop(state.fixedExpenses.motilada || 12000)} COP | Suscripciones: -${formatCop(state.fixedExpenses.suscripciones || 10200)} COP).
+* **Excedente Líquido Real en mano:** **${formatCop(excedenteLiquidoLibre)} COP** (Liquidez actual restando gastos fijos inmediatos).
+* **Fondo Asignado a Medellín:** **${formatCop(state.liquidity.cuentaNu)} COP** (Blindado y generando intereses diarios en la Cajita Nu al 9.30% E.A.).
+
+---
+
+### 2. PRESUPUESTO DESGLOSADO DEL VIAJE (Medellín: 8 - 12 Octubre 2026)
+
+* **Meta / Costo Restante:** **${formatCop(costoViaje)} COP**
+* **Alojamiento:** **$0 COP** (100% cubierto / liquidado).
+* **Bus Aeropuerto (Combuses Nutibara ida y vuelta):** -${formatCop(state.tripBudget.busAeropuerto)} COP
+* **Transporte local (Tarjeta Cívica Metro / Metrocable):** -${formatCop(state.tripBudget.transporteCivica)} COP
+* **Alimentación (5 días en Medellín):** -${formatCop(state.tripBudget.alimentacion)} COP
+* **Actividades, café y salidas:** -${formatCop(state.tripBudget.actividadesSalidas)} COP
+* **Reserva para imprevistos:** -${formatCop(state.tripBudget.reservaImprevistos)} COP
+
+**Balance de Cobertura del Viaje:**
+* Capital Total Acumulable = ${formatCop(totalLiquido)} (Líquido) + ${formatCop(totalCuentasPorCobrar)} (Por Cobrar) + ${formatCop(totalAportesPendientes)} (Aportes Familiares) - ${formatCop(totalGastosFijos)} (Gastos Fijos) = **${formatCop(capitalTotalAcumulable)} COP**.
+* **Saldo a Favor proyectado para el viaje:** **+${formatCop(Math.max(0, saldoFavorViaje))} COP** de colchón extra por encima de la meta de ${formatCop(costoViaje)} COP.
+
+---
+
+### 3. PROYECCIÓN Y DIAGNÓSTICO
+
+* **Proyección al 8 de octubre de 2026:** Con los $35.000 COP semanales de transporte libres (gracias a usar la tarjeta de tu hermano a costo $0), más los cobros pendientes, llegarás al viaje con **${formatCop(proyeccionCapital8Oct)} COP** mínimos garantizados (sin contar paseos extra ni turnos de Rappi de fin de semana).
+* **Diagnóstico:** **${diagnostico}**
+
+**Recomendaciones tácticas inmediatas:**
+1. **Presionar el cobro de Laura (${formatCop(state.accountsReceivable.laura)} COP):** Es el monto más alto en calle; apenas entre a Nequi, trasládalo de inmediato a la Cajita Medayork de Nu para que empiece a rentar al 9.30% E.A.
+2. **Coordinar el turno de Rappi del fin de semana:** Una sola jornada en moto con tu compañero (al 50%) te dejará entre $30.000 y $45.000 COP netos adicionales, aumentando tu margen de salidas o imprevistos en Medellín sin tocar la reserva familiar.
+
+---
+
+### 4. CIERRE
+
+¿Tuviste algún gasto hoy o realizaste algún paseo / movimiento que debamos registrar en la cuenta?`;
+}
+
+export function interpretNaturalLanguageFinance(input: string, currentState: SantiagoFinanceState): {
+  payload: any;
+  userMessageDescription: string;
+} | null {
+  const text = input.toLowerCase().trim();
+
+  if (text.includes('reiniciar') || text.includes('reset') || text.includes('empezar de nuevo') || text.includes('corte base')) {
+    return {
+      payload: { action: 'reset' },
+      userMessageDescription: 'Reinicio de finanzas a corte base 26 de septiembre de 2026',
+    };
+  }
+
+  if (text.includes('frida')) {
+    const match = text.match(/(\d+)\s*(paseo|paseos)?\s*(de\s*)?frida/);
+    const count = match ? parseInt(match[1], 10) : 1;
+    return {
+      payload: { type: 'ingreso_paseo_frida', count: count || 1, account: 'cuentaNu' },
+      userMessageDescription: `${count > 1 ? count + ' paseos' : 'Paseo'} de Frida registrado: +${formatCop(5850 * (count || 1))} netos`,
+    };
+  }
+
+  if (text.includes('molly')) {
+    const match = text.match(/(\d+)\s*(paseo|paseos)?\s*(de\s*)?molly/);
+    const count = match ? parseInt(match[1], 10) : 1;
+    return {
+      payload: { type: 'ingreso_paseo_molly', count: count || 1, account: 'efectivo' },
+      userMessageDescription: `${count > 1 ? count + ' paseos' : 'Paseo'} de Molly registrado: +${formatCop(5000 * (count || 1))} netos`,
+    };
+  }
+
+  if (text.includes('sienna') && !text.includes('pagó') && !text.includes('pago') && !text.includes('deuda') && !text.includes('abono')) {
+    return {
+      payload: { type: 'ingreso_paseo_sienna', account: 'cuentaNu' },
+      userMessageDescription: `Paseo de Sienna registrado: +${formatCop(9000)} netos`,
+    };
+  }
+
+  if (text.includes('sienna') && (text.includes('pagó') || text.includes('pago') || text.includes('canceló') || text.includes('abono') || text.includes('cobro'))) {
+    return {
+      payload: { type: 'cobro_sienna', amount: currentState.accountsReceivable.sienna || 45000, account: 'cuentaNu' },
+      userMessageDescription: `Cancelación 100% de cartera de Sienna (+${formatCop(currentState.accountsReceivable.sienna || 45000)})`,
+    };
+  }
+
+  if (text.includes('laura')) {
+    const numMatch = text.match(/(\d[\d\.\,]*)/);
+    let amount = currentState.accountsReceivable.laura;
+    if (numMatch) {
+      const cleanNum = parseInt(numMatch[1].replace(/[\.,]/g, ''), 10);
+      if (cleanNum > 1000 && cleanNum <= currentState.accountsReceivable.laura) {
+        amount = cleanNum;
+      }
+    }
+    return {
+      payload: { type: 'cobro_laura', amount, account: 'cuentaNu' },
+      userMessageDescription: `Cobro de cartera de Laura (+${formatCop(amount)})`,
+    };
+  }
+
+  if (text.includes('papá') || text.includes('papa')) {
+    if (text.includes('transporte') || text.includes('pasajes') || text.includes('35') || text.includes('semanal')) {
+      return {
+        payload: { type: 'ingreso_transporte_papa', account: 'cuentaNu' },
+        userMessageDescription: `Aporte semanal de transporte del papá recibido (+${formatCop(35000)} ahorro pasivo)`,
+      };
+    }
+    if (text.includes('viaje') || text.includes('aporte') || text.includes('dio') || text.includes('entregó')) {
+      const numMatch = text.match(/(\d[\d\.\,]*)/);
+      const amount = numMatch ? Math.min(parseInt(numMatch[1].replace(/[\.,]/g, ''), 10), currentState.familyContributions.papa) : 50000;
+      return {
+        payload: { type: 'aporte_papa_viaje', amount: amount || 50000, account: 'cuentaNu' },
+        userMessageDescription: `Aporte del papá para viaje recibido (+${formatCop(amount || 50000)})`,
+      };
+    }
+  }
+
+  if (text.includes('mamá') || text.includes('mama')) {
+    return {
+      payload: { type: 'aporte_mama_viaje', amount: 50000, account: 'cuentaNu' },
+      userMessageDescription: `Aporte de la mamá para viaje recibido (+${formatCop(50000)})`,
+    };
+  }
+
+  if (text.includes('rappi') || text.includes('moto') || text.includes('turno')) {
+    const numMatch = text.match(/(\d[\d\.\,]*)/);
+    let totalEarned = 80000;
+    if (numMatch) {
+      const clean = parseInt(numMatch[1].replace(/[\.,]/g, ''), 10);
+      if (clean > 5000) totalEarned = clean;
+    }
+    return {
+      payload: { type: 'ingreso_rappi', totalEarned, account: 'cuentaNu' },
+      userMessageDescription: `Turno de Rappi registrado: Total ${formatCop(totalEarned)} ➔ Mitad Santiago (+${formatCop(Math.round(totalEarned / 2))})`,
+    };
+  }
+
+  if (text.includes('nu') && (text.includes('mover') || text.includes('pasar') || text.includes('trasladar') || text.includes('transferir'))) {
+    const amount = currentState.liquidity.efectivo;
+    return {
+      payload: { type: 'transfer_to_nu', from: 'efectivo', amount },
+      userMessageDescription: `Traslado de efectivo a Cajita Nu Medayork 9.30% (+${formatCop(amount)})`,
+    };
+  }
+
+  if (text.includes('gasté') || text.includes('gaste') || text.includes('gasto') || text.includes('compré') || text.includes('compre') || text.includes('almuerzo') || text.includes('comida') || text.includes('pagué') || text.includes('pague')) {
+    const numMatch = text.match(/(\d[\d\.\,]*)/);
+    const amount = numMatch ? parseInt(numMatch[1].replace(/[\.,]/g, ''), 10) : 15000;
+    return {
+      payload: {
+        type: 'gasto_personalizado',
+        title: input.length > 30 ? input.substring(0, 30) : input,
+        amount: amount || 15000,
+        account: 'efectivo',
+      },
+      userMessageDescription: `Gasto registrado: -${formatCop(amount || 15000)} en "${input.substring(0, 25)}"`,
+    };
+  }
+
+  return null;
+}
