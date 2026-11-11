@@ -291,19 +291,20 @@ export default function GoogleHealthConnector({
       console.warn('Error suscribiendo a health_sync_stream:', e);
     }
 
-    // 4.B Suscripción a canal slug fallback (users/santiagosmitttt/healthSync/latest)
+    // 4.B Suscripción al UID real del teléfono de Santiago (ZVcSo21uZTOujKDgBWlSMqctLjg2)
+    const TARGET_PHONE_UID = 'ZVcSo21uZTOujKDgBWlSMqctLjg2';
     try {
       unsubSlugSnapshot = onSnapshot(
-        doc(db, 'users', 'santiagosmitttt', 'healthSync', 'latest'),
+        doc(db, 'users', TARGET_PHONE_UID, 'healthSync', 'latest'),
         (snapshot) => {
           if (snapshot.exists()) {
-            processDocData(snapshot.data(), 'Slug santiago');
+            processDocData(snapshot.data(), `Móvil Vivo Y20 (${TARGET_PHONE_UID.slice(0, 8)})`);
           }
         },
-        (err) => console.warn('Slug listener fallback:', err?.message)
+        (err) => console.warn('Phone UID listener fallback:', err?.message)
       );
     } catch (e) {
-      console.warn('Error suscribiendo a slug snapshot:', e);
+      console.warn('Error suscribiendo a Phone UID snapshot:', e);
     }
 
     // 4.C Autenticación transparente y suscripción al UID del usuario
@@ -394,17 +395,19 @@ export default function GoogleHealthConnector({
           console.warn('Direct stream read error:', e?.message);
         }
 
-        // 2. Intentar leer doc de usuario si no hay stream
-        const uid = auth?.currentUser?.uid || 'santiagosmitttt';
-        if (!remoteDoc) {
+        // 2. Intentar leer doc de usuario del móvil de Santiago
+        const targetUids = [auth?.currentUser?.uid, 'ZVcSo21uZTOujKDgBWlSMqctLjg2'].filter(Boolean);
+        for (const uid of targetUids) {
+          if (remoteDoc) break;
           try {
-            const userSnap = await getDoc(doc(db, 'users', uid, 'healthSync', 'latest'));
+            const userSnap = await getDoc(doc(db, 'users', uid as string, 'healthSync', 'latest'));
             if (userSnap.exists()) {
               remoteDoc = userSnap.data();
-              remoteSource = `Firestore (users/${uid})`;
+              remoteSource = `Firestore (users/${(uid as string).slice(0, 8)}...)`;
+              break;
             }
           } catch (e: any) {
-            console.warn('Direct user doc read error:', e?.message);
+            console.warn(`Direct user doc read error for ${uid}:`, e?.message);
           }
         }
       }
