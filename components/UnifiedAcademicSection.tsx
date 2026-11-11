@@ -19,7 +19,7 @@ import StructuralStudySection from './StructuralStudySection';
 import CareerTopicRoulette from './CareerTopicRoulette';
 
 export default function UnifiedAcademicSection() {
-  const [viewType, setViewType] = useState<'combined' | 'grades' | 'science' | 'study' | 'curiosity'>('study');
+  const [viewType, setViewType] = useState<'combined' | 'grades' | 'science' | 'study' | 'curiosity'>('combined');
 
   return (
     <section id="unified-academic-section" className="space-y-6 animate-fadeIn">
