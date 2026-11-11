@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   Smartphone,
   Scale,
+  Ruler,
+  Utensils,
 } from 'lucide-react';
 import GoogleHealthConnector from './GoogleHealthConnector';
 import UnifiedGymHevySection, { UpbGymStatusAndKpis } from './UnifiedGymHevySection';
@@ -22,18 +24,21 @@ import FemmtoBodyCompositionSuite from './FemmtoBodyCompositionSuite';
 import BiomedicalIntelligencePanel from './BiomedicalIntelligencePanel';
 import MuscleHeatmap from './MuscleHeatmap';
 import HevyWorkoutsSection from './HevyWorkoutsSection';
+import HevyProAnalyticsSuite from './HevyProAnalyticsSuite';
+import BodyMeasurementsSuite from './BodyMeasurementsSuite';
+import FitiaNutritionSuite from './FitiaNutritionSuite';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 import { SyncSessionState } from '@/lib/healthStore';
 
 export default function UnifiedHealthFitnessSection() {
-  const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'femmto' | 'mifitness' | 'gym' | 'hevy'>('combined');
+  const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'femmto' | 'mifitness' | 'gym' | 'hevy' | 'hevypro' | 'measurements' | 'fitia'>('combined');
   const [sharedHealthState, setSharedHealthState] = useState<SyncSessionState | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const sub = params.get('sub') as any;
-      if (sub && ['combined', 'biometrics', 'femmto', 'mifitness', 'gym', 'hevy'].includes(sub)) {
+      if (sub && ['combined', 'biometrics', 'femmto', 'mifitness', 'gym', 'hevy', 'hevypro', 'measurements', 'fitia'].includes(sub)) {
         setActiveSubView(sub);
       }
     }
@@ -156,7 +161,40 @@ export default function UnifiedHealthFitnessSection() {
               }`}
             >
               <Dumbbell className="w-3.5 h-3.5" />
-              <span>Hevy Workouts</span>
+              <span>Hevy Sesiones</span>
+            </button>
+            <button
+              onClick={() => setActiveSubView('hevypro')}
+              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                activeSubView === 'hevypro'
+                  ? 'bg-[#0088FF] text-white shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Hevy PRO (Radar)</span>
+            </button>
+            <button
+              onClick={() => setActiveSubView('measurements')}
+              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                activeSubView === 'measurements'
+                  ? 'bg-[#0088FF] text-white shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Ruler className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Medidas (17 Pts)</span>
+            </button>
+            <button
+              onClick={() => setActiveSubView('fitia')}
+              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                activeSubView === 'fitia'
+                  ? 'bg-[#10B981] text-[#0B0B0E] shadow-md'
+                  : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Utensils className="w-3.5 h-3.5 text-[#10B981]" />
+              <span>Fitia (Nutrición IA)</span>
             </button>
           </div>
         </div>
@@ -208,6 +246,21 @@ export default function UnifiedHealthFitnessSection() {
               />
             </div>
           </div>
+
+          {/* FILA 5: HEVY PRO ANALÍTICA AVANZADA (RADAR HEXAGONAL & 1RM ESTIMADO) */}
+          <div className="pt-2">
+            <HevyProAnalyticsSuite />
+          </div>
+
+          {/* FILA 6: FITIA PREMIUM NUTRICIÓN IA (ESCÁNER DE PLATO, NLP & CÓDIGO DE BARRAS) */}
+          <div className="pt-2">
+            <FitiaNutritionSuite />
+          </div>
+
+          {/* FILA 7: REGISTRO DE MEDIDAS CORPORALES (17 PARÁMETROS & US NAVY) */}
+          <div className="pt-2">
+            <BodyMeasurementsSuite />
+          </div>
         </div>
       )}
 
@@ -238,6 +291,24 @@ export default function UnifiedHealthFitnessSection() {
       {activeSubView === 'hevy' && (
         <div className="animate-fadeIn">
           <UnifiedGymHevySection hideHeader={false} initialSubTab="hevy" />
+        </div>
+      )}
+
+      {activeSubView === 'hevypro' && (
+        <div className="animate-fadeIn">
+          <HevyProAnalyticsSuite />
+        </div>
+      )}
+
+      {activeSubView === 'measurements' && (
+        <div className="animate-fadeIn">
+          <BodyMeasurementsSuite />
+        </div>
+      )}
+
+      {activeSubView === 'fitia' && (
+        <div className="animate-fadeIn">
+          <FitiaNutritionSuite />
         </div>
       )}
     </section>
