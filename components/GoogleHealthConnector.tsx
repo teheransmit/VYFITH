@@ -19,7 +19,7 @@ import {
 import { SyncSessionState, HealthObservation } from '@/lib/healthStore';
 import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import BiomedicalIntelligencePanel from '@/components/BiomedicalIntelligencePanel';
 import MiFitnessHealthSuite from '@/components/MiFitnessHealthSuite';
 
@@ -96,213 +96,251 @@ export default function GoogleHealthConnector({
     const db = getFirestoreDb();
     if (!auth || !db) return;
 
-    let unsubSnapshot: (() => void) | null = null;
+    let unsubUserSnapshot: (() => void) | null = null;
+    let unsubStreamSnapshot: (() => void) | null = null;
+    let unsubSlugSnapshot: (() => void) | null = null;
 
+    const processDocData = (docData: any, sourceTag = 'Cloud Firestore') => {
+      if (!docData) return;
+      const nowIso = new Date().toISOString();
+      const snapshotIso = docData.updatedAt?.toDate
+        ? docData.updatedAt.toDate().toISOString()
+        : docData.updatedAt || nowIso;
+
+      const stepsVal = Number(docData.roomMetrics?.steps ?? docData.steps ?? docData.stepCount ?? 0);
+      const hrVal = Number(docData.roomMetrics?.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
+      const sleepVal = Number(docData.roomMetrics?.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? docData.sleepTotalHours ?? 0);
+      const readinessVal = Number(docData.readinessScore ?? 88);
+      const spo2Val = Number(docData.roomMetrics?.spo2 ?? docData.spo2 ?? 97);
+      const calVal = Number(docData.roomMetrics?.caloriesBurned ?? docData.caloriesBurned ?? 0);
+
+      const dynamicObservations: HealthObservation[] = [
+        {
+          id: `fb-readiness-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Recuperación / Readiness AI',
+          code: {
+            coding: [{ system: 'http://loinc.org', code: '77202-0', display: 'Athlete Readiness Score (0-100)' }],
+          },
+          valueQuantity: { value: readinessVal, unit: 'score' },
+          effectiveDateTime: snapshotIso,
+        },
+        {
+          id: `fb-steps-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Health Connect - Pasos',
+          code: {
+            coding: [{ system: 'http://loinc.org', code: '55423-8', display: 'Number of steps' }],
+          },
+          valueQuantity: { value: stepsVal, unit: 'steps' },
+          effectiveDateTime: snapshotIso,
+        },
+        {
+          id: `fb-hr-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Cardiovascular - Reposo',
+          code: {
+            coding: [{ system: 'http://loinc.org', code: '8867-4', display: 'Resting Heart Rate' }],
+          },
+          valueQuantity: { value: hrVal, unit: 'bpm' },
+          effectiveDateTime: snapshotIso,
+        },
+        {
+          id: `fb-sleep-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Health Connect - Sueño',
+          code: {
+            coding: [{ system: 'http://loinc.org', code: '93832-4', display: 'Sleep duration total' }],
+          },
+          valueQuantity: { value: sleepVal, unit: 'hours' },
+          effectiveDateTime: snapshotIso,
+        },
+        {
+          id: `fb-spo2-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Oximetría Biométrica',
+          code: {
+            coding: [{ system: 'http://loinc.org', code: '2708-6', display: 'Oxygen saturation (SpO2)' }],
+          },
+          valueQuantity: { value: spo2Val, unit: '%' },
+          effectiveDateTime: snapshotIso,
+        },
+      ];
+
+      setSyncState((prev) => {
+        return {
+          isPaired: true,
+          deviceId: docData.deviceId || 'Vivo Y20',
+          deviceName: docData.deviceId
+            ? `VYFITH_APP (${docData.deviceId})`
+            : 'FitSync AI Mobile (Vivo Y20)',
+          pairingToken: 'CLOUD-BRIDGE',
+          lastSyncTime: snapshotIso,
+          syncCount: (prev?.syncCount || 0) + 1,
+          changesToken: `firestore_${Date.now()}`,
+          currentMetrics: {
+            steps: stepsVal || prev?.currentMetrics?.steps || 0,
+            hrv: Number(docData.hrv ?? prev?.currentMetrics?.hrv ?? 76),
+            heartRate: hrVal,
+            sleepHours: sleepVal || prev?.currentMetrics?.sleepHours || 0,
+          },
+          recentObservations: dynamicObservations,
+          syncEvents: prev?.syncEvents || [],
+          vyfithData: {
+            connected: true,
+            appName: `VYFITH_APP (${sourceTag})`,
+            readinessScore: readinessVal,
+            readinessCategory: docData.readinessCategory || (readinessVal >= 85 ? 'Vitalidad Óptima' : 'Recuperación Adecuada'),
+            lastSyncTimestamp: snapshotIso,
+            geminiAnalysis: {
+              diagnostico:
+                docData.dailyCoachAiReport ||
+                docData.geminiAnalysis?.diagnostico ||
+                docData.diagnostico ||
+                'Diagnóstico en vivo recibido vía Cloud Bridge.',
+              recomendacionMuscular:
+                docData.geminiAnalysis?.recomendacionMuscular ||
+                docData.recomendacionMuscular ||
+                'Priorización calculada por IA en dispositivo.',
+              gruposPriorizar:
+                docData.geminiAnalysis?.gruposPriorizar || docData.gruposPriorizar || ['Pectoral', 'Deltoides'],
+              gruposDescanso:
+                docData.geminiAnalysis?.gruposDescanso || docData.gruposDescanso || ['Piernas'],
+              tiempoRecuperacionHoras:
+                docData.geminiAnalysis?.tiempoRecuperacionHoras || 0,
+            },
+            roomMetrics: {
+              steps: stepsVal,
+              deepSleepHours: Number(
+                docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 2.1
+              ),
+              totalSleepHours: sleepVal,
+              restingHeartRate: hrVal,
+              spo2: spo2Val,
+              caloriesBurned: calVal,
+            },
+            hevySummary: {
+              lastWorkoutName:
+                docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || 'Horizontal Torso (Chest & Back)',
+              totalVolumeKg: Number(
+                docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 4484
+              ),
+              setsCompleted: Number(
+                docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 20
+              ),
+              date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
+            },
+          },
+        };
+      });
+
+      setIsCloudBridgeActive(true);
+      setNotificationMsg(`☁️ Datos recibidos en vivo vía Firestore (${sleepVal > 0 ? `${sleepVal}h sueño • ` : ''}${stepsVal} pasos)`);
+      setTimeout(() => setNotificationMsg(null), 5000);
+
+      // Replicar en el endpoint local para guardar en disco
+      void fetch('/api/sync/health', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: 'VYFITH_APP',
+          deviceId: docData.deviceId || 'Vivo Y20',
+          readinessScore: readinessVal,
+          readinessCategory: docData.readinessCategory || 'Vitalidad Óptima',
+          geminiAnalysis: docData.geminiAnalysis || {
+            diagnostico: docData.dailyCoachAiReport || docData.diagnostico,
+            recomendacionMuscular: docData.recomendacionMuscular,
+            gruposPriorizar: docData.gruposPriorizar,
+            gruposDescanso: docData.gruposDescanso,
+          },
+          roomMetrics: {
+            steps: stepsVal,
+            deepSleepHours: Number(docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 2.1),
+            totalSleepHours: sleepVal,
+            restingHeartRate: hrVal,
+            spo2: spo2Val,
+            caloriesBurned: calVal,
+          },
+          hevyWorkouts: {
+            lastWorkoutName: docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || 'Horizontal Torso (Chest & Back)',
+            totalVolumeKg: Number(docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 4484),
+            setsCompleted: Number(docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 20),
+            date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
+          },
+        }),
+      }).catch(() => {});
+    };
+
+    // 4.A Suscripción directa al canal global (health_sync_stream/latest)
+    try {
+      unsubStreamSnapshot = onSnapshot(
+        doc(db, 'health_sync_stream', 'latest'),
+        (snapshot) => {
+          if (snapshot.exists()) {
+            processDocData(snapshot.data(), 'Stream Global');
+          }
+        },
+        (err) => console.warn('Stream listener fallback:', err?.message)
+      );
+    } catch (e) {
+      console.warn('Error suscribiendo a health_sync_stream:', e);
+    }
+
+    // 4.B Suscripción a canal slug fallback (users/santiagosmitttt/healthSync/latest)
+    try {
+      unsubSlugSnapshot = onSnapshot(
+        doc(db, 'users', 'santiagosmitttt', 'healthSync', 'latest'),
+        (snapshot) => {
+          if (snapshot.exists()) {
+            processDocData(snapshot.data(), 'Slug santiago');
+          }
+        },
+        (err) => console.warn('Slug listener fallback:', err?.message)
+      );
+    } catch (e) {
+      console.warn('Error suscribiendo a slug snapshot:', e);
+    }
+
+    // 4.C Autenticación transparente y suscripción al UID del usuario
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUserEmail(user?.email || null);
       if (user?.uid) {
         try {
-          unsubSnapshot = onSnapshot(
+          if (unsubUserSnapshot) unsubUserSnapshot();
+          unsubUserSnapshot = onSnapshot(
             doc(db, 'users', user.uid, 'healthSync', 'latest'),
             (snapshot) => {
               if (snapshot.exists()) {
-                const docData = snapshot.data();
-                const nowIso = new Date().toISOString();
-                const snapshotIso = docData.updatedAt?.toDate
-                  ? docData.updatedAt.toDate().toISOString()
-                  : docData.updatedAt || nowIso;
-
-                const stepsVal = Number(docData.roomMetrics?.steps ?? docData.steps ?? 7246);
-                const hrVal = Number(docData.roomMetrics?.restingHeartRate ?? docData.restingHeartRate ?? 62);
-                const sleepVal = Number(docData.roomMetrics?.totalSleepHours ?? docData.totalSleepHours ?? 8.2);
-                const readinessVal = Number(docData.readinessScore ?? 90);
-                const spo2Val = Number(docData.roomMetrics?.spo2 ?? docData.spo2 ?? 96.6);
-                const calVal = Number(docData.roomMetrics?.caloriesBurned ?? docData.caloriesBurned ?? 289.84);
-
-                const dynamicObservations: HealthObservation[] = [
-                  {
-                    id: `fb-readiness-${Date.now()}`,
-                    resourceType: 'Observation',
-                    status: 'final',
-                    category: 'Recuperación / Readiness AI',
-                    code: {
-                      coding: [{ system: 'http://loinc.org', code: '77202-0', display: 'Athlete Readiness Score (0-100)' }],
-                    },
-                    valueQuantity: { value: readinessVal, unit: 'score' },
-                    effectiveDateTime: snapshotIso,
-                  },
-                  {
-                    id: `fb-steps-${Date.now()}`,
-                    resourceType: 'Observation',
-                    status: 'final',
-                    category: 'Health Connect - Pasos',
-                    code: {
-                      coding: [{ system: 'http://loinc.org', code: '55423-8', display: 'Number of steps' }],
-                    },
-                    valueQuantity: { value: stepsVal, unit: 'steps' },
-                    effectiveDateTime: snapshotIso,
-                  },
-                  {
-                    id: `fb-hr-${Date.now()}`,
-                    resourceType: 'Observation',
-                    status: 'final',
-                    category: 'Cardiovascular - Reposo',
-                    code: {
-                      coding: [{ system: 'http://loinc.org', code: '8867-4', display: 'Resting Heart Rate' }],
-                    },
-                    valueQuantity: { value: hrVal, unit: 'bpm' },
-                    effectiveDateTime: snapshotIso,
-                  },
-                  {
-                    id: `fb-sleep-${Date.now()}`,
-                    resourceType: 'Observation',
-                    status: 'final',
-                    category: 'Health Connect - Sueño',
-                    code: {
-                      coding: [{ system: 'http://loinc.org', code: '93832-4', display: 'Sleep duration total' }],
-                    },
-                    valueQuantity: { value: sleepVal, unit: 'hours' },
-                    effectiveDateTime: snapshotIso,
-                  },
-                  {
-                    id: `fb-spo2-${Date.now()}`,
-                    resourceType: 'Observation',
-                    status: 'final',
-                    category: 'Oximetría Biométrica',
-                    code: {
-                      coding: [{ system: 'http://loinc.org', code: '2708-6', display: 'Oxygen saturation (SpO2)' }],
-                    },
-                    valueQuantity: { value: spo2Val, unit: '%' },
-                    effectiveDateTime: snapshotIso,
-                  },
-                  {
-                    id: `fb-cal-${Date.now()}`,
-                    resourceType: 'Observation',
-                    status: 'final',
-                    category: 'Actividad Física - Calorías',
-                    code: {
-                      coding: [{ system: 'http://loinc.org', code: '41981-2', display: 'Active energy burned' }],
-                    },
-                    valueQuantity: { value: calVal, unit: 'kcal' },
-                    effectiveDateTime: snapshotIso,
-                  },
-                ];
-
-                setSyncState((prev) => {
-                  return {
-                    isPaired: true,
-                    deviceId: docData.deviceId || 'Vivo Y20',
-                    deviceName: docData.deviceId
-                      ? `VYFITH_APP (${docData.deviceId})`
-                      : 'FitSync AI Mobile (Vivo Y20)',
-                    pairingToken: 'CLOUD-BRIDGE',
-                    lastSyncTime: snapshotIso,
-                    syncCount: (prev?.syncCount || 0) + 1,
-                    changesToken: `firestore_${Date.now()}`,
-                    currentMetrics: {
-                      steps: stepsVal,
-                      hrv: prev?.currentMetrics?.hrv || 76,
-                      heartRate: hrVal,
-                      sleepHours: sleepVal,
-                    },
-                    recentObservations: dynamicObservations,
-                    syncEvents: prev?.syncEvents || [],
-                    vyfithData: {
-                      connected: true,
-                      appName: 'VYFITH_APP (Cloud Firestore)',
-                      readinessScore: readinessVal,
-                      readinessCategory: docData.readinessCategory || 'Vitalidad Óptima',
-                      lastSyncTimestamp: snapshotIso,
-                      geminiAnalysis: {
-                        diagnostico:
-                          docData.geminiAnalysis?.diagnostico ||
-                          docData.diagnostico ||
-                          'Diagnóstico recibido vía Cloud Bridge.',
-                        recomendacionMuscular:
-                          docData.geminiAnalysis?.recomendacionMuscular ||
-                          docData.recomendacionMuscular ||
-                          'Priorización calculada por IA en dispositivo.',
-                        gruposPriorizar:
-                          docData.geminiAnalysis?.gruposPriorizar || docData.gruposPriorizar || ['Pectoral', 'Deltoides'],
-                        gruposDescanso:
-                          docData.geminiAnalysis?.gruposDescanso || docData.gruposDescanso || ['Piernas'],
-                        tiempoRecuperacionHoras:
-                          docData.geminiAnalysis?.tiempoRecuperacionHoras || 0,
-                      },
-                      roomMetrics: {
-                        steps: stepsVal,
-                        deepSleepHours: Number(
-                          docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 1.8
-                        ),
-                        totalSleepHours: sleepVal,
-                        restingHeartRate: hrVal,
-                        spo2: spo2Val,
-                        caloriesBurned: calVal,
-                      },
-                      hevySummary: {
-                        lastWorkoutName:
-                          docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || 'Push Day (Pectoral, Deltoides, Tríceps)',
-                        totalVolumeKg: Number(
-                          docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 6420
-                        ),
-                        setsCompleted: Number(
-                          docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 18
-                        ),
-                        date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
-                      },
-                    },
-                  };
-                });
-                setIsCloudBridgeActive(true);
-                setNotificationMsg('☁️ Datos recibidos en tiempo real vía Cloud Bridge (Firestore)');
-                setTimeout(() => setNotificationMsg(null), 4000);
-
-                // Replicar al backend local para persistir en disco
-                void fetch('/api/sync/health', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    source: 'VYFITH_APP',
-                    deviceId: docData.deviceId || 'Vivo Y20',
-                    readinessScore: readinessVal,
-                    readinessCategory: docData.readinessCategory || 'Vitalidad Óptima',
-                    geminiAnalysis: docData.geminiAnalysis || {
-                      diagnostico: docData.diagnostico,
-                      recomendacionMuscular: docData.recomendacionMuscular,
-                      gruposPriorizar: docData.gruposPriorizar,
-                      gruposDescanso: docData.gruposDescanso,
-                    },
-                    roomMetrics: {
-                      steps: stepsVal,
-                      deepSleepHours: Number(docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 1.8),
-                      totalSleepHours: sleepVal,
-                      restingHeartRate: hrVal,
-                      spo2: spo2Val,
-                      caloriesBurned: calVal,
-                    },
-                    hevyWorkouts: {
-                      lastWorkoutName: docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || 'Push Day (Pectoral, Deltoides, Tríceps)',
-                      totalVolumeKg: Number(docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 6420),
-                      setsCompleted: Number(docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 18),
-                      date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
-                    },
-                  }),
-                }).catch(() => {});
+                processDocData(snapshot.data(), `User UID: ${user.uid.slice(0, 6)}...`);
               }
             },
             (error) => {
-              console.warn('Firestore onSnapshot listener fallback:', error);
+              console.warn('User UID snapshot fallback:', error?.message);
             }
           );
         } catch (e) {
-          console.error('Error suscribiendo a Cloud Bridge Firestore:', e);
+          console.error('Error suscribiendo a User UID Firestore:', e);
         }
       }
     });
 
+    // Si no hay usuario activo, iniciamos sesión anónima transparente para pasar reglas con auth
+    if (!auth.currentUser) {
+      signInAnonymously(auth).catch((err) => {
+        console.warn('Auth anónima transparente fallback:', err?.message);
+      });
+    }
+
     return () => {
       unsubAuth();
-      if (unsubSnapshot) unsubSnapshot();
+      if (unsubUserSnapshot) unsubUserSnapshot();
+      if (unsubStreamSnapshot) unsubStreamSnapshot();
+      if (unsubSlugSnapshot) unsubSlugSnapshot();
     };
   }, []);
 
