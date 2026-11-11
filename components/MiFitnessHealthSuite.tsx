@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { SyncSessionState } from '@/lib/healthStore';
+import { getFirestoreDb } from '@/lib/firebaseClient';
+import { doc, onSnapshot } from 'firebase/firestore';
 import {
   Moon,
   Heart,
@@ -23,26 +25,123 @@ interface MiFitnessHealthSuiteProps {
 }
 
 export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuiteProps) {
-  const [internalState, setInternalState] = useState<SyncSessionState | null>(null);
+  const [internalState, setInternalState] = useState<SyncSessionState | null>(syncState || null);
 
   useEffect(() => {
-    if (!syncState) {
-      fetch(`/api/sync/health?t=${Date.now()}`)
-        .then((res) => res.json())
-        .then((d) => {
-          if (d.success && d.data) setInternalState(d.data);
-        })
-        .catch(console.error);
+    if (syncState) {
+      setInternalState(syncState);
     }
   }, [syncState]);
+
+  useEffect(() => {
+    // 1. Carga inicial vía endpoint local
+    fetch(`/api/sync/health?t=${Date.now()}`)
+      .then((res) => res.json())
+      .then((d) => {
+        if (d.success && d.data) {
+          setInternalState((prev) => {
+            if (!prev) return d.data;
+            const prevTime = new Date(prev.lastSyncTime || 0).getTime();
+            const incomingTime = new Date(d.data.lastSyncTime || 0).getTime();
+            return incomingTime >= prevTime ? d.data : prev;
+          });
+        }
+      })
+      .catch(console.error);
+
+    // 2. Listener de eventos locales emitidos por GoogleHealthConnector
+    const handleSyncEvent = (e: any) => {
+      if (e?.detail) {
+        setInternalState(e.detail);
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('vyfith-health-sync', handleSyncEvent);
+    }
+
+    // 3. Suscripción directa en tiempo real al Firestore del teléfono Vivo Y20 de Santiago
+    let unsubSnapshot: (() => void) | null = null;
+    try {
+      const db = getFirestoreDb();
+      if (db) {
+        const TARGET_UID = 'ZVcSo21uZTOujKDgBWlSMqctLjg2';
+        unsubSnapshot = onSnapshot(
+          doc(db, 'users', TARGET_UID, 'healthSync', 'latest'),
+          (snap) => {
+            if (snap.exists()) {
+              const docData = snap.data();
+              const sleepVal = Number(docData.roomMetrics?.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? 7.3);
+              const deepVal = Number(docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 1.61);
+              const hrVal = Number(docData.roomMetrics?.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
+              const spo2Val = Number(docData.roomMetrics?.spo2 ?? docData.spo2 ?? 96.5);
+              const stepsVal = Number(docData.roomMetrics?.steps ?? docData.steps ?? 6411);
+
+              setInternalState((prev: any) => ({
+                ...prev,
+                isPaired: true,
+                currentMetrics: {
+                  ...(prev?.currentMetrics || {}),
+                  sleepHours: sleepVal,
+                  heartRate: hrVal,
+                  steps: stepsVal,
+                },
+                vyfithData: {
+                  ...(prev?.vyfithData || {}),
+                  connected: true,
+                  readinessScore: Number(docData.readinessScore ?? 85),
+                  roomMetrics: {
+                    ...(prev?.vyfithData?.roomMetrics || {}),
+                    totalSleepHours: sleepVal,
+                    deepSleepHours: deepVal,
+                    restingHeartRate: hrVal,
+                    spo2: spo2Val,
+                    steps: stepsVal,
+                  },
+                },
+              }));
+            }
+          },
+          (err) => console.warn('MiFitness Firestore listener fallback:', err?.message)
+        );
+      }
+    } catch (e) {
+      console.warn('Error initializing MiFitness Firestore listener:', e);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('vyfith-health-sync', handleSyncEvent);
+      }
+      if (unsubSnapshot) unsubSnapshot();
+    };
+  }, []);
 
   const activeState = syncState || internalState;
   const totalSleepHours =
     activeState?.currentMetrics?.sleepHours ||
     activeState?.vyfithData?.roomMetrics?.totalSleepHours ||
-    10.2;
+    7.3;
   const sleepH = Math.floor(totalSleepHours);
   const sleepM = Math.round((totalSleepHours - sleepH) * 60);
+
+  const rawDeep = activeState?.vyfithData?.roomMetrics?.deepSleepHours;
+  const deepSleepHours = rawDeep !== undefined && rawDeep > 0 ? rawDeep : Number((totalSleepHours * 0.22).toFixed(2));
+  const deepH = Math.floor(deepSleepHours);
+  const deepM = Math.round((deepSleepHours - deepH) * 60);
+  const deepPct = Math.min(100, Math.max(10, Math.round((deepSleepHours / totalSleepHours) * 100)));
+
+  const remSleepHours = Number((totalSleepHours * 0.24).toFixed(2));
+  const remH = Math.floor(remSleepHours);
+  const remM = Math.round((remSleepHours - remH) * 60);
+  const remPct = 24;
+
+  const awakeHours = Number((totalSleepHours * 0.04).toFixed(2));
+  const awakeMin = Math.round(awakeHours * 60) || 12;
+
+  const lightSleepHours = Math.max(0, Number((totalSleepHours - deepSleepHours - remSleepHours - awakeHours).toFixed(2)));
+  const lightH = Math.floor(lightSleepHours);
+  const lightM = Math.round((lightSleepHours - lightH) * 60);
+  const lightPct = Math.max(10, 100 - deepPct - remPct - 4);
 
   const liveRhr =
     activeState?.currentMetrics?.heartRate ||
@@ -61,19 +160,19 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
 
   const metricsByRange = {
     today: {
-      rangeLabel: 'Noche de ayer • 22:48 – 07:00',
+      rangeLabel: 'Noche de ayer • 23:15 – 06:45',
       timeSubtitle: 'Última sesión sincronizada desde tu Vivo Y20',
       sleep: {
         totalHoursStr: `${sleepH}h ${sleepM}m`,
         totalTitle: `${sleepH} horas ${sleepM} minutos`,
         efficiency: '94%',
-        deepStr: '2h 12m',
-        deepPct: 22,
-        lightStr: '5h 10m',
-        lightPct: 50,
-        remStr: '2h 40m',
-        remPct: 26,
-        awakeStr: '10 min',
+        deepStr: `${deepH}h ${deepM}m`,
+        deepPct: deepPct,
+        lightStr: `${lightH}h ${lightM}m`,
+        lightPct: lightPct,
+        remStr: `${remH}h ${remM}m`,
+        remPct: remPct,
+        awakeStr: `${awakeMin} min`,
         wakeups: '2 veces',
         animalEmoji: '🐻',
         animalName: 'El Oso',
@@ -435,11 +534,11 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
             {/* HIPNOGRAMA VISUAL DE FASES */}
             <div className="space-y-2 pt-2">
               <div className="flex justify-between text-xs text-slate-300 font-mono">
-                <span>{timeRange === 'today' ? '22:48' : 'Inicio ventana'}</span>
+                <span>{timeRange === 'today' ? '23:15' : 'Inicio ventana'}</span>
                 <span>01:00</span>
                 <span>03:00</span>
                 <span>05:00</span>
-                <span>{timeRange === 'today' ? '07:00' : 'Fin ventana'}</span>
+                <span>{timeRange === 'today' ? '06:45' : 'Fin ventana'}</span>
               </div>
 
               {/* Barra segmentada de fases */}

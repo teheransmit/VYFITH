@@ -25,10 +25,12 @@ import MiFitnessHealthSuite from '@/components/MiFitnessHealthSuite';
 
 export interface GoogleHealthConnectorProps {
   hideNestedSuites?: boolean;
+  onSyncStateChange?: (state: SyncSessionState) => void;
 }
 
 export default function GoogleHealthConnector({
   hideNestedSuites = false,
+  onSyncStateChange,
 }: GoogleHealthConnectorProps = {}) {
   const [syncState, setSyncState] = useState<SyncSessionState | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +58,10 @@ export default function GoogleHealthConnector({
           }
           return data.data;
         });
+        onSyncStateChange?.(data.data);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('vyfith-health-sync', { detail: data.data }));
+        }
       }
     } catch (err) {
       console.error('Error fetching health sync state:', err);
@@ -172,8 +178,9 @@ export default function GoogleHealthConnector({
         },
       ];
 
+      let updatedState: SyncSessionState | null = null;
       setSyncState((prev) => {
-        return {
+        updatedState = {
           isPaired: true,
           deviceId: docData.deviceId || 'Vivo Y20',
           deviceName: docData.deviceId
@@ -217,7 +224,7 @@ export default function GoogleHealthConnector({
             roomMetrics: {
               steps: stepsVal,
               deepSleepHours: Number(
-                docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 2.1
+                docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 1.61
               ),
               totalSleepHours: sleepVal,
               restingHeartRate: hrVal,
@@ -237,7 +244,15 @@ export default function GoogleHealthConnector({
             },
           },
         };
+        return updatedState;
       });
+
+      if (updatedState) {
+        onSyncStateChange?.(updatedState);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('vyfith-health-sync', { detail: updatedState }));
+        }
+      }
 
       setIsCloudBridgeActive(true);
       setNotificationMsg(`☁️ Datos recibidos en vivo vía Firestore (${sleepVal > 0 ? `${sleepVal}h sueño • ` : ''}${stepsVal} pasos)`);
@@ -578,9 +593,9 @@ export default function GoogleHealthConnector({
               </span>
             </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 mb-3">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 mb-3 whitespace-pre-line">
               {vyfithData?.geminiAnalysis?.diagnostico ||
-                'Resumen de Salud Diario para miércoles, 28 de octubre de 2026. Tu puntuación de recuperación es 67/100 (Recuperación Moderada). Registraste 10h 12m de sueño. Caminaste 2,354 pasos cubriendo ~1.79 km, quemando aprox. 94 kcal. Tu oxígeno en sangre estuvo óptimo (≥96%) con un promedio de 96.72%. Tu composición corporal oficial en báscula Femmto es de 55.70 kg (122.80 lbs) con 10.60% de grasa corporal (5.90 kg grasa), 49.80 kg de masa libre de grasa, 25.10 kg de músculo esquelético (MME) e IMC de 18.80 kg/m².'}
+                'Resumen de Salud Diario para miércoles, 11 de noviembre de 2026. Puntuación de recuperación: 85/100 (Ejecución de Élite). Registraste 7h 18m de sueño neto reparador (1.61h de sueño profundo). Acumulaste 6,411 pasos con 57 min de actividad cardiovascular y SpO2 promedio de 96.5%. Composición Femmto: 55.70 kg, 10.60% grasa y 25.10 kg de masa muscular.'}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">

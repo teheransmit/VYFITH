@@ -23,9 +23,11 @@ import BiomedicalIntelligencePanel from './BiomedicalIntelligencePanel';
 import MuscleHeatmap from './MuscleHeatmap';
 import HevyWorkoutsSection from './HevyWorkoutsSection';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
+import { SyncSessionState } from '@/lib/healthStore';
 
 export default function UnifiedHealthFitnessSection() {
   const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'femmto' | 'mifitness' | 'gym' | 'hevy'>('combined');
+  const [sharedHealthState, setSharedHealthState] = useState<SyncSessionState | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -167,12 +169,12 @@ export default function UnifiedHealthFitnessSection() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
             {/* FILA 1 - MITAD IZQUIERDA (lg:col-span-6): Salud Biométrica & Conexión Google Health + Batería Corporal */}
             <div className="lg:col-span-6 space-y-4">
-              <GoogleHealthConnector hideNestedSuites={true} />
+              <GoogleHealthConnector hideNestedSuites={true} onSyncStateChange={setSharedHealthState} />
             </div>
 
             {/* FILA 1 - MITAD DERECHA (lg:col-span-6): Telemetría de Salud, Sueño & Ritmo Cardíaco (Mi Fitness) */}
             <div className="lg:col-span-6 space-y-4">
-              <MiFitnessHealthSuite />
+              <MiFitnessHealthSuite syncState={sharedHealthState} />
             </div>
 
             {/* FILA 2 - MITAD IZQUIERDA (lg:col-span-6): Matriz Fisiológica y Cognitiva + Gimnasio UPB & Hevy Workouts (Estado & KPIs) */}
@@ -211,7 +213,7 @@ export default function UnifiedHealthFitnessSection() {
 
       {activeSubView === 'biometrics' && (
         <div className="animate-fadeIn">
-          <GoogleHealthConnector />
+          <GoogleHealthConnector onSyncStateChange={setSharedHealthState} />
         </div>
       )}
 
@@ -223,7 +225,7 @@ export default function UnifiedHealthFitnessSection() {
 
       {activeSubView === 'mifitness' && (
         <div className="animate-fadeIn">
-          <MiFitnessHealthSuite />
+          <MiFitnessHealthSuite syncState={sharedHealthState} />
         </div>
       )}
 
