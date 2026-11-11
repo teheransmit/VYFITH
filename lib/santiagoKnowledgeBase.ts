@@ -154,8 +154,15 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
 - **Cajita Nu (9.30% E.A.):** ~$116.929 COP.
 - **Efectivo:** $5.000 COP.
 - **Por cobrar:** $25.000 COP (Laura, 5 paseos de Frida).
-- **Pasivo pendiente:** $22.000 COP a Daniela Bula.
-- **Deuda Moral con Yessid:** $580.000 COP. Regla innegociable: saldar esta deuda antes de comprar el iPhone 15 Pro ($1.950.000 COP).
+- **Pasivo Daniela Bula:** **$0 COP (100% PAGADO Y EXTINTO)**.
+- **Deuda Moral con Yessid:** **$550.000 COP** (se abonaron $30.000 COP; prioridad máxima de cancelación).
+- **Meta Hardware N.° 1 (El iPhone):** Requisito inmutable: **Dynamic Island** (iPhone 14 Pro, iPhone 15, iPhone 15 Pro o iPhone 16) con **mínimo 256 GB** (128 GB insuficiente). El Vivo Y20 actual está en estado crítico (pantalla rota, agua interna, cámaras averiadas, sin batería ni fluidez).
+- **Meta Hardware N.° 2 (Post-iPhone):** **Tablet con lápiz óptico (stylus)**, funda con teclado y mouse para notas a mano y clases, más renovación de ropa personal.
+- **Entorno Familiar y Hogar:** Vive con su abuela, su primo (asume servicios y comida) y su tío en Montería. Su tío en Medellín (Ingeniero de Sistemas) apoya con el arriendo en Montería.
+- **Movilidad Real:** Se mueve principalmente a pie. La bicicleta es de su primo (se la presta en mañanas libres). Transporte público en MetroSinú con tarifa estudiantil ($1.000 COP) o tarjeta de colegio del hermano ($0 COP).
+- **Vocación en Ingeniería Civil:** Pasión por **modelación computacional e hidroinformática** (software: QGIS / PyQGIS, ArcGIS, HEC-RAS, CivilCAD).
+- **Idiomas:** Inglés B1 en consolidación a B2 (Nivel 10 de 12 en UPB + Duolingo).
+- **Plan Académico-Laboral a Futuro:** Trabajar 1-2 años ejerciendo tras graduarse y realizar la **Especialización en la UPB Montería con 95% de descuento** (2 años, solo sábados).
 `.trim();
 
 /**
