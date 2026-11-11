@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { SyncSessionState, HealthObservation } from '@/lib/healthStore';
 import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import BiomedicalIntelligencePanel from '@/components/BiomedicalIntelligencePanel';
 import MiFitnessHealthSuite from '@/components/MiFitnessHealthSuite';
@@ -372,23 +372,69 @@ export default function GoogleHealthConnector({
     setTimeout(() => setCopiedUrl(false), 2500);
   };
 
-  // Recargar datos reales procesados de Google Health & Hevy
+  // Consultar en vivo el estado real en Firestore y teléfono
   const triggerReloadRealData = async () => {
     try {
       setIsLoading(true);
-      const res = await fetch('/api/sync/health', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reloadReal: true }),
-      });
-      const result = await res.json();
-      if (result.success && result.data) {
-        setSyncState(result.data);
-        setNotificationMsg('¡Datos reales de Google Health y Hevy sincronizados exitosamente desde disco!');
-        setTimeout(() => setNotificationMsg(null), 5000);
+      const db = getFirestoreDb();
+      const auth = getFirebaseAuth();
+
+      let remoteDoc: any = null;
+      let remoteSource = '';
+
+      if (db) {
+        // 1. Intentar leer stream global
+        try {
+          const streamSnap = await getDoc(doc(db, 'health_sync_stream', 'latest'));
+          if (streamSnap.exists()) {
+            remoteDoc = streamSnap.data();
+            remoteSource = 'Firestore (health_sync_stream)';
+          }
+        } catch (e: any) {
+          console.warn('Direct stream read error:', e?.message);
+        }
+
+        // 2. Intentar leer doc de usuario si no hay stream
+        const uid = auth?.currentUser?.uid || 'santiagosmitttt';
+        if (!remoteDoc) {
+          try {
+            const userSnap = await getDoc(doc(db, 'users', uid, 'healthSync', 'latest'));
+            if (userSnap.exists()) {
+              remoteDoc = userSnap.data();
+              remoteSource = `Firestore (users/${uid})`;
+            }
+          } catch (e: any) {
+            console.warn('Direct user doc read error:', e?.message);
+          }
+        }
       }
-    } catch (err) {
+
+      if (remoteDoc) {
+        const docTime = remoteDoc.updatedAt?.toDate
+          ? remoteDoc.updatedAt.toDate()
+          : new Date(remoteDoc.updatedAt || remoteDoc.lastSyncTimestamp || 0);
+        const ageHours = (Date.now() - docTime.getTime()) / (1000 * 60 * 60);
+
+        const steps = Number(remoteDoc.roomMetrics?.steps ?? remoteDoc.steps ?? 0);
+        const sleep = Number(remoteDoc.roomMetrics?.totalSleepHours ?? remoteDoc.totalSleepHours ?? remoteDoc.sleepHours ?? 0);
+        const hr = Number(remoteDoc.roomMetrics?.restingHeartRate ?? remoteDoc.restingHeartRate ?? remoteDoc.heartRate ?? 62);
+
+        if (ageHours < 4) {
+          setNotificationMsg(`✅ Sincronizado en vivo desde tu teléfono vía ${remoteSource}: ${steps.toLocaleString('es-CO')} pasos • ${sleep}h sueño • ${hr} bpm (recibido hace ${Math.max(1, Math.round(ageHours * 60))} min).`);
+        } else {
+          setNotificationMsg(`⚠️ En Firestore el último envío registrado del teléfono fue hace ${Math.round(ageHours)} horas (${docTime.toLocaleDateString('es-CO')} ${docTime.toLocaleTimeString('es-CO')}). Pulsa 'Sincronizar' en la app de tu teléfono para subir las métricas de hoy.`);
+        }
+        setTimeout(() => setNotificationMsg(null), 6500);
+        return;
+      }
+
+      // 3. Si Firestore aún no tiene datos enviados desde el móvil
+      setNotificationMsg('⚠️ Sin datos del teléfono en Firestore. Abre VYFITH en tu teléfono y pulsa "Sincronizar" para transmitir el primer paquete.');
+      setTimeout(() => setNotificationMsg(null), 6500);
+    } catch (err: any) {
       console.error('Error sincronizando datos reales:', err);
+      setNotificationMsg(`❌ Error al consultar la nube: ${err?.message || 'Fallo de conexión'}`);
+      setTimeout(() => setNotificationMsg(null), 6500);
     } finally {
       setIsLoading(false);
     }

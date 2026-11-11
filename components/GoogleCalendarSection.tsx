@@ -255,72 +255,7 @@ export function parseEventSchedule(evt: CalendarEvent): ParsedEventSchedule {
   };
 }
 
-const STATIC_SAMPLE_EVENTS: CalendarEvent[] = [
-  {
-    id: 'samp-1',
-    summary: 'Análisis de Estructuras (NRC 52885)',
-    start: { dateTime: '2026-10-22T18:00:00-05:00' },
-    end: { dateTime: '2026-10-22T20:00:00-05:00' },
-    location: 'Campus UPB - Aula B3 301 / B1 407',
-    description: 'Materia prioritaria (5° sem). Necesitas 2.97 en el examen final para habilitar Concreto I.',
-  },
-  {
-    id: 'samp-2',
-    summary: 'Fundamentos de Hidrología (NRC 52906)',
-    start: { dateTime: '2026-10-22T12:00:00-05:00' },
-    end: { dateTime: '2026-10-22T14:00:00-05:00' },
-    location: 'Campus UPB - Aula B1 211',
-    description: 'Línea de Recursos Hídricos. Proyecto de Investigación y Cuencas.',
-  },
-  {
-    id: 'samp-3',
-    summary: 'Mecánica de Suelos (NRC 52910)',
-    start: { dateTime: '2026-10-23T08:00:00-05:00' },
-    end: { dateTime: '2026-10-23T10:00:00-05:00' },
-    location: 'Campus UPB - Aula B1 106 / Lab Suelos B2 114',
-    description: 'Laboratorio de Ensayos Proctor y Granulometría. Desbloquea Cimentaciones.',
-  },
-  {
-    id: 'samp-4',
-    summary: 'Programación y Presupuesto de Obras Civiles (NRC 52890)',
-    start: { dateTime: '2026-10-22T18:00:00-05:00' },
-    end: { dateTime: '2026-10-22T20:00:00-05:00' },
-    location: 'Campus UPB - Aula B3 302',
-    description: 'Gestión y presupuestación de obras civiles.',
-  },
-  {
-    id: 'samp-5',
-    summary: 'Vías II (NRC 52895)',
-    start: { dateTime: '2026-10-23T10:00:00-05:00' },
-    end: { dateTime: '2026-10-23T12:00:00-05:00' },
-    location: 'Campus UPB - Aula B3 401',
-    description: 'Línea Vial. Diseño geométrico de carreteras y pavimentos.',
-  },
-  {
-    id: 'samp-6',
-    summary: '🏋️ Sesión Hevy: Torso Horizontal & Bíceps',
-    start: { dateTime: '2026-10-22T17:30:00-05:00' },
-    end: { dateTime: '2026-10-22T19:00:00-05:00' },
-    location: 'Gimnasio Universitario',
-    description: 'Bench press, remo con barra, fondos y curl bíceps. Meta: 60 kg limpios.',
-  },
-  {
-    id: 'samp-7',
-    summary: '🐶 Paseo de Frida (Rutina Matutina)',
-    start: { dateTime: '2026-10-22T05:50:00-05:00' },
-    end: { dateTime: '2026-10-22T06:20:00-05:00' },
-    location: 'Cll 63 # 6-41 Edificio Castellana 101',
-    description: 'Paseo matutino y cardio ligero (3.500 pasos). Ingreso cliente Laura.',
-  },
-  {
-    id: 'samp-8',
-    summary: '🛁 Baño de Recuperación Térmica',
-    start: { dateTime: '2026-10-22T20:20:00-05:00' },
-    end: { dateTime: '2026-10-22T21:00:00-05:00' },
-    location: 'Hogar',
-    description: 'Recuperación muscular y activación parasimpática.',
-  },
-];
+const STATIC_SAMPLE_EVENTS: CalendarEvent[] = [];
 
 export default function GoogleCalendarSection() {
   const [user, setUser] = useState<CalendarUser | null>({
@@ -350,18 +285,25 @@ export default function GoogleCalendarSection() {
           });
         }
         if (isManualRefresh) {
-          setRefreshNotice(
-            `✅ Google Calendar sincronizado en vivo exitosamente (${data.events.length} eventos actualizados).`
-          );
-          setTimeout(() => setRefreshNotice(null), 4000);
+          if (data.refreshed) {
+            setRefreshNotice(
+              `✅ Google Calendar sincronizado en vivo exitosamente (${data.events.length} eventos actualizados).`
+            );
+          } else {
+            setErrorMsg(
+              '⚠️ No se pudo conectar a la API en vivo de Google Calendar en este momento. Mostrando eventos de la copia local guardada.'
+            );
+          }
+          setTimeout(() => setRefreshNotice(null), 5000);
         }
       } else {
-        setEvents(STATIC_SAMPLE_EVENTS);
+        setEvents([]);
+        setErrorMsg('❌ Error al sincronizar el calendario: ' + (data.error || 'No se recibieron eventos de Google Calendar'));
       }
     } catch (err: any) {
-      console.warn('Calendar fetch error, using sample events fallback:', err);
-      setErrorMsg(err.message || 'Error cargando eventos de Google Calendar');
-      setEvents(STATIC_SAMPLE_EVENTS);
+      console.warn('Calendar fetch error:', err);
+      setErrorMsg('❌ Error de conexión al sincronizar calendario: ' + (err.message || 'Sin respuesta del servidor'));
+      setEvents([]);
     } finally {
       setIsLoading(false);
     }
@@ -377,10 +319,10 @@ export default function GoogleCalendarSection() {
 
   const handleLogout = async () => {
     setUser(null);
-    setEvents(STATIC_SAMPLE_EVENTS);
+    setEvents([]);
   };
 
-  const displayEvents = events.length > 0 ? events : STATIC_SAMPLE_EVENTS;
+  const displayEvents = events;
 
   // Clasificar eventos y calcular detalles de fecha
   const classifiedEvents = useMemo(() => {
