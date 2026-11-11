@@ -94,7 +94,10 @@ export function classifyCalendarEvent(evt: CalendarEvent): EventClassification {
     text.includes('hipertrofia') ||
     text.includes('bench press') ||
     text.includes('bíceps') ||
-    text.includes('torso')
+    text.includes('torso') ||
+    text.includes('legs') ||
+    text.includes('arms') ||
+    text.includes('shoulders')
   ) {
     return {
       type: 'gym',
@@ -355,12 +358,17 @@ export default function GoogleCalendarSection() {
   const groupedByDay = useMemo(() => {
     const groups: { [key: string]: { label: string; isToday: boolean; isTomorrow: boolean; events: typeof filteredEvents } } = {};
 
-    // Ordenar cronológicamente
-    const sorted = [...filteredEvents].sort((a, b) => {
-      const rawA = a.evt.start?.dateTime || a.evt.start?.date || '';
-      const rawB = b.evt.start?.dateTime || b.evt.start?.date || '';
-      return rawA.localeCompare(rawB);
-    });
+    const now = new Date();
+    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    // Ordenar cronológicamente y filtrar desde hoy en adelante (ocultando eventos pasados de meses anteriores)
+    const sorted = [...filteredEvents]
+      .filter((item) => item.sched.isoDate >= todayIso)
+      .sort((a, b) => {
+        const rawA = a.evt.start?.dateTime || a.evt.start?.date || '';
+        const rawB = b.evt.start?.dateTime || b.evt.start?.date || '';
+        return rawA.localeCompare(rawB);
+      });
 
     for (const item of sorted) {
       const key = item.sched.isoDate;
