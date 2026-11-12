@@ -123,35 +123,13 @@ export default function UnifiedHealthFitnessSection() {
             <button
               onClick={() => setActiveSubView('biometrics')}
               className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                activeSubView === 'biometrics'
-                  ? 'bg-rose-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <Activity className="w-3.5 h-3.5" />
-              <span>Salud & Biometría</span>
-            </button>
-            <button
-              onClick={() => setActiveSubView('femmto')}
-              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                activeSubView === 'femmto'
+                activeSubView === 'biometrics' || activeSubView === 'femmto' || activeSubView === 'measurements' || activeSubView === 'mifitness'
                   ? 'bg-teal-600 text-white shadow-md'
                   : 'text-slate-300 hover:bg-slate-800'
               }`}
             >
-              <Scale className="w-3.5 h-3.5" />
-              <span>Báscula Femmto</span>
-            </button>
-            <button
-              onClick={() => setActiveSubView('gym')}
-              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                activeSubView === 'gym'
-                  ? 'bg-rose-600 text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5" />
-              <span>Gimnasio UPB</span>
+              <Activity className="w-3.5 h-3.5" />
+              <span>Biometría, Báscula & Medidas</span>
             </button>
             <button
               onClick={() => setActiveSubView('hevy')}
@@ -165,15 +143,15 @@ export default function UnifiedHealthFitnessSection() {
               <span>Hevy App (Sesiones & Radar PRO)</span>
             </button>
             <button
-              onClick={() => setActiveSubView('measurements')}
+              onClick={() => setActiveSubView('gym')}
               className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                activeSubView === 'measurements'
-                  ? 'bg-[#0088FF] text-white shadow-md'
+                activeSubView === 'gym'
+                  ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-300 hover:bg-slate-800'
               }`}
             >
-              <Ruler className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Medidas (17 Pts)</span>
+              <Clock className="w-3.5 h-3.5" />
+              <span>Gimnasio UPB</span>
             </button>
             <button
               onClick={() => setActiveSubView('fitia')}
@@ -259,21 +237,16 @@ export default function UnifiedHealthFitnessSection() {
         </div>
       )}
 
-      {activeSubView === 'biometrics' && (
-        <div className="animate-fadeIn">
+      {(activeSubView === 'biometrics' || activeSubView === 'femmto' || activeSubView === 'measurements' || activeSubView === 'mifitness') && (
+        <div className="space-y-8 animate-fadeIn">
+          {/* 1. TELEMETRÍA EN VIVO: GOOGLE HEALTH & DISPOSITIVO MÓVIL */}
           <GoogleHealthConnector onSyncStateChange={setSharedHealthState} />
-        </div>
-      )}
 
-      {activeSubView === 'femmto' && (
-        <div className="animate-fadeIn">
+          {/* 2. COMPOSICIÓN CORPORAL BÁSCULA FEMMTO (BIOIMPEDANCIA) */}
           <FemmtoBodyCompositionSuite />
-        </div>
-      )}
 
-      {activeSubView === 'mifitness' && (
-        <div className="animate-fadeIn">
-          <MiFitnessHealthSuite syncState={sharedHealthState} />
+          {/* 3. CINTA ANTROPOMÉTRICA: MEDIDAS CORPORALES (17 PUNTOS) */}
+          <BodyMeasurementsSuite />
         </div>
       )}
 
@@ -290,12 +263,6 @@ export default function UnifiedHealthFitnessSection() {
 
           {/* SESIONES REALES HEVY & ENTRENADOR PERSONAL IA */}
           <UnifiedGymHevySection hideHeader={false} initialSubTab="hevy" />
-        </div>
-      )}
-
-      {activeSubView === 'measurements' && (
-        <div className="animate-fadeIn">
-          <BodyMeasurementsSuite />
         </div>
       )}
 
