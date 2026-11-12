@@ -27,6 +27,7 @@ import HevyWorkoutsSection from './HevyWorkoutsSection';
 import HevyProAnalyticsSuite from './HevyProAnalyticsSuite';
 import BodyMeasurementsSuite from './BodyMeasurementsSuite';
 import FitiaNutritionSuite from './FitiaNutritionSuite';
+import WaterIntakeSuite from './WaterIntakeSuite';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 import { SyncSessionState } from '@/lib/healthStore';
 
@@ -225,6 +226,11 @@ export default function UnifiedHealthFitnessSection() {
             <div className="lg:col-span-6 space-y-4">
               <MuscleHeatmap />
             </div>
+          </div>
+
+          {/* HIDRATACIÓN DIARIA (datos enviados desde la app del teléfono) */}
+          <div className="pt-2">
+            <WaterIntakeSuite />
           </div>
 
           {/* FILA 3: SINCRONIZACIÓN HEVY / HORIZONTAL TORSO EN GRILLA MULTICOLUMNA RESPONSIVA (CERO ESPACIO MUERTO) */}

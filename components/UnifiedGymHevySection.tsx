@@ -32,6 +32,7 @@ import {
 import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
 import MuscleHeatmap from './MuscleHeatmap';
 import HevyWorkoutsSection from './HevyWorkoutsSection';
+import HevyBodyDistribution from './HevyBodyDistribution';
 
 export interface UnifiedGymHevyProps {
   initialSubTab?: 'all' | 'schedule' | 'hevy';
@@ -591,7 +592,12 @@ export default function UnifiedGymHevySection({
         </div>
       )}
 
-      {/* 5. HISTORIAL DE SESIONES DETALLADAS DE HEVY (Estilo Hevy Web Descomprimido) */}
+      {/* 5. DISTRIBUCIÓN CORPORAL ANATÓMICA HEVY PRO */}
+      {(subTab === 'all' || subTab === 'hevy') && !hideKpisAndHeatmap && (
+        <HevyBodyDistribution />
+      )}
+
+      {/* 6. HISTORIAL DE SESIONES DETALLADAS DE HEVY (Estilo Hevy Web Descomprimido) */}
       {(subTab === 'all' || subTab === 'hevy') && !hideHevyWorkouts && (
         <HevyWorkoutsSection />
       )}

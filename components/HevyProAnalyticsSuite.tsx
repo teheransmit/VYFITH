@@ -17,6 +17,7 @@ import {
   Activity,
 } from 'lucide-react';
 import { HevyProAnalyticsSummary, RadarAxis } from '@/lib/hevyProEngine';
+import HevyBodyDistribution from './HevyBodyDistribution';
 
 export default function HevyProAnalyticsSuite() {
   const [period, setPeriod] = useState<'7d' | '30d' | '90d' | '1y'>('7d');
@@ -452,85 +453,14 @@ export default function HevyProAnalyticsSuite() {
         </div>
       </div>
 
-      {/* 3. MAPA ANATÓMICO SVG INTERACTIVO & EJERCICIOS CON 1RM PRO */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
-        {/* MAPA ANATÓMICO CORPORAL SVG (lg:col-span-5) */}
-        <div className="lg:col-span-5 p-6 rounded-2xl bg-[#16161D] border border-[#262630] space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono font-bold text-white flex items-center gap-2">
-              <Activity className="w-3.5 h-3.5 text-[#0088FF]" />
-              <span>Mapa Anatómico Semanal</span>
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono">Iluminación por series</span>
-          </div>
+      {/* 3. DISTRIBUCIÓN CORPORAL ANATÓMICA HEVY PRO (ESTILO HEVY OFICIAL) */}
+      <div className="pt-2">
+        <HevyBodyDistribution />
+      </div>
 
-          <div className="relative w-full aspect-4/3 flex items-center justify-center p-2 bg-[#0B0B0E] rounded-xl border border-[#262630]">
-            <svg viewBox="0 0 240 180" className="w-full h-full">
-              {/* Silueta Frontal Simplificada */}
-              <g id="anterior-silhouette">
-                <text x="60" y="20" fill="#64748B" fontSize="9" textAnchor="middle" fontFamily="monospace">FRONTAL</text>
-                {/* Cabeza y cuello */}
-                <circle cx="60" cy="35" r="9" fill="#1E293B" />
-                {/* Hombros */}
-                <path d="M 40 48 L 50 48 L 50 58 L 40 58 Z" fill="#0088FF" fillOpacity="0.8" />
-                <path d="M 70 48 L 80 48 L 80 58 L 70 58 Z" fill="#0088FF" fillOpacity="0.8" />
-                {/* Pectorales */}
-                <path d="M 50 48 L 70 48 L 70 65 L 50 65 Z" fill="#0088FF" fillOpacity="0.95" />
-                {/* Core / Abdominales */}
-                <path d="M 52 66 L 68 66 L 68 90 L 52 90 Z" fill="#38BDF8" fillOpacity="0.7" />
-                {/* Brazos / Bíceps */}
-                <rect x="37" y="59" width="8" height="22" rx="4" fill="#0088FF" fillOpacity="0.85" />
-                <rect x="75" y="59" width="8" height="22" rx="4" fill="#0088FF" fillOpacity="0.85" />
-                {/* Cuádriceps */}
-                <rect x="48" y="93" width="10" height="36" rx="5" fill="#0088FF" fillOpacity="0.8" />
-                <rect x="62" y="93" width="10" height="36" rx="5" fill="#0088FF" fillOpacity="0.8" />
-                {/* Pantorrillas */}
-                <rect x="50" y="132" width="7" height="30" rx="3.5" fill="#64748B" fillOpacity="0.6" />
-                <rect x="63" y="132" width="7" height="30" rx="3.5" fill="#64748B" fillOpacity="0.6" />
-              </g>
-
-              {/* Silueta Posterior Simplificada */}
-              <g id="posterior-silhouette">
-                <text x="175" y="20" fill="#64748B" fontSize="9" textAnchor="middle" fontFamily="monospace">POSTERIOR</text>
-                <circle cx="175" cy="35" r="9" fill="#1E293B" />
-                {/* Trapecios y Espalda Alta */}
-                <path d="M 160 46 L 190 46 L 183 62 L 167 62 Z" fill="#0088FF" fillOpacity="0.9" />
-                {/* Dorsales */}
-                <path d="M 164 63 L 186 63 L 180 84 L 170 84 Z" fill="#0088FF" fillOpacity="0.95" />
-                {/* Tríceps */}
-                <rect x="152" y="56" width="8" height="22" rx="4" fill="#0088FF" fillOpacity="0.9" />
-                <rect x="190" y="56" width="8" height="22" rx="4" fill="#0088FF" fillOpacity="0.9" />
-                {/* Glúteos */}
-                <rect x="162" y="86" width="12" height="15" rx="4" fill="#38BDF8" fillOpacity="0.75" />
-                <rect x="176" y="86" width="12" height="15" rx="4" fill="#38BDF8" fillOpacity="0.75" />
-                {/* Femorales / Isquios */}
-                <rect x="163" y="103" width="10" height="28" rx="4" fill="#0088FF" fillOpacity="0.8" />
-                <rect x="177" y="103" width="10" height="28" rx="4" fill="#0088FF" fillOpacity="0.8" />
-                {/* Pantorrillas posteriores */}
-                <rect x="165" y="133" width="7" height="29" rx="3.5" fill="#64748B" fillOpacity="0.6" />
-                <rect x="178" y="133" width="7" height="29" rx="3.5" fill="#64748B" fillOpacity="0.6" />
-              </g>
-            </svg>
-          </div>
-
-          <div className="flex justify-between text-[11px] font-mono text-slate-400">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#0088FF]" />
-              <span>Estímulo Óptimo</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#38BDF8]" />
-              <span>Mantenimiento</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-sm bg-[#64748B]" />
-              <span>Recuperación</span>
-            </span>
-          </div>
-        </div>
-
-        {/* TOP EJERCICIOS Y RÉCORDS PERSONALES (1RM) (lg:col-span-7) */}
-        <div className="lg:col-span-7 p-6 rounded-2xl bg-[#16161D] border border-[#262630] space-y-4">
+      {/* 4. TOP EJERCICIOS Y RÉCORDS PERSONALES (1RM PRO) */}
+      <div className="pt-2">
+        <div className="p-6 rounded-2xl bg-[#16161D] border border-[#262630] space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-mono font-bold text-white flex items-center gap-2">
               <Award className="w-4 h-4 text-amber-400" />
@@ -539,31 +469,33 @@ export default function HevyProAnalyticsSuite() {
             <span className="text-[10px] text-slate-400 font-mono">Fórmula Compuesta Epley / Brzycki</span>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {(analytics?.topExercises || []).map((ex, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-[#0B0B0E] border border-[#262630] hover:border-[#0088FF] transition-all flex items-center justify-between gap-3 text-xs"
+                className="p-3.5 rounded-xl bg-[#0B0B0E] border border-[#262630] hover:border-[#0088FF] transition-all flex items-center justify-between gap-3 text-xs"
               >
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-white">{ex.esTitle || ex.name}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0088FF]/15 text-[#38BDF8] font-mono">
-                      {ex.muscleGroup}
-                    </span>
+                    <span className="font-bold text-white truncate">{ex.esTitle || ex.name}</span>
                     {ex.isPr && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-black font-mono">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-black font-mono shrink-0">
                         PR 🔥
                       </span>
                     )}
                   </div>
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    {ex.totalSets} series acumuladas • {ex.totalVolumeKg.toLocaleString()} kg volumen
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#0088FF]/15 text-[#38BDF8] font-mono">
+                      {ex.muscleGroup}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono truncate">
+                      {ex.totalSets} series • {ex.totalVolumeKg.toLocaleString()} kg
+                    </span>
+                  </div>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 font-mono block">1RM Estimado</span>
+                <div className="text-right shrink-0">
+                  <span className="text-[10px] text-slate-400 font-mono block">1RM</span>
                   <span className="text-base font-black text-amber-400 font-mono">
                     {ex.estimated1RM} kg
                   </span>
@@ -573,7 +505,7 @@ export default function HevyProAnalyticsSuite() {
           </div>
 
           <div className="pt-2 border-t border-[#262630] flex items-center justify-between text-xs font-mono text-slate-400">
-            <span>Informe mensual consolidado disponible en PDF/Word.</span>
+            <span>Auditado directamente desde Hevy Workouts CSV / API.</span>
             <span className="text-[#38BDF8] font-bold">100% Hevy PRO Desbloqueado</span>
           </div>
         </div>
