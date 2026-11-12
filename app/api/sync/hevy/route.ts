@@ -157,10 +157,11 @@ export async function GET(req: NextRequest) {
     const filePath = path.join(process.cwd(), 'data', 'real_hevy_workouts.json');
     if (fs.existsSync(filePath)) {
       const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : 0;
       return NextResponse.json({
         source: 'local_database',
         count: Array.isArray(data) ? data.length : 0,
-        workouts: data.slice(0, 20),
+        workouts: limit > 0 ? data.slice(0, limit) : data,
       });
     }
     return NextResponse.json({

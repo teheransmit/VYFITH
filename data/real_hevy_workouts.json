@@ -1,5 +1,319 @@
 [
   {
+    "id": "fveLGVNMjSv",
+    "name": "Full Legs",
+    "date": "10 nov 2026, 17:15",
+    "startTimeLocal": "17:15",
+    "endTimeLocal": "17:57",
+    "durationMinutes": 42,
+    "totalVolumeKg": 3926,
+    "totalVolumeLbs": 8655,
+    "totalSets": 10,
+    "rpeAverage": 9.2,
+    "exercises": [
+      {
+        "name": "Warm Up",
+        "esTitle": "Calentamiento",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 0,
+            "reps": 0,
+            "durationSeconds": 171,
+            "indicator": "warmup"
+          }
+        ],
+        "totalVolume": 0
+      },
+      {
+        "name": "Seated Calf Raise",
+        "esTitle": "Elevación de Gemelos Sentado",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 22.68,
+            "weightLbs": 50,
+            "reps": 16,
+            "rpe": 9.0,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 22.68,
+            "weightLbs": 50,
+            "reps": 16,
+            "rpe": 8.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 22.68,
+            "weightLbs": 50,
+            "reps": 18,
+            "rpe": 10.0,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 1134
+      },
+      {
+        "name": "Romanian Deadlift (Barbell)",
+        "esTitle": "Peso Muerto Rumano (Barra)",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 78.47,
+            "weightLbs": 173,
+            "reps": 6,
+            "rpe": 8.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 78.47,
+            "weightLbs": 173,
+            "reps": 5,
+            "rpe": 9.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 78.47,
+            "weightLbs": 173,
+            "reps": 4,
+            "rpe": 9.5,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 1177
+      },
+      {
+        "name": "Leg Extension (Machine)",
+        "esTitle": "Extensión de Pierna",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 69.0,
+            "weightLbs": 152.1,
+            "reps": 10,
+            "rpe": 8.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 69.0,
+            "weightLbs": 152.1,
+            "reps": 7,
+            "rpe": 10.0,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 1173
+      },
+      {
+        "name": "Lying Leg Curl (Machine)",
+        "esTitle": "Curl de Piernas Acostado (Máquina)",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 34.0,
+            "weightLbs": 75.0,
+            "reps": 8,
+            "rpe": 9.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 34.0,
+            "weightLbs": 75.0,
+            "reps": 5,
+            "rpe": 9.0,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 442
+      }
+    ]
+  },
+  {
+    "id": "KQhZwkraYRf",
+    "name": "Full Legs",
+    "date": "29 oct 2026, 16:22",
+    "startTimeLocal": "16:22",
+    "endTimeLocal": "17:20",
+    "durationMinutes": 58,
+    "totalVolumeKg": 4657,
+    "totalVolumeLbs": 10268,
+    "totalSets": 12,
+    "rpeAverage": 8.2,
+    "exercises": [
+      {
+        "name": "Warm Up",
+        "esTitle": "Calentamiento",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 0,
+            "reps": 0,
+            "durationSeconds": 88,
+            "indicator": "warmup"
+          }
+        ],
+        "totalVolume": 0
+      },
+      {
+        "name": "Leg Extension (Machine)",
+        "esTitle": "Extensión de Pierna",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 44.0,
+            "weightLbs": 97.0,
+            "reps": 11,
+            "rpe": 9.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 44.0,
+            "weightLbs": 97.0,
+            "reps": 12,
+            "rpe": 9.5,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 1012
+      },
+      {
+        "name": "Hack Squat (Machine)",
+        "esTitle": "Sentadilla Hack (Máquina)",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 9.07,
+            "weightLbs": 20,
+            "reps": 9,
+            "rpe": 6.0,
+            "indicator": "warmup"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 31.75,
+            "weightLbs": 70,
+            "reps": 12,
+            "rpe": 8.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 40.82,
+            "weightLbs": 90,
+            "reps": 8,
+            "rpe": 7.5,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 789
+      },
+      {
+        "name": "Romanian Deadlift (Barbell)",
+        "esTitle": "Peso Muerto Rumano (Barra)",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 55.79,
+            "weightLbs": 123,
+            "reps": 6,
+            "rpe": 6.0,
+            "indicator": "warmup"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 55.79,
+            "weightLbs": 123,
+            "reps": 7,
+            "rpe": 7.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 55.79,
+            "weightLbs": 123,
+            "reps": 6,
+            "rpe": 7.5,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 1059
+      },
+      {
+        "name": "Seated Calf Raise",
+        "esTitle": "Elevación de Gemelos Sentado",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 20.41,
+            "weightLbs": 45,
+            "reps": 20,
+            "rpe": 8.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 20.41,
+            "weightLbs": 45,
+            "reps": 22,
+            "rpe": 9.5,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 3,
+            "weightKg": 20.41,
+            "weightLbs": 45,
+            "reps": 22,
+            "rpe": 9.5,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 1306
+      },
+      {
+        "name": "Leg Press (Machine)",
+        "esTitle": "Press de Piernas",
+        "muscleGroup": "Piernas",
+        "sets": [
+          {
+            "setNumber": 1,
+            "weightKg": 40.82,
+            "weightLbs": 90,
+            "reps": 8,
+            "rpe": 6.0,
+            "indicator": "normal"
+          },
+          {
+            "setNumber": 2,
+            "weightKg": 40.82,
+            "weightLbs": 90,
+            "reps": 5,
+            "rpe": 6.0,
+            "indicator": "normal"
+          }
+        ],
+        "totalVolume": 530
+      }
+    ]
+  },
+  {
     "id": "hevy-real-2026-10-27",
     "name": "Horizontal Torso (Chest & Back)",
     "date": "27 oct 2026, 16:15",

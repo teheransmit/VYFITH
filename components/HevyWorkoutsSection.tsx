@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   Dumbbell,
   Clock,
@@ -26,6 +26,7 @@ import {
   RotateCcw,
   AlertTriangle,
   ShieldCheck,
+  RefreshCw,
 } from 'lucide-react';
 import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
 import {
@@ -48,7 +49,37 @@ export default function HevyWorkoutsSection() {
   const [likesCount, setLikesCount] = useState(3);
   const [isSyncingHevy, setIsSyncingHevy] = useState(false);
   const [syncSuccessMessage, setSyncSuccessMessage] = useState<string | null>(null);
+  const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cargar entrenamientos en vivo desde la base de datos de Hevy al montar
+  const refreshWorkouts = async () => {
+    setIsLoadingWorkouts(true);
+    try {
+      const res = await fetch('/api/sync/hevy');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.workouts && Array.isArray(data.workouts) && data.workouts.length > 0) {
+          setSessions(data.workouts);
+          // Si no hay seleccionada o la actual no existe, enfocar el más reciente
+          setSelectedSessionId((prev) => {
+            if (!prev || !data.workouts.some((w: any) => w.id === prev)) {
+              return data.workouts[0].id;
+            }
+            return prev;
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Fallback a sesiones locales de Hevy:', e);
+    } finally {
+      setIsLoadingWorkouts(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshWorkouts();
+  }, []);
 
   const selectedSession =
     sessions.find((s) => s.id === selectedSessionId) || sessions[0] || initialHevySessions[0];
@@ -224,6 +255,17 @@ export default function HevyWorkoutsSection() {
                 LBS
               </button>
             </div>
+
+            {/* Sincronizar en Vivo desde Base de Datos */}
+            <button
+              onClick={refreshWorkouts}
+              disabled={isLoadingWorkouts}
+              className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/30 transition-all shadow-xs disabled:opacity-50"
+              title="Recargar entrenamientos en vivo desde la base de datos de Hevy"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingWorkouts ? 'animate-spin text-emerald-400' : ''}`} />
+              <span>{isLoadingWorkouts ? 'Sincronizando...' : 'Sync en Vivo'}</span>
+            </button>
 
             {/* Subir workouts.csv */}
             <input
