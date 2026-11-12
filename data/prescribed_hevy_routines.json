@@ -3,15 +3,57 @@
     "routineTitle": "Horizontal Torso (Chest & Back)",
     "exercises": [
       {
+        "title": "Stretching",
+        "targetWeightKg": 0,
+        "targetReps": 1,
+        "targetSets": 1
+      },
+      {
         "title": "Bench Press (Barbell)",
-        "targetWeightKg": 52.5,
+        "targetWeightKg": 37.65,
+        "targetReps": 6,
+        "targetSets": 2
+      },
+      {
+        "title": "Incline Bench Press (Dumbbell)",
+        "targetWeightKg": 31.75,
+        "targetReps": 6,
+        "targetSets": 3
+      },
+      {
+        "title": "Wrist Roller",
+        "targetWeightKg": 18.14,
         "targetReps": 8,
-        "targetSets": 4
+        "targetSets": 3
+      },
+      {
+        "title": "Bicep Curl (Cable)",
+        "targetWeightKg": 14.97,
+        "targetReps": 10,
+        "targetSets": 2
+      },
+      {
+        "title": "Behind the Back Wrist Curl (Barbell)",
+        "targetWeightKg": 37.65,
+        "targetReps": 10,
+        "targetSets": 3
+      },
+      {
+        "title": "Seated Wrist Extension (Barbell)",
+        "targetWeightKg": 24.04,
+        "targetReps": 10,
+        "targetSets": 3
+      },
+      {
+        "title": "Seated Cable Row - V Grip (Cable)",
+        "targetWeightKg": 25,
+        "targetReps": 8,
+        "targetSets": 2
       }
     ],
-    "appliedAt": "2026-11-12T14:00:14.575348",
+    "appliedAt": "2026-11-12T19:19:14.787Z",
     "syncedWithHevy": true,
     "status": "ACTIVA_EN_HEVY",
-    "source": "VYFITH_AI_COACH_PERIODIZATION"
+    "source": "AUTO_WEBHOOK_INGESTION"
   }
 }
