@@ -156,24 +156,13 @@ export default function UnifiedHealthFitnessSection() {
             <button
               onClick={() => setActiveSubView('hevy')}
               className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                activeSubView === 'hevy'
+                activeSubView === 'hevy' || activeSubView === 'hevypro'
                   ? 'bg-rose-600 text-white shadow-md'
                   : 'text-slate-300 hover:bg-slate-800'
               }`}
             >
               <Dumbbell className="w-3.5 h-3.5" />
-              <span>Hevy Sesiones</span>
-            </button>
-            <button
-              onClick={() => setActiveSubView('hevypro')}
-              className={`cursor-pointer w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                activeSubView === 'hevypro'
-                  ? 'bg-[#0088FF] text-white shadow-md'
-                  : 'text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Hevy PRO (Radar)</span>
+              <span>Hevy App (Sesiones & Radar PRO)</span>
             </button>
             <button
               onClick={() => setActiveSubView('measurements')}
@@ -294,15 +283,13 @@ export default function UnifiedHealthFitnessSection() {
         </div>
       )}
 
-      {activeSubView === 'hevy' && (
-        <div className="animate-fadeIn">
-          <UnifiedGymHevySection hideHeader={false} initialSubTab="hevy" />
-        </div>
-      )}
-
-      {activeSubView === 'hevypro' && (
-        <div className="animate-fadeIn">
+      {(activeSubView === 'hevy' || activeSubView === 'hevypro') && (
+        <div className="space-y-8 animate-fadeIn">
+          {/* ANALÍTICA PRO & RADAR MUSCULAR HEVY */}
           <HevyProAnalyticsSuite />
+
+          {/* SESIONES REALES HEVY & ENTRENADOR PERSONAL IA */}
+          <UnifiedGymHevySection hideHeader={false} initialSubTab="hevy" />
         </div>
       )}
 
