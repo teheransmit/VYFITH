@@ -21,7 +21,7 @@ import {
 
 export default function HevyAiCoachSection() {
   const [prescription, setPrescription] = useState<WorkoutRoutinePrescription | null>(null);
-  const [selectedRoutine, setSelectedRoutine] = useState<string>('Horizontal Torso (Chest & Back)');
+  const [selectedRoutine, setSelectedRoutine] = useState<string>('Arms & Shoulders');
   const [isSyncingHevy, setIsSyncingHevy] = useState<boolean>(false);
   const [syncSuccessMessage, setSyncSuccessMessage] = useState<string | null>(null);
 
@@ -179,21 +179,25 @@ export default function HevyAiCoachSection() {
 
       {/* SELECTOR DE RUTINAS */}
       <div className="flex items-center gap-2 my-5 overflow-x-auto pb-1">
-        {['Horizontal Torso (Chest & Back)', 'Piernas & Core', 'Vertical Torso & Brazos'].map(
-          (routine) => (
-            <button
-              key={routine}
-              onClick={() => setSelectedRoutine(routine)}
-              className={`cursor-pointer px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                selectedRoutine === routine
-                  ? 'bg-indigo-600 text-white shadow-xs'
-                  : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white'
-              }`}
-            >
-              {routine}
-            </button>
-          )
-        )}
+        {[
+          'Arms & Shoulders',
+          'Horizontal Torso (Chest & Back)',
+          'Back, Biceps & Forearms',
+          'Full Legs',
+          'Vertical & Incline Torso (Chest & Back)',
+        ].map((routine) => (
+          <button
+            key={routine}
+            onClick={() => setSelectedRoutine(routine)}
+            className={`cursor-pointer px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+              selectedRoutine === routine
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            {routine === 'Arms & Shoulders' ? '💪 Arms & Shoulders' : routine}
+          </button>
+        ))}
       </div>
 
       {/* TABLA DE EJERCICIOS Y PRESCRIPCIÓN */}
