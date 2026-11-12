@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-12",
+  "targets": {
+    "targetKcal": 2800,
+    "targetProtein": 140,
+    "targetCarbs": 380,
+    "targetFat": 80,
+    "targetWaterMl": 2900
+  },
+  "current": {
+    "calories": 580,
+    "protein": 29.4,
+    "carbs": 92.4,
+    "fat": 9.1,
+    "waterMl": 1050
+  },
+  "meals": {
+    "desayuno": {
+      "mealType": "desayuno",
+      "title": "DESAYUNO",
+      "time": "07:30",
+      "items": [
+        {
+          "id": "12210fc8-23e2-4213-ab4a-e0866aedd64f",
+          "name": "por ejemplo esta mañana Yo desayuné dos pancakes u",
+          "spanishName": "por ejemplo esta mañana Yo desayuné dos pancakes u",
+          "portionDisplay": "1 porción (180 g)",
+          "grams": 180,
+          "calories": 320,
+          "protein": 24,
+          "carbs": 36,
+          "fat": 8.5,
+          "fiber": 3,
+          "source": "nlp_voice",
+          "confidence": 0.85,
+          "notes": "por ejemplo esta mañana Yo desayuné dos pancakes un bolillo y una taza de café"
+        }
+      ],
+      "totalKcal": 320,
+      "totalProtein": 24,
+      "totalCarbs": 36,
+      "totalFat": 8.5
+    },
+    "almuerzo": {
+      "mealType": "almuerzo",
+      "title": "ALMUERZO",
+      "time": "13:00",
+      "items": [
+        {
+          "id": "d13df804-ce4f-4498-b13f-a9600da6ef25",
+          "name": "Cooked white rice",
+          "spanishName": "Arroz blanco cocido",
+          "portionDisplay": "1 porción (200 g)",
+          "grams": 200,
+          "calories": 260,
+          "protein": 5.4,
+          "carbs": 56.4,
+          "fat": 0.6,
+          "fiber": 0.4,
+          "source": "nlp_voice",
+          "confidence": 0.94,
+          "notes": "para el almuerzo almorcé arroz con carne molida y lentejas"
+        }
+      ],
+      "totalKcal": 260,
+      "totalProtein": 5.4,
+      "totalCarbs": 56.4,
+      "totalFat": 0.6
+    },
+    "cena": {
+      "mealType": "cena",
+      "title": "CENA",
+      "time": "19:30",
+      "items": [],
+      "totalKcal": 0,
+      "totalProtein": 0,
+      "totalCarbs": 0,
+      "totalFat": 0
+    },
+    "snacks": {
+      "mealType": "snacks",
+      "title": "SNACKS",
+      "time": "16:00",
+      "items": [],
+      "totalKcal": 0,
+      "totalProtein": 0,
+      "totalCarbs": 0,
+      "totalFat": 0
+    }
+  },
+  "recentScans": [
+    {
+      "id": "d13df804-ce4f-4498-b13f-a9600da6ef25",
+      "name": "Cooked white rice",
+      "spanishName": "Arroz blanco cocido",
+      "portionDisplay": "1 porción (200 g)",
+      "grams": 200,
+      "calories": 260,
+      "protein": 5.4,
+      "carbs": 56.4,
+      "fat": 0.6,
+      "fiber": 0.4,
+      "source": "nlp_voice",
+      "confidence": 0.94,
+      "notes": "para el almuerzo almorcé arroz con carne molida y lentejas"
+    },
+    {
+      "id": "12210fc8-23e2-4213-ab4a-e0866aedd64f",
+      "name": "por ejemplo esta mañana Yo desayuné dos pancakes u",
+      "spanishName": "por ejemplo esta mañana Yo desayuné dos pancakes u",
+      "portionDisplay": "1 porción (180 g)",
+      "grams": 180,
+      "calories": 320,
+      "protein": 24,
+      "carbs": 36,
+      "fat": 8.5,
+      "fiber": 3,
+      "source": "nlp_voice",
+      "confidence": 0.85,
+      "notes": "por ejemplo esta mañana Yo desayuné dos pancakes un bolillo y una taza de café"
+    }
+  ],
+  "lastUpdated": "2026-11-12T20:25:10.689Z"
+}

@@ -34,6 +34,7 @@ import {
   WorkoutRoutinePrescription,
   ExercisePrescription,
 } from '@/lib/aiCoachPeriodizationEngine';
+import { findKnownRoutine, translateExerciseTitle } from '@/lib/hevyDateParser';
 
 export default function HevyWorkoutsSection() {
   const [sessions, setSessions] = useState<HevyWorkoutSession[]>(initialHevySessions);
@@ -48,69 +49,157 @@ export default function HevyWorkoutsSection() {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(3);
   const [isSyncingHevy, setIsSyncingHevy] = useState(false);
-  const [syncSuccessMessage, setSyncSuccessMessage] = useState<string | null>(null);
+  const [isConnectingBrowser, setIsConnectingBrowser] = useState(false);
+  const [syncActionResult, setSyncActionResult] = useState<{
+    syncedToHevy: boolean;
+    savedLocally?: boolean;
+    method?: string;
+    requiresLogin?: boolean;
+    routineUrl?: string;
+    editUrl?: string;
+    message: string;
+    modifiedCount?: number;
+  } | null>(null);
+  const [syncStatusInfo, setSyncStatusInfo] = useState<{
+    sourceUsed: string;
+    addedCount: number;
+    requiresBrowserAuth: boolean;
+    hasProApiKey: boolean;
+    browserBridgeAuthenticated: boolean;
+    lastSyncAt?: string | null;
+    warning?: string;
+  } | null>(null);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Cargar entrenamientos en vivo desde la base de datos de Hevy al montar
-  const refreshWorkouts = async () => {
+  // Cargar entrenamientos desde API real (/api/sync/hevy). Si live=true, extrae desde Hevy Web/API.
+  const refreshWorkouts = async (live = false) => {
     setIsLoadingWorkouts(true);
     try {
-      const res = await fetch('/api/sync/hevy');
+      const res = await fetch(`/api/sync/hevy${live ? '?live=1' : ''}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         if (data.workouts && Array.isArray(data.workouts) && data.workouts.length > 0) {
           setSessions(data.workouts);
-          // Si no hay seleccionada o la actual no existe, enfocar el más reciente
           setSelectedSessionId((prev) => {
-            if (!prev || !data.workouts.some((w: any) => w.id === prev)) {
+            if (!prev || data.addedCount > 0 || !data.workouts.some((w: any) => w.id === prev)) {
               return data.workouts[0].id;
             }
             return prev;
           });
+          window.dispatchEvent(new CustomEvent('vyfith-hevy-updated'));
         }
+        setSyncStatusInfo({
+          sourceUsed: data.sourceUsed || 'local_cache',
+          addedCount: data.addedCount || 0,
+          requiresBrowserAuth: Boolean(data.requiresBrowserAuth),
+          hasProApiKey: Boolean(data.hasProApiKey),
+          browserBridgeAuthenticated: Boolean(data.browserBridgeAuthenticated),
+          lastSyncAt: data.syncMeta?.lastSyncAt || null,
+          warning: data.warning,
+        });
       }
     } catch (e) {
-      console.warn('Fallback a sesiones locales de Hevy:', e);
+      console.warn('Error consultando /api/sync/hevy:', e);
     } finally {
       setIsLoadingWorkouts(false);
     }
   };
 
   useEffect(() => {
-    refreshWorkouts();
+    refreshWorkouts(false);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        refreshWorkouts(false);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   const selectedSession =
     sessions.find((s) => s.id === selectedSessionId) || sessions[0] || initialHevySessions[0];
 
-  // Prescripción y análisis del Entrenador Personal IA para esta rutina
+  // Prescripción y análisis del Entrenador Personal IA calculada sobre las sesiones VIVAS
   const coachPrescription = useMemo(() => {
     try {
-      return generateAiCoachPrescription(selectedSession.name);
+      return generateAiCoachPrescription(selectedSession.name, { workouts: sessions });
     } catch (e) {
       return null;
     }
-  }, [selectedSession.name]);
+  }, [selectedSession.name, sessions]);
+
+  const handleConnectHevyBrowser = async () => {
+    setIsConnectingBrowser(true);
+    setSyncStatusInfo((prev) => ({
+      sourceUsed: prev?.sourceUsed || 'local_cache',
+      addedCount: prev?.addedCount || 0,
+      requiresBrowserAuth: true,
+      hasProApiKey: Boolean(prev?.hasProApiKey),
+      browserBridgeAuthenticated: false,
+      lastSyncAt: prev?.lastSyncAt || null,
+      warning: 'Se abrió una ventana de Google Chrome en hevy.com/login. Inicia sesión allí para habilitar la sincronización automática.',
+    }));
+    try {
+      const res = await fetch('/api/sync/hevy/browser-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login' }),
+      });
+      const data = await res.json();
+      if (data.authenticated) {
+        await refreshWorkouts(true);
+      } else {
+        setSyncStatusInfo((prev) =>
+          prev ? { ...prev, warning: data.error || 'No se completó el inicio de sesión en Hevy Web.' } : prev
+        );
+      }
+    } catch (err: any) {
+      console.error('Error conectando navegador Hevy:', err);
+    } finally {
+      setIsConnectingBrowser(false);
+    }
+  };
 
   const handleApplyToHevy = async () => {
     if (!coachPrescription) return;
     setIsSyncingHevy(true);
-    setSyncSuccessMessage(null);
+    setSyncActionResult(null);
     try {
+      const payload = coachPrescription.prescriptions.map((p) => ({
+        exerciseName: p.exerciseName,
+        esTitle: translateExerciseTitle(p.exerciseName),
+        suggestedWeightKg: p.prescribedWeightKg,
+        suggestedWeightLbs: Math.round((p.prescribedWeightKg / 0.45359237) * 10) / 10,
+        targetReps: p.prescribedRepsSummary,
+        note: `VYFITH AI Coach: ${p.prescribedWeightKg} kg (${p.prescribedRepsSummary}) • RIR ${p.targetRir}`,
+      }));
+
       const res = await fetch('/api/hevy/ai-coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(coachPrescription.hevySyncPayload),
+        body: JSON.stringify({
+          routineTitle: coachPrescription.routineName,
+          hevySyncPayload: payload,
+          prescriptions: coachPrescription.prescriptions,
+        }),
       });
       const data = await res.json();
-      if (data.success) {
-        setSyncSuccessMessage(
-          `¡Rutina '${coachPrescription.routineName}' sincronizada en Hevy! Cargas listas para tu sesión.`
-        );
-      }
-    } catch (err) {
-      console.error('Error aplicando a Hevy:', err);
+      setSyncActionResult({
+        syncedToHevy: Boolean(data.syncedToHevy),
+        savedLocally: Boolean(data.savedLocally),
+        method: data.method,
+        requiresLogin: Boolean(data.requiresLogin),
+        routineUrl: data.routineUrl || findKnownRoutine(coachPrescription.routineName)?.routineUrl,
+        editUrl: data.editUrl || findKnownRoutine(coachPrescription.routineName)?.editUrl,
+        message: data.message || data.error || 'Respuesta sin confirmación de Hevy.',
+        modifiedCount: Array.isArray(data.modifiedExercises) ? data.modifiedExercises.length : 0,
+      });
+    } catch (err: any) {
+      setSyncActionResult({
+        syncedToHevy: false,
+        message: `Error de red al aplicar cargas: ${err?.message || 'desconocido'}`,
+      });
     } finally {
       setIsSyncingHevy(false);
     }
@@ -156,9 +245,12 @@ export default function HevyWorkoutsSection() {
       if (res.ok) {
         const data = await res.json();
         if (data.workouts && Array.isArray(data.workouts) && data.workouts.length > 0) {
-          setSessions((prev) => [...data.workouts, ...prev]);
+          setSessions(data.workouts);
           setSelectedSessionId(data.workouts[0].id);
-          setUploadSuccess(`¡Se importaron ${data.workouts.length} entrenamientos desde ${file.name}!`);
+          window.dispatchEvent(new CustomEvent('vyfith-hevy-updated'));
+          setUploadSuccess(
+            `CSV sincronizado: ${data.addedCount || 0} nuevas sesiones agregadas (${data.totalCount || data.workouts.length} totales).`
+          );
         } else {
           setUploadSuccess(`CSV procesado (${data.sessionsCount || 0} sesiones detectadas).`);
         }
@@ -256,16 +348,28 @@ export default function HevyWorkoutsSection() {
               </button>
             </div>
 
-            {/* Sincronizar en Vivo desde Base de Datos */}
+            {/* Sincronizar en Vivo desde Hevy Web / API PRO */}
             <button
-              onClick={refreshWorkouts}
+              onClick={() => refreshWorkouts(true)}
               disabled={isLoadingWorkouts}
               className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/30 transition-all shadow-xs disabled:opacity-50"
-              title="Recargar entrenamientos en vivo desde la base de datos de Hevy"
+              title="Extrae y sincroniza en vivo todos los entrenamientos recientes desde Hevy Web o Hevy API PRO"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isLoadingWorkouts ? 'animate-spin text-emerald-400' : ''}`} />
               <span>{isLoadingWorkouts ? 'Sincronizando...' : 'Sync en Vivo'}</span>
             </button>
+
+            {!syncStatusInfo?.hasProApiKey && !syncStatusInfo?.browserBridgeAuthenticated && (
+              <button
+                onClick={handleConnectHevyBrowser}
+                disabled={isConnectingBrowser}
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30 transition-all shadow-xs disabled:opacity-50"
+                title="Inicia sesión 1 vez en Google Chrome para activar exportación/edición automática en Hevy Web (Cuenta Free)"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{isConnectingBrowser ? 'Esperando Login...' : 'Conectar Hevy Web'}</span>
+              </button>
+            )}
 
             {/* Subir workouts.csv */}
             <input
@@ -302,6 +406,53 @@ export default function HevyWorkoutsSection() {
           <div className="mt-4 p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800 text-xs text-emerald-300 flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span className="font-medium">{uploadSuccess}</span>
+          </div>
+        )}
+
+        {syncStatusInfo && (
+          <div
+            className={`mt-4 p-3 rounded-xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${
+              syncStatusInfo.requiresBrowserAuth || syncStatusInfo.warning
+                ? 'bg-amber-950/40 border-amber-800/70 text-amber-200'
+                : 'bg-[#09090b]/80 border-[#27272a] text-slate-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {syncStatusInfo.requiresBrowserAuth || syncStatusInfo.warning ? (
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              )}
+              <span>
+                {syncStatusInfo.warning ? (
+                  syncStatusInfo.warning
+                ) : (
+                  <>
+                    Fuente activa: <strong className="text-white">{syncStatusInfo.sourceUsed}</strong>
+                    {syncStatusInfo.addedCount > 0 && ` (+${syncStatusInfo.addedCount} nuevos agregados)`}
+                    {syncStatusInfo.hasProApiKey
+                      ? ' • API Hevy PRO activa'
+                      : syncStatusInfo.browserBridgeAuthenticated
+                      ? ' • Puente Chrome Hevy Web conectado (Auto-Sync listo)'
+                      : ' • Cuenta Hevy Free (vigilando Descargas/Drive y CSV)'}
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 font-mono text-[10px] text-slate-400">
+              {syncStatusInfo.lastSyncAt && (
+                <span>Sync: {new Date(syncStatusInfo.lastSyncAt).toLocaleTimeString('es-CO')}</span>
+              )}
+              {syncStatusInfo.requiresBrowserAuth && (
+                <button
+                  onClick={handleConnectHevyBrowser}
+                  disabled={isConnectingBrowser}
+                  className="cursor-pointer px-2.5 py-1 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors"
+                >
+                  {isConnectingBrowser ? 'Abre Chrome...' : 'Iniciar Sesión 1 Vez'}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -465,13 +616,51 @@ export default function HevyWorkoutsSection() {
               </div>
             </div>
 
-            {syncSuccessMessage && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>{syncSuccessMessage}</span>
+            {syncActionResult && (
+              <div
+                className={`p-3.5 rounded-xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                  syncActionResult.syncedToHevy
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                    : 'bg-amber-500/10 border-amber-500/35 text-amber-200'
+                }`}
+              >
+                <div className="flex items-start gap-2.5">
+                  {syncActionResult.syncedToHevy ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  )}
+                  <div className="space-y-1">
+                    <p className="font-semibold">{syncActionResult.message}</p>
+                    {!syncActionResult.syncedToHevy && (
+                      <p className="text-[11px] text-amber-300/80">
+                        Sin API Key de Hevy PRO ni sesión web en Chrome conectada, VYFITH no puede modificar tus rutinas en los servidores de Hevy de forma remota sin mentirte.
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <span className="font-mono text-[10px] text-emerald-400">Hevy Cloud OK</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  {syncActionResult.requiresLogin && (
+                    <button
+                      onClick={handleConnectHevyBrowser}
+                      disabled={isConnectingBrowser}
+                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition-colors"
+                    >
+                      {isConnectingBrowser ? 'Conectando...' : 'Conectar Chrome Hevy'}
+                    </button>
+                  )}
+                  {(syncActionResult.editUrl || syncActionResult.routineUrl) && (
+                    <a
+                      href={syncActionResult.editUrl || syncActionResult.routineUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-[11px] border border-slate-600"
+                    >
+                      <span>{syncActionResult.syncedToHevy ? 'Ver en Hevy' : 'Editar en Hevy Web'}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                </div>
               </div>
             )}
 

@@ -51,9 +51,22 @@
         "targetSets": 2
       }
     ],
-    "appliedAt": "2026-11-12T19:19:14.787Z",
+    "appliedAt": "2026-11-12T20:15:24.136Z",
     "syncedWithHevy": true,
-    "status": "ACTIVA_EN_HEVY",
-    "source": "AUTO_WEBHOOK_INGESTION"
+    "status": "ACTIVA_EN_HEVY"
+  },
+  "Full Legs": {
+    "routineTitle": "Full Legs",
+    "updatedAt": "2026-11-12T21:00:06.600Z",
+    "source": "VYFITH-AI-Coach-JeffNippard",
+    "exercisesCount": 1,
+    "hevySyncPayload": [
+      {
+        "exerciseName": "Seated Calf Raise",
+        "suggestedWeightKg": 25,
+        "targetReps": "3x12-15"
+      }
+    ],
+    "prescriptions": []
   }
 }

@@ -40,6 +40,9 @@ export default function HevyProAnalyticsSuite() {
 
   useEffect(() => {
     loadAnalytics(period);
+    const handleHevyUpdated = () => loadAnalytics(period);
+    window.addEventListener('vyfith-hevy-updated', handleHevyUpdated);
+    return () => window.removeEventListener('vyfith-hevy-updated', handleHevyUpdated);
   }, [period]);
 
   // Coordenadas del Radar Hexagonal (Centro: 150, 150, Radio máx: 100)

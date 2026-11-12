@@ -3,9 +3,9 @@
   "deviceId": "sdk_gphone64_arm64",
   "deviceName": "VYFITH_APP (Google Health Connect)",
   "pairingToken": "MEGA-HC-8924",
-  "lastSyncTime": "2026-11-12T20:00:14.665Z",
-  "syncCount": 274,
-  "changesToken": "vyfith_sync_1794513614665",
+  "lastSyncTime": "2026-11-12T20:53:04.418Z",
+  "syncCount": 304,
+  "changesToken": "vyfith_sync_1794516784418",
   "currentMetrics": {
     "steps": 0,
     "hrv": 76,
@@ -33,7 +33,7 @@
     "appName": "VYFITH_APP (FitSync AI Android)",
     "readinessScore": 45,
     "readinessCategory": "Necesita Descanso",
-    "lastSyncTimestamp": "2026-11-12T20:00:14.665Z",
+    "lastSyncTimestamp": "2026-11-12T20:53:04.418Z",
     "geminiAnalysis": {
       "diagnostico": "[ALERTA: DÍA FLOJO • Score 45/100]\nVEREDICTO DEL DÍA (Jueves 12 de noviembre, 2026): ALERTA: DÍA FLOJO (Puntaje Integral: 45/100).\n\n1. CÓMO TE FUE HOY: En tu perfil ectomorfo de 56.00 kg (48.44 kg de masa magra y 13.50% de grasa corporal), no tienes registros de sueño neto hoy en Health Connect. Durante el día acumulaste 0 pasos (~0.00 km y 0.00 kcal quemadas), con una actividad de entrenamiento de 0 minutos (Sin sesiones de entrenamiento hoy) y una saturación de oxígeno (SpO2) promedio de 98.00%. En hidratación registraste 0 ml de tu meta de 2,900 ml (0.00%) — [0 envases registrados hoy (Vaso Morado 400 ml, Vaso Blanco/Azul 350 ml, Termo Uni 1,000 ml)].\n\n2. EN QUÉ LA CAGASTE (SIN FILTRO): No registraste absolutamente nada de sueño hoy. Ir a la universidad y pretender ganar músculo con 56.00 kg a ciegas con tu descanso es sabotear tu progreso. Cero mililitros de agua registrados hoy (0 / 2,900 ml). Ni el Vaso Morado, ni el Vaso Blanco con Azul, ni el Termo de la Universidad han tocado agua hoy. Un músculo deshidratado en un ectomorfo de 56.00 kg pierde hasta 15.00% de fuerza y se cataboliza. Estuviste demasiado sedentario: solo 0 pasos de 10,000. Pasar todo el día sentado en clases sin caminar reduce tu flujo sanguíneo de recuperación y empeora la partición de nutrientes. Tienes activado el modo 'Día de Universidad + Gimnasio' pero registraste 0 minutos de entrenamiento. Si hoy tocaba fierros, fallaste a la sesión; si hoy era descanso, ajusta el modo para no falsear tus métricas.\n\n3. QUÉ DEBES MEJORAR AHORA MISMO: Cierra tu déficit hídrico de 2,900 ml hoy mismo: tómate 2 Termo(s) de la Universidad (1,000 ml c/u) + 1 Vaso Morado (400 ml) antes de la 10:00 PM (sin tomar todo de golpe justo antes de dormir para no cortar tu sueño profundo). Recupera la deuda de sueño esta noche: desconecta pantallas 45 minutos antes y duerme al menos 480 minutos adicionales hasta asegurar 7h 30m–8h 0m netas. Completa los 10,000 pasos faltantes con una caminata continua de ~100 minutos en el campus o al regresar a casa. Enfoque Muscular y Nutrición Ectomorfa (56.00 kg): Prioriza Movilidad Articular, Core / Zona Media y deja descansar Sistema Nervioso Central (Evitar 1RM), Espalda Baja. Asegura al menos 112.00 g de proteína hoy.\n",
       "recomendacionMuscular": "ERRORES A CORREGIR: No registraste absolutamente nada de sueño hoy. Ir a la universidad y pretender ganar músculo con 56.00 kg a ciegas con tu descanso es sabotear tu progreso. | Cero mililitros de agua registrados hoy (0 / 2,900 ml). Ni el Vaso Morado, ni el Vaso Blanco con Azul, ni el Termo de la Universidad han tocado agua hoy. Un músculo deshidratado en un ectomorfo de 56.00 kg pierde hasta 15.00% de fuerza y se cataboliza. | Estuviste demasiado sedentario: solo 0 pasos de 10,000. Pasar todo el día sentado en clases sin caminar reduce tu flujo sanguíneo de recuperación y empeora la partición de nutrientes. | Tienes activado el modo 'Día de Universidad + Gimnasio' pero registraste 0 minutos de entrenamiento. Si hoy tocaba fierros, fallaste a la sesión; si hoy era descanso, ajusta el modo para no falsear tus métricas.\nPLAN DE ACCIÓN: Cierra tu déficit hídrico de 2,900 ml hoy mismo: tómate 2 Termo(s) de la Universidad (1,000 ml c/u) + 1 Vaso Morado (400 ml) antes de la 10:00 PM (sin tomar todo de golpe justo antes de dormir para no cortar tu sueño profundo). | Recupera la deuda de sueño esta noche: desconecta pantallas 45 minutos antes y duerme al menos 480 minutos adicionales hasta asegurar 7h 30m–8h 0m netas. | Completa los 10,000 pasos faltantes con una caminata continua de ~100 minutos en el campus o al regresar a casa. | Enfoque Muscular y Nutrición Ectomorfa (56.00 kg): Prioriza Movilidad Articular, Core / Zona Media y deja descansar Sistema Nervioso Central (Evitar 1RM), Espalda Baja. Asegura al menos 112.00 g de proteína hoy.\n",
@@ -64,7 +64,7 @@
   },
   "recentObservations": [
     {
-      "id": "vyfith-readiness-1794513614665",
+      "id": "vyfith-readiness-1794516784418",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -81,10 +81,10 @@
         "value": 45,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.665Z"
+      "effectiveDateTime": "2026-11-12T20:53:04.418Z"
     },
     {
-      "id": "vyfith-steps-1794513614665",
+      "id": "vyfith-steps-1794516784418",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -101,10 +101,10 @@
         "value": 0,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.665Z"
+      "effectiveDateTime": "2026-11-12T20:53:04.418Z"
     },
     {
-      "id": "vyfith-hr-1794513614665",
+      "id": "vyfith-hr-1794516784418",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Reposo",
@@ -121,10 +121,10 @@
         "value": 62,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.665Z"
+      "effectiveDateTime": "2026-11-12T20:53:04.418Z"
     },
     {
-      "id": "vyfith-sleep-1794513614665",
+      "id": "vyfith-sleep-1794516784418",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Sueño",
@@ -141,10 +141,10 @@
         "value": 0,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.665Z"
+      "effectiveDateTime": "2026-11-12T20:53:04.418Z"
     },
     {
-      "id": "vyfith-spo2-1794513614665",
+      "id": "vyfith-spo2-1794516784418",
       "resourceType": "Observation",
       "status": "final",
       "category": "Oximetría Biométrica",
@@ -161,10 +161,10 @@
         "value": 98,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.665Z"
+      "effectiveDateTime": "2026-11-12T20:53:04.418Z"
     },
     {
-      "id": "vyfith-cal-1794513614665",
+      "id": "vyfith-cal-1794516784418",
       "resourceType": "Observation",
       "status": "final",
       "category": "Actividad Física - Calorías",
@@ -181,10 +181,10 @@
         "value": 0,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.665Z"
+      "effectiveDateTime": "2026-11-12T20:53:04.418Z"
     },
     {
-      "id": "vyfith-readiness-1794513614664",
+      "id": "vyfith-readiness-1794516783249",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -201,10 +201,10 @@
         "value": 45,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.663Z"
+      "effectiveDateTime": "2026-11-12T20:53:03.249Z"
     },
     {
-      "id": "vyfith-steps-1794513614664",
+      "id": "vyfith-steps-1794516783249",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -221,10 +221,10 @@
         "value": 0,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.663Z"
+      "effectiveDateTime": "2026-11-12T20:53:03.249Z"
     },
     {
-      "id": "vyfith-hr-1794513614664",
+      "id": "vyfith-hr-1794516783249",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Reposo",
@@ -241,10 +241,10 @@
         "value": 62,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.663Z"
+      "effectiveDateTime": "2026-11-12T20:53:03.249Z"
     },
     {
-      "id": "vyfith-sleep-1794513614664",
+      "id": "vyfith-sleep-1794516783249",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Sueño",
@@ -261,10 +261,10 @@
         "value": 0,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.663Z"
+      "effectiveDateTime": "2026-11-12T20:53:03.249Z"
     },
     {
-      "id": "vyfith-spo2-1794513614664",
+      "id": "vyfith-spo2-1794516783249",
       "resourceType": "Observation",
       "status": "final",
       "category": "Oximetría Biométrica",
@@ -281,10 +281,10 @@
         "value": 98,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.663Z"
+      "effectiveDateTime": "2026-11-12T20:53:03.249Z"
     },
     {
-      "id": "vyfith-cal-1794513614664",
+      "id": "vyfith-cal-1794516783249",
       "resourceType": "Observation",
       "status": "final",
       "category": "Actividad Física - Calorías",
@@ -301,10 +301,10 @@
         "value": 0,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-11-12T20:00:14.663Z"
+      "effectiveDateTime": "2026-11-12T20:53:03.249Z"
     },
     {
-      "id": "vyfith-readiness-1794513613263",
+      "id": "vyfith-readiness-1794516678023",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -321,10 +321,10 @@
         "value": 45,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-11-12T20:00:13.263Z"
+      "effectiveDateTime": "2026-11-12T20:51:18.023Z"
     },
     {
-      "id": "vyfith-steps-1794513613263",
+      "id": "vyfith-steps-1794516678023",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -341,10 +341,10 @@
         "value": 0,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-11-12T20:00:13.263Z"
+      "effectiveDateTime": "2026-11-12T20:51:18.023Z"
     },
     {
-      "id": "vyfith-hr-1794513613263",
+      "id": "vyfith-hr-1794516678023",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Reposo",
@@ -361,10 +361,10 @@
         "value": 62,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-11-12T20:00:13.263Z"
+      "effectiveDateTime": "2026-11-12T20:51:18.023Z"
     },
     {
-      "id": "vyfith-sleep-1794513613263",
+      "id": "vyfith-sleep-1794516678023",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Sueño",
@@ -381,10 +381,10 @@
         "value": 0,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-11-12T20:00:13.263Z"
+      "effectiveDateTime": "2026-11-12T20:51:18.023Z"
     },
     {
-      "id": "vyfith-spo2-1794513613263",
+      "id": "vyfith-spo2-1794516678023",
       "resourceType": "Observation",
       "status": "final",
       "category": "Oximetría Biométrica",
@@ -401,10 +401,10 @@
         "value": 98,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-11-12T20:00:13.263Z"
+      "effectiveDateTime": "2026-11-12T20:51:18.023Z"
     },
     {
-      "id": "vyfith-cal-1794513613263",
+      "id": "vyfith-cal-1794516678023",
       "resourceType": "Observation",
       "status": "final",
       "category": "Actividad Física - Calorías",
@@ -421,10 +421,10 @@
         "value": 0,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-11-12T20:00:13.263Z"
+      "effectiveDateTime": "2026-11-12T20:51:18.023Z"
     },
     {
-      "id": "vyfith-readiness-1794513612932",
+      "id": "vyfith-readiness-1794516677059",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -441,10 +441,10 @@
         "value": 45,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-11-12T20:00:12.932Z"
+      "effectiveDateTime": "2026-11-12T20:51:17.059Z"
     },
     {
-      "id": "vyfith-steps-1794513612932",
+      "id": "vyfith-steps-1794516677060",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -461,7 +461,7 @@
         "value": 0,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-11-12T20:00:12.932Z"
+      "effectiveDateTime": "2026-11-12T20:51:17.059Z"
     }
   ],
   "femmtoData": {

@@ -11,3 +11,5 @@ coverage/
 *.tsbuildinfo
 .vercel
 .agents/
+.hevy-chrome-profile/
+data/imports/

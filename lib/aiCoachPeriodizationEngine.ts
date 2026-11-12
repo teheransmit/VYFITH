@@ -6,6 +6,7 @@
 
 import { HevyWorkoutSession, HevyExercise, ExerciseSet } from './hevyStore';
 import { getScienceRuleForExercise, MUSCLE_VOLUME_LANDMARKS } from './scientificKnowledgeBase';
+import { parseHevyDate } from './hevyDateParser';
 import realHevyWorkouts from '@/data/real_hevy_workouts.json';
 import realHealthState from '@/data/real_health_state.json';
 
@@ -59,9 +60,12 @@ export function calculateBrzycki1Rm(weightKg: number, reps: number): number {
  */
 export function generateAiCoachPrescription(
   targetRoutineName: string = 'Horizontal Torso (Chest & Back)',
-  contextOptions?: { readiness?: number; hydrationPct?: number }
+  contextOptions?: { readiness?: number; hydrationPct?: number; workouts?: HevyWorkoutSession[] }
 ): WorkoutRoutinePrescription {
-  const allWorkouts = (realHevyWorkouts as unknown as HevyWorkoutSession[]) || [];
+  const rawWorkouts = contextOptions?.workouts || (realHevyWorkouts as unknown as HevyWorkoutSession[]) || [];
+  const allWorkouts = [...rawWorkouts].sort(
+    (a, b) => (parseHevyDate(b.date)?.getTime() || 0) - (parseHevyDate(a.date)?.getTime() || 0)
+  );
 
   // Filtrar entrenamientos que coincidan con la rutina
   const matchingWorkouts = allWorkouts.filter(

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processHevyProAnalytics } from '@/lib/hevyProEngine';
-import fs from 'fs';
-import path from 'path';
+import {
+  readStoredWorkouts,
+  scanDropFoldersAndSync,
+  mergeAndPersistWorkouts,
+  normalizeHevyApiWorkout,
+} from '@/lib/hevySyncService';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,33 +20,22 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: corsHeaders });
 }
 
-function loadHevySessions() {
-  try {
-    const filePath = path.join(process.cwd(), 'data', 'real_hevy_workouts.json');
-    if (fs.existsSync(filePath)) {
-      const raw = fs.readFileSync(filePath, 'utf8');
-      const data = JSON.parse(raw);
-      if (Array.isArray(data)) return data;
-    }
-  } catch (err) {
-    console.error('Error loading real_hevy_workouts.json:', err);
-  }
-  return [];
-}
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const periodParam = (searchParams.get('period') || '7d') as '7d' | '30d' | '90d' | '1y';
     const period = ['7d', '30d', '90d', '1y'].includes(periodParam) ? periodParam : '7d';
 
-    const sessions = loadHevySessions();
+    const scanned = scanDropFoldersAndSync();
+    const sessions = scanned.allWorkouts.length > 0 ? scanned.allWorkouts : readStoredWorkouts();
     const analytics = processHevyProAnalytics(sessions, period);
 
     return NextResponse.json(
       {
         success: true,
         totalSessionsLoaded: sessions.length,
+        latestWorkoutDate: sessions[0]?.date || null,
+        latestWorkoutName: sessions[0]?.name || null,
         analytics,
         timestamp: new Date().toISOString(),
       },
@@ -59,23 +52,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const filePath = path.join(process.cwd(), 'data', 'real_hevy_workouts.json');
-    const sessions = loadHevySessions();
-
-    if (body.session) {
-      sessions.unshift(body.session);
-    } else if (Array.isArray(body.sessions)) {
-      sessions.unshift(...body.sessions);
-    }
-
-    fs.writeFileSync(filePath, JSON.stringify(sessions, null, 2), 'utf8');
-
-    const analytics = processHevyProAnalytics(sessions, '7d');
+    const rawList = body.session ? [body.session] : Array.isArray(body.sessions) ? body.sessions : [];
+    const normalized = rawList.map((item: any) =>
+      item.totalVolumeKg !== undefined && Array.isArray(item.exercises) ? item : normalizeHevyApiWorkout(item)
+    );
+    const merged = mergeAndPersistWorkouts(normalized, 'hevy_pro_post');
+    const analytics = processHevyProAnalytics(merged.allWorkouts, '7d');
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Entrenamiento Hevy sincronizado exitosamente en el motor PRO',
+        addedCount: merged.addedCount,
+        totalSessionsLoaded: merged.allWorkouts.length,
+        message: 'Entrenamientos deduplicados y procesados en Hevy PRO.',
         analytics,
       },
       { headers: corsHeaders }

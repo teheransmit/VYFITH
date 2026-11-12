@@ -1,0 +1,21 @@
+{
+  "lastSyncAt": "2026-11-12T21:00:06.322Z",
+  "lastLivePullAt": "2026-11-12T21:00:06.304Z",
+  "lastSource": "hevy_webhook_json",
+  "totalWorkouts": 202,
+  "processedFiles": {
+    "G:\\Mi unidad\\Panel_de_Vida\\Hevy\\2026-10-05_hevy_workouts.csv": {
+      "mtimeMs": 1791227830035,
+      "hash": "d1df0b8de6174f7c8b96a7050930fdc60d9f8dd35012885b7cd82a2b7745c9fc",
+      "processedAt": "2026-11-12T20:48:11.200Z"
+    },
+    "G:\\Mi unidad\\Panel_de_Vida\\Hevy\\2026-11-12_hevy_workouts.csv": {
+      "mtimeMs": 1794515988863,
+      "hash": "4bcc0e13b147e2a02cdce412551dc9df6e116f737fb7deb93c06ae1228cddec3",
+      "processedAt": "2026-11-12T20:48:11.299Z"
+    }
+  },
+  "hevyPlanDetected": "free",
+  "latestWorkoutName": "Full Legs",
+  "latestWorkoutDate": "10 nov 2026, 17:15"
+}

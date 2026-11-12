@@ -26,7 +26,9 @@ for d in DATA_OUT_DIRS:
     os.makedirs(d, exist_ok=True)
 
 DRIVE_DIR = r"G:\Mi unidad"
-HEVY_CSV = os.path.join(DRIVE_DIR, "Panel_de_Vida", "Hevy", "2026-10-05_hevy_workouts.csv")
+HEVY_DIR = os.path.join(DRIVE_DIR, "Panel_de_Vida", "Hevy")
+_hevy_csvs = sorted(glob.glob(os.path.join(HEVY_DIR, "*.csv")), key=os.path.getmtime, reverse=True) if os.path.exists(HEVY_DIR) else []
+HEVY_CSV = _hevy_csvs[0] if _hevy_csvs else os.path.join(HEVY_DIR, "2026-11-12_hevy_workouts.csv")
 PASOS_DIR = os.path.join(DRIVE_DIR, "Health Sync Pasos")
 SUENO_DIR = os.path.join(DRIVE_DIR, "Health Sync Sueño")
 FC_DIR = os.path.join(DRIVE_DIR, "Health Sync Frecuencia cardíaca")

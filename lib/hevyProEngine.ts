@@ -10,6 +10,8 @@
  * 5. Mapa de calor anatómico por umbrales de hipertrofia (MEV, MAV, MRV)
  */
 
+import { parseHevyDate } from './hevyDateParser';
+
 export interface BodyMeasurementEntry {
   id: string;
   date: string; // YYYY-MM-DD
@@ -294,12 +296,13 @@ export function processHevyProAnalytics(
   const currentCutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
   const previousCutoff = new Date(now.getTime() - days * 2 * 24 * 60 * 60 * 1000);
 
-  // Separar sesiones en Actual vs Anterior
+  // Separar sesiones en Actual vs Anterior usando parseHevyDate (soporta español e ISO)
   const currentSessions: any[] = [];
   const previousSessions: any[] = [];
 
   sessions.forEach((s) => {
-    const sDate = new Date(s.date || s.startTimeLocal || 0);
+    const sDate = parseHevyDate(s.date || s.startTimeLocal);
+    if (!sDate) return;
     if (sDate >= currentCutoff && sDate <= now) {
       currentSessions.push(s);
     } else if (sDate >= previousCutoff && sDate < currentCutoff) {
@@ -307,18 +310,17 @@ export function processHevyProAnalytics(
     }
   });
 
-  // Si no hay sesiones previas para comparar, simular una base razonable para deltas
-  const currentWorkouts = currentSessions.length || (period === '7d' ? 4 : 16);
-  const prevWorkouts = previousSessions.length || Math.max(1, Math.round(currentWorkouts * 0.85));
+  const currentWorkouts = currentSessions.length;
+  const prevWorkouts = previousSessions.length;
 
-  const currentDuration = currentSessions.reduce((acc, s) => acc + (s.durationMinutes || 65), 0) || (currentWorkouts * 68);
-  const prevDuration = previousSessions.reduce((acc, s) => acc + (s.durationMinutes || 65), 0) || Math.round(currentDuration * 0.9);
+  const currentDuration = currentSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+  const prevDuration = previousSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
 
-  const currentVolume = currentSessions.reduce((acc, s) => acc + (s.totalVolumeKg || 0), 0) || (currentWorkouts * 3850);
-  const prevVolume = previousSessions.reduce((acc, s) => acc + (s.totalVolumeKg || 0), 0) || Math.round(currentVolume * 0.88);
+  const currentVolume = Math.round(currentSessions.reduce((acc, s) => acc + (s.totalVolumeKg || 0), 0));
+  const prevVolume = Math.round(previousSessions.reduce((acc, s) => acc + (s.totalVolumeKg || 0), 0));
 
-  const currentSets = currentSessions.reduce((acc, s) => acc + (s.totalSets || 0), 0) || (currentWorkouts * 19);
-  const prevSets = previousSessions.reduce((acc, s) => acc + (s.totalSets || 0), 0) || Math.round(currentSets * 0.86);
+  const currentSets = currentSessions.reduce((acc, s) => acc + (s.totalSets || 0), 0);
+  const prevSets = previousSessions.reduce((acc, s) => acc + (s.totalSets || 0), 0);
 
   function calcCard(label: string, cur: number, prev: number, formatFn: (v: number) => string): SummaryComparisonCard {
     const delta = prev > 0 ? Number((((cur - prev) / prev) * 100).toFixed(1)) : 0;
@@ -377,9 +379,15 @@ export function processHevyProAnalytics(
 
   currentSessions.forEach((session) => {
     (session.exercises || []).forEach((ex: any) => {
+      const exLower = (ex.name || '').toLowerCase();
+      if (exLower === 'warm up' || exLower === 'stretching' || exLower === 'calentamiento' || exLower === 'estiramiento') {
+        return;
+      }
       const { axis, weight } = classifyExerciseAxis(ex.name, ex.muscleGroup);
-      const effectiveSets = (ex.sets || []).filter((s: any) => !s.isWarmup && s.indicator !== 'warmup').length;
-      const setsCount = effectiveSets > 0 ? effectiveSets : (ex.sets || []).length;
+      const effectiveSets = (ex.sets || []).filter(
+        (s: any) => !s.isWarmup && s.indicator !== 'warmup' && ((s.weightKg || 0) > 0 || (s.reps || 0) > 0)
+      ).length;
+      const setsCount = effectiveSets;
       
       currentAxisSets[axis].sets += setsCount * weight;
       currentAxisSets[axis].volume += ex.totalVolume || 0;
@@ -411,14 +419,19 @@ export function processHevyProAnalytics(
     });
   });
 
-  // Series previas (aproximación si no hay historial)
+  // Contabilizar series reales del periodo anterior para comparación en radar
+  previousSessions.forEach((session) => {
+    (session.exercises || []).forEach((ex: any) => {
+      const { axis, weight } = classifyExerciseAxis(ex.name, ex.muscleGroup);
+      const effectiveSets = (ex.sets || []).filter(
+        (s: any) => !s.isWarmup && s.indicator !== 'warmup' && ((s.weightKg || 0) > 0 || (s.reps || 0) > 0)
+      ).length;
+      previousAxisSets[axis] += effectiveSets * weight;
+    });
+  });
+
   RADAR_AXES.forEach((axis) => {
-    const curVal = currentAxisSets[axis].sets || (period === '7d' ? 14 : 45);
-    previousAxisSets[axis] = Number((curVal * 0.88).toFixed(1));
-    if (currentAxisSets[axis].sets === 0) {
-      currentAxisSets[axis].sets = curVal;
-      currentAxisSets[axis].volume = curVal * 280;
-    }
+    previousAxisSets[axis] = Number(previousAxisSets[axis].toFixed(1));
   });
 
   const radar: RadarDistribution[] = RADAR_AXES.map((axis) => {

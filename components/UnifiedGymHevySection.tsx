@@ -43,16 +43,33 @@ export interface UnifiedGymHevyProps {
 
 export function UpbGymStatusAndKpis() {
   const [liveStatus, setLiveStatus] = useState<GymLiveStatus | null>(null);
+  const [sessions, setSessions] = useState<HevyWorkoutSession[]>(initialHevySessions);
 
   useEffect(() => {
     setLiveStatus(getUpbGymLiveStatus());
     const interval = setInterval(() => {
       setLiveStatus(getUpbGymLiveStatus());
     }, 30000);
-    return () => clearInterval(interval);
+
+    const loadSessions = () => {
+      fetch('/api/sync/hevy', { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.workouts && Array.isArray(d.workouts) && d.workouts.length > 0) {
+            setSessions(d.workouts);
+          }
+        })
+        .catch(() => {});
+    };
+
+    loadSessions();
+    window.addEventListener('vyfith-hevy-updated', loadSessions);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('vyfith-hevy-updated', loadSessions);
+    };
   }, []);
 
-  const sessions = initialHevySessions;
   const totalWeeklyVolume = sessions.reduce((acc, s) => acc + s.totalVolumeKg, 0);
   const totalWeeklySets = sessions.reduce((acc, s) => acc + s.totalSets, 0);
 
