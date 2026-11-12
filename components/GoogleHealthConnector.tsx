@@ -15,6 +15,8 @@ import {
   Cloud,
   Wifi,
   Scale,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { SyncSessionState, HealthObservation } from '@/lib/healthStore';
 import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
@@ -38,6 +40,7 @@ export default function GoogleHealthConnector({
   const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
   const [isCloudBridgeActive, setIsCloudBridgeActive] = useState(false);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+  const [isDiagExpanded, setIsDiagExpanded] = useState(false);
 
   const [copiedUrl, setCopiedUrl] = useState(false);
   const localSyncEndpoint = 'http://192.168.1.8:3000/api/sync/health';
@@ -470,9 +473,17 @@ export default function GoogleHealthConnector({
   const readiness = vyfithData?.readinessScore ?? 67;
   const isOptimal = readiness >= 80;
   const isModerate = readiness >= 60 && readiness < 80;
+  const diagText =
+    vyfithData?.geminiAnalysis?.diagnostico ||
+    'Resumen de Salud Diario para miércoles, 11 de noviembre de 2026. Puntuación de recuperación: 85/100 (Ejecución de Élite). Registraste 7h 18m de sueño neto reparador (1.61h de sueño profundo). Acumulaste 6,411 pasos con 57 min de actividad cardiovascular y SpO2 promedio de 96.5%. Composición Femmto: 55.70 kg, 10.60% grasa y 25.10 kg de masa muscular.';
+  const isLongDiag = diagText.length > 340;
 
   return (
-    <section className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-xs mb-10 transition-colors">
+    <section
+      className={`bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs transition-colors ${
+        hideNestedSuites ? 'p-5 sm:p-6' : 'p-6 sm:p-8 mb-10'
+      }`}
+    >
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div>
@@ -555,102 +566,181 @@ export default function GoogleHealthConnector({
       )}
 
       {/* TARJETA EN VIVO: READINESS SCORE & DATOS DE VYFITH_APP */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 my-6">
-        {/* Widget Circular del Readiness Score */}
-        <div className="md:col-span-5 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            <Activity className="w-4 h-4 text-indigo-600" />
-            <span>Nivel de Recuperación (Readiness)</span>
-          </div>
+      {(() => {
+        const ringTheme = isOptimal
+          ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300'
+          : isModerate
+          ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300'
+          : 'border-rose-500 bg-rose-50/50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300';
 
-          <div className="relative flex items-center justify-center my-2">
+        const badgeTheme = isOptimal
+          ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/70'
+          : isModerate
+          ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/70'
+          : 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/70';
+
+        return (
+          <div className={hideNestedSuites ? 'flex flex-col gap-4 my-5' : 'grid grid-cols-1 md:grid-cols-12 gap-4 my-6 items-start'}>
+            {/* Widget del Readiness Score (Barra horizontal compacta en Bento, tarjeta lateral en vista completa) */}
             <div
-              className={`w-30 h-30 sm:w-32 sm:h-32 rounded-full border-8 flex flex-col items-center justify-center transition-all ${
-                isOptimal
-                  ? 'border-emerald-500 bg-emerald-50/50 text-emerald-700'
-                  : isModerate
-                  ? 'border-amber-500 bg-amber-50/50 text-amber-700'
-                  : 'border-rose-500 bg-rose-50/50 text-rose-700'
-              }`}
+              className={
+                hideNestedSuites
+                  ? 'p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4'
+                  : 'md:col-span-4 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center'
+              }
             >
-              <span className="text-3xl sm:text-4xl font-extrabold tracking-tight">{readiness}</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">de 100</span>
+              {hideNestedSuites ? (
+                <>
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-20 h-20 rounded-full border-[6px] shrink-0 flex flex-col items-center justify-center transition-all ${ringTheme}`}
+                    >
+                      <span className="text-2xl font-extrabold tracking-tight leading-none">{readiness}</span>
+                      <span className="text-[9px] uppercase font-bold tracking-wider opacity-80 mt-0.5">de 100</span>
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                        <Activity className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Nivel de Recuperación (Readiness)</span>
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold inline-flex items-center gap-1.5 ${badgeTheme}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                        {vyfithData?.readinessCategory || 'Recuperación Adecuada'}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-slate-400 text-center sm:text-right max-w-45">
+                    Calculado por el motor de IA en tu app móvil
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                    <Activity className="w-4 h-4 text-indigo-600" />
+                    <span>Nivel de Recuperación (Readiness)</span>
+                  </div>
+
+                  <div className="relative flex items-center justify-center my-2">
+                    <div
+                      className={`w-28 h-28 rounded-full border-8 flex flex-col items-center justify-center transition-all ${ringTheme}`}
+                    >
+                      <span className="text-3xl font-extrabold tracking-tight">{readiness}</span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">de 100</span>
+                    </div>
+                  </div>
+
+                  <span className={`mt-2 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 ${badgeTheme}`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    {vyfithData?.readinessCategory || 'Recuperación Adecuada'}
+                  </span>
+
+                  <span className="text-[11px] text-slate-400 mt-2">
+                    Calculado por el motor de IA en tu app móvil
+                  </span>
+                </>
+              )}
             </div>
-          </div>
 
-          <span
-            className={`mt-2 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 ${
-              isOptimal
-                ? 'bg-emerald-100 text-emerald-800'
-                : isModerate
-                ? 'bg-amber-100 text-amber-800'
-                : 'bg-rose-100 text-rose-800'
-            }`}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-            {vyfithData?.readinessCategory || 'Recuperación Adecuada'}
-          </span>
+            {/* Tarjeta de Análisis de Gemini (Médico Deportivo) a ancho completo */}
+            <div
+              className={`${
+                hideNestedSuites ? 'w-full' : 'md:col-span-8'
+              } p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col justify-between`}
+            >
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 font-bold text-sm">
+                    <Bot className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                    <span>Tarjeta de Análisis de Gemini AI (Médico Deportivo)</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
+                    gemini-3.1-pro-preview
+                  </span>
+                </div>
 
-          <span className="text-[11px] text-slate-400 mt-2">
-            Calculado por el motor de IA en tu app móvil
-          </span>
-        </div>
+                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 mb-3">
+                  <div
+                    className={`relative overflow-hidden transition-all ${
+                      isLongDiag && !isDiagExpanded ? 'max-h-36' : 'max-h-none'
+                    }`}
+                  >
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                      {diagText}
+                    </p>
+                    {isLongDiag && !isDiagExpanded && (
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-white dark:from-slate-900 to-transparent" />
+                    )}
+                  </div>
 
-        {/* Tarjeta de Análisis de Gemini (Médico Deportivo) */}
-        <div className="md:col-span-7 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 text-indigo-950 dark:text-indigo-200 font-bold text-sm">
-                <Bot className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Tarjeta de Análisis de Gemini AI (Médico Deportivo)</span>
-              </div>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
-                gemini-3.1-pro-preview
-              </span>
-            </div>
+                  {isLongDiag && (
+                    <button
+                      type="button"
+                      onClick={() => setIsDiagExpanded((prev) => !prev)}
+                      className="cursor-pointer mt-2 inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors"
+                    >
+                      {isDiagExpanded ? (
+                        <>
+                          <ChevronUp className="w-3.5 h-3.5" />
+                          <span>Contraer diagnóstico completo</span>
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3.5 h-3.5" />
+                          <span>Leer diagnóstico completo</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 mb-3 whitespace-pre-line">
-              {vyfithData?.geminiAnalysis?.diagnostico ||
-                'Resumen de Salud Diario para miércoles, 11 de noviembre de 2026. Puntuación de recuperación: 85/100 (Ejecución de Élite). Registraste 7h 18m de sueño neto reparador (1.61h de sueño profundo). Acumulaste 6,411 pasos con 57 min de actividad cardiovascular y SpO2 promedio de 96.5%. Composición Femmto: 55.70 kg, 10.60% grasa y 25.10 kg de masa muscular.'}
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-emerald-50/80 border border-emerald-100 rounded-xl">
-                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block mb-1">
-                  Grupos a Priorizar Hoy
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {vyfithData?.geminiAnalysis.gruposPriorizar.map((g, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-white text-emerald-700 font-semibold rounded-md border border-emerald-200 text-[11px]">
-                      {g}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 bg-emerald-50/80 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/60 rounded-xl">
+                    <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block mb-1">
+                      Grupos a Priorizar Hoy
                     </span>
-                  ))}
+                    <div className="flex flex-wrap gap-1.5">
+                      {vyfithData?.geminiAnalysis.gruposPriorizar.map((g, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 font-semibold rounded-md border border-emerald-200 dark:border-emerald-800/70 text-[11px]"
+                        >
+                          {g}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-rose-50/80 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/60 rounded-xl">
+                    <span className="text-[11px] font-bold text-rose-800 dark:text-rose-300 uppercase tracking-wider block mb-1">
+                      Grupos en Descanso
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {vyfithData?.geminiAnalysis.gruposDescanso.map((g, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 font-semibold rounded-md border border-rose-200 dark:border-rose-800/70 text-[11px]"
+                        >
+                          {g}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-3 bg-rose-50/80 border border-rose-100 rounded-xl">
-                <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider block mb-1">
-                  Grupos en Descanso
+              <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                <span>
+                  Fuente: <strong className="text-slate-700 dark:text-slate-200">FitSync AI (Kotlin + Room)</strong>
                 </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {vyfithData?.geminiAnalysis.gruposDescanso.map((g, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-white text-rose-700 font-semibold rounded-md border border-rose-200 text-[11px]">
-                      {g}
-                    </span>
-                  ))}
-                </div>
+                <span suppressHydrationWarning>
+                  Última recepción:{' '}
+                  {vyfithData?.lastSyncTimestamp ? vyfithData.lastSyncTimestamp.replace('T', ' ').slice(0, 16) : 'Reciente'}
+                </span>
               </div>
             </div>
           </div>
-
-          <div className="mt-4 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between text-[11px] text-slate-400">
-            <span>Fuente: <strong className="text-slate-700">FitSync AI (Kotlin + Room)</strong></span>
-            <span suppressHydrationWarning>
-              Última recepción: {vyfithData?.lastSyncTimestamp ? vyfithData.lastSyncTimestamp.replace('T', ' ').slice(0, 16) : 'Reciente'}
-            </span>
-          </div>
-        </div>
-      </div>
+        );
+      })()}
 
       {/* Motor de Body Battery & Rangos Clínicos (Inspirado en healthier & HealthLog) */}
       <div className="mb-6 p-5 sm:p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-800 space-y-5">

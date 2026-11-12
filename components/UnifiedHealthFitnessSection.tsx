@@ -171,26 +171,18 @@ export default function UnifiedHealthFitnessSection() {
       {/* 2. RENDERIZADO CONDICIONAL DE CONTENIDO: ARQUITECTURA BENTO GRID 12 COLUMNAS */}
       {activeSubView === 'combined' && (
         <div className="space-y-6 animate-fadeIn">
-          {/* MOSAICO BENTO GRID (FILA 1 Y FILA 2 EN 2 MITADES PARALELAS) */}
+          {/* MOSAICO BENTO GRID EN 2 COLUMNAS INDEPENDIENTES (SIN HUECOS VERTICALES) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-            {/* FILA 1 - MITAD IZQUIERDA (lg:col-span-6): Salud Biométrica & Conexión Google Health + Batería Corporal */}
+            {/* COLUMNA IZQUIERDA (lg:col-span-6) */}
             <div className="lg:col-span-6 space-y-4">
               <GoogleHealthConnector hideNestedSuites={true} onSyncStateChange={setSharedHealthState} />
+              <BiomedicalIntelligencePanel />
             </div>
 
-            {/* FILA 1 - MITAD DERECHA (lg:col-span-6): Telemetría de Salud, Sueño & Ritmo Cardíaco (Mi Fitness) */}
+            {/* COLUMNA DERECHA (lg:col-span-6) */}
             <div className="lg:col-span-6 space-y-4">
               <MiFitnessHealthSuite syncState={sharedHealthState} />
-            </div>
-
-            {/* FILA 2 - MITAD IZQUIERDA (lg:col-span-6): Matriz Fisiológica y Cognitiva + Gimnasio UPB & Hevy Workouts (Estado & KPIs) */}
-            <div className="lg:col-span-6 space-y-4">
-              <BiomedicalIntelligencePanel />
               <UpbGymStatusAndKpis />
-            </div>
-
-            {/* FILA 2 - MITAD DERECHA (lg:col-span-6): Mapa de Calor Muscular & Detección de Estancamientos */}
-            <div className="lg:col-span-6 space-y-4">
               <MuscleHeatmap />
             </div>
           </div>
