@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   Dumbbell,
   Clock,
@@ -21,8 +21,18 @@ import {
   Heart,
   Calendar,
   Sparkles,
+  Bot,
+  BookOpen,
+  RotateCcw,
+  AlertTriangle,
+  ShieldCheck,
 } from 'lucide-react';
 import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
+import {
+  generateAiCoachPrescription,
+  WorkoutRoutinePrescription,
+  ExercisePrescription,
+} from '@/lib/aiCoachPeriodizationEngine';
 
 export default function HevyWorkoutsSection() {
   const [sessions, setSessions] = useState<HevyWorkoutSession[]>(initialHevySessions);
@@ -36,10 +46,44 @@ export default function HevyWorkoutsSection() {
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(3);
+  const [isSyncingHevy, setIsSyncingHevy] = useState(false);
+  const [syncSuccessMessage, setSyncSuccessMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedSession =
     sessions.find((s) => s.id === selectedSessionId) || sessions[0] || initialHevySessions[0];
+
+  // Prescripción y análisis del Entrenador Personal IA para esta rutina
+  const coachPrescription = useMemo(() => {
+    try {
+      return generateAiCoachPrescription(selectedSession.name);
+    } catch (e) {
+      return null;
+    }
+  }, [selectedSession.name]);
+
+  const handleApplyToHevy = async () => {
+    if (!coachPrescription) return;
+    setIsSyncingHevy(true);
+    setSyncSuccessMessage(null);
+    try {
+      const res = await fetch('/api/hevy/ai-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(coachPrescription.hevySyncPayload),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSyncSuccessMessage(
+          `¡Rutina '${coachPrescription.routineName}' sincronizada en Hevy! Cargas listas para tu sesión.`
+        );
+      }
+    } catch (err) {
+      console.error('Error aplicando a Hevy:', err);
+    } finally {
+      setIsSyncingHevy(false);
+    }
+  };
 
   const filteredSessions = sessions.filter(
     (s) =>
@@ -322,10 +366,103 @@ export default function HevyWorkoutsSection() {
           </div>
         </div>
 
+        {/* 3.1. ENTRENADOR PERSONAL IA INTEGRADO EN HEVY APP (JEFF NIPPARD SCIENCE) */}
+        {coachPrescription && (
+          <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-950/70 via-[#18181b] to-purple-950/40 border border-indigo-500/30 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-500/20">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm sm:text-base font-black text-white tracking-tight flex items-center gap-1.5">
+                      <span>Entrenador Personal IA • Análisis de Rutina</span>
+                      <Sparkles className="w-4 h-4 text-cyan-400" />
+                    </h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono">
+                      Jeff Nippard Science
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Recomendaciones de sobrecarga progresiva y táctica calculadas para {selectedSession.name}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href="https://notebook.google.com/notebook/57126469-ac46-4b0d-a370-6270c887c26b"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#09090b]/80 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700 transition-all"
+                  title="Abrir cuaderno MegaProyecto en NotebookLM"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>NotebookLM</span>
+                  <ExternalLink className="w-3 h-3 text-slate-500" />
+                </a>
+                <button
+                  onClick={handleApplyToHevy}
+                  disabled={isSyncingHevy}
+                  className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all disabled:opacity-50"
+                  title="Aplica los nuevos pesos y repeticiones a tu Hevy App"
+                >
+                  {isSyncingHevy ? (
+                    <>
+                      <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Sincronizando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Aplicar Cargas a Hevy App</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {syncSuccessMessage && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{syncSuccessMessage}</span>
+                </div>
+                <span className="font-mono text-[10px] text-emerald-400">Hevy Cloud OK</span>
+              </div>
+            )}
+
+            {/* DIAGNÓSTICO EN PROSA PERSONALIZADO PARA SANTIAGO */}
+            <div className="p-4 rounded-xl bg-[#09090b]/80 border border-slate-800 text-xs leading-relaxed space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <span>Cómo mejorar tu entrenamiento en estos días:</span>
+                </span>
+                <div className="flex items-center gap-2 text-[10px] font-mono shrink-0">
+                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                    Readiness: <strong className="text-white">{coachPrescription.readinessScore}%</strong>
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
+                    Agua: <strong className="text-white">{coachPrescription.hydrationCompliancePct}%</strong>
+                  </span>
+                </div>
+              </div>
+              <p className="text-slate-300 text-xs leading-normal">
+                {coachPrescription.summaryMessage} Para los entrenamientos de estos días, la estrategia es <strong>Doble Progresión</strong>: no aumentes los kilos en la barra hasta que no completes con técnica estricta todas las series en el límite superior de repeticiones con <strong>RIR 1–2</strong> (dejando 1 a 2 repeticiones en reserva para disipar la fatiga central). En los ejercicios con badge <em>«Subir Reps»</em>, enfócate en ganar esa repetición extra en tus dos primeras series.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* GRILLA RESPONSIVA MULTICOLUMNA DE EJERCICIOS (BENTO GRID 2-3 COLUMNAS) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2 items-start">
           {selectedSession.exercises.map((exercise, exIdx) => {
             const muscleColor = getMuscleBadgeColor(exercise.muscleGroup);
+            const exPrescription = coachPrescription?.prescriptions.find(
+              (p) => p.exerciseName.toLowerCase().trim() === exercise.name.toLowerCase().trim()
+            );
 
             return (
               <div
@@ -355,6 +492,46 @@ export default function HevyWorkoutsSection() {
                       {exercise.muscleGroup}
                     </span>
                   </div>
+
+                  {/* RECOMENDACIÓN IA INDIVIDUAL PARA ESTE EJERCICIO */}
+                  {exPrescription && (
+                    <div className={`p-2.5 rounded-xl border mb-3 text-xs ${
+                      exPrescription.action === 'SUBIR_PESO'
+                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                        : exPrescription.action === 'SUBIR_REPS'
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+                        : exPrescription.action === 'DESCARGA_TECNICA'
+                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                        : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-200'
+                    }`}>
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className="font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-cyan-400" />
+                          <span>IA Coach: {
+                            exPrescription.action === 'SUBIR_PESO' ? '🟢 Subir Peso' :
+                            exPrescription.action === 'SUBIR_REPS' ? '🟡 Doble Progresión (+1 Rep)' :
+                            exPrescription.action === 'DESCARGA_TECNICA' ? '🟠 Descarga Técnica' :
+                            '🔵 Consolidar Carga'
+                          }</span>
+                        </span>
+                        <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/40 border border-white/10">
+                          RIR {exPrescription.targetRir}
+                        </span>
+                      </div>
+                      <div className="font-bold text-xs text-white">
+                        Próxima sesión: <span className="text-emerald-400 font-extrabold">{exPrescription.prescribedWeightKg} kg</span> ({exPrescription.prescribedRepsSummary})
+                      </div>
+                      <p className="text-[11px] text-slate-300 mt-1 leading-snug">
+                        {exPrescription.reasoning}
+                      </p>
+                      {exPrescription.biomechanicalCues.length > 0 && (
+                        <div className="mt-1.5 pt-1.5 border-t border-white/10 text-[10px] text-slate-400 flex items-center gap-1">
+                          <span className="font-semibold text-cyan-400 shrink-0">Técnica:</span>
+                          <span className="truncate">{exPrescription.biomechanicalCues.slice(0, 2).join(' • ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Nota Personal de Santiago (Callout Idéntico a Hevy) */}
                   {exercise.notes && (
