@@ -33,6 +33,7 @@ import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
 import MuscleHeatmap from './MuscleHeatmap';
 import HevyWorkoutsSection from './HevyWorkoutsSection';
 import HevyBodyDistribution from './HevyBodyDistribution';
+import HevyAiCoachSection from './HevyAiCoachSection';
 
 export interface UnifiedGymHevyProps {
   initialSubTab?: 'all' | 'schedule' | 'hevy';
@@ -594,7 +595,11 @@ export default function UnifiedGymHevySection({
 
       {/* 5. DISTRIBUCIÓN CORPORAL ANATÓMICA HEVY PRO */}
       {(subTab === 'all' || subTab === 'hevy') && !hideKpisAndHeatmap && (
-        <HevyBodyDistribution />
+        <>
+          <HevyBodyDistribution />
+          {/* ENTRENADOR PERSONAL AUTÓNOMO CON IA (CIENCIA JEFF NIPPARD) */}
+          <HevyAiCoachSection />
+        </>
       )}
 
       {/* 6. HISTORIAL DE SESIONES DETALLADAS DE HEVY (Estilo Hevy Web Descomprimido) */}

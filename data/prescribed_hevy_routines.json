@@ -1,0 +1,17 @@
+{
+  "Horizontal Torso (Chest & Back)": {
+    "routineTitle": "Horizontal Torso (Chest & Back)",
+    "exercises": [
+      {
+        "title": "Bench Press (Barbell)",
+        "targetWeightKg": 52.5,
+        "targetReps": 8,
+        "targetSets": 4
+      }
+    ],
+    "appliedAt": "2026-11-12T14:00:14.575348",
+    "syncedWithHevy": true,
+    "status": "ACTIVA_EN_HEVY",
+    "source": "VYFITH_AI_COACH_PERIODIZATION"
+  }
+}

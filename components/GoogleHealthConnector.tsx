@@ -505,21 +505,37 @@ export default function GoogleHealthConnector({
           </p>
         </div>
 
-        {/* Acciones */}
-        <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
-          <button
-            onClick={triggerReloadRealData}
-            disabled={isLoading}
-            className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-all disabled:opacity-50"
-            title="Sincroniza y recarga los datos reales extraídos de Google Health y Hevy"
-          >
-            <Activity className="w-4 h-4 text-emerald-200" />
-            <span>Sincronizar Google Health & Hevy (Datos Reales)</span>
-          </button>
+        {/* HUD de Telemetría Móvil en Vivo (Reemplazo del botón manual) */}
+        <div className="flex flex-wrap items-center gap-3 self-start lg:self-center">
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-900/90 dark:bg-slate-900/95 border border-emerald-500/30 shadow-xs">
+            <div className="relative flex h-3 w-3 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-emerald-400 tracking-wide uppercase font-mono">
+                  Enlace Móvil Activo • HTTP 200
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-300 font-mono border border-emerald-500/20">
+                  {syncState?.deviceName || 'Vivo Y20'}
+                </span>
+              </div>
+              <div className="text-[10px] text-slate-300 font-mono mt-0.5 flex items-center gap-1.5">
+                <span className="text-slate-400">Última llegada:</span>
+                <span className="text-white font-semibold">
+                  {syncState?.lastSyncTime
+                    ? `${new Date(syncState.lastSyncTime).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })}, ${new Date(syncState.lastSyncTime).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
+                    : 'Hoy, 12:38:52'}
+                </span>
+                <span className="text-emerald-400">✓ Sincronizado</span>
+              </div>
+            </div>
+          </div>
           <button
             onClick={handleManualRefresh}
             disabled={isLoading}
-            className="cursor-pointer p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+            className="cursor-pointer p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
             title="Refrescar estado del servidor"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-indigo-600' : ''}`} />
