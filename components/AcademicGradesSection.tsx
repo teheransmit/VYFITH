@@ -41,9 +41,9 @@ export default function AcademicGradesSection() {
   const currentGPA = calculateSemesterGPA(courses);
   const totalCredits = courses.reduce((acc, c) => acc + c.credits, 0);
 
-  // Simulación dinámica de nota final de Análisis de Estructuras (acumulado 2.11 + 30% restante)
-  const simulatedEstructurasGrade = Math.min(5.00, Math.round((2.11 + (simulatedFinalScore * 0.30)) * 100) / 100);
-  const simulatedGPA = Math.round(((3.93 * 80 + (simulatedEstructurasGrade - 3.01) * 2) / 80) * 100) / 100;
+  // Simulación dinámica de nota final de Análisis de Estructuras (acumulado 2.47 + 40% restante)
+  const simulatedEstructurasGrade = Math.min(5.00, Math.round((2.47 + (simulatedFinalScore * 0.40)) * 100) / 100);
+  const simulatedGPA = Math.round(((3.93 * 80 + (simulatedEstructurasGrade - 4.10) * 2) / 80) * 100) / 100;
 
   // Cálculos financieros TBEA 95% 2027-1
   const fin = initialAcademicData.financialConfig2027;
@@ -79,7 +79,7 @@ export default function AcademicGradesSection() {
             Suite Académica SIGAA, Auditoría CAPP, Cárdex & Proyección 2027-1
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-3xl mt-1">
-            Sincronización oficial con SIGAA UPB: <strong>Vías II (4.03)</strong> y <strong>Programación y Presupuesto (3.63)</strong> ya 100% aprobadas en sistema, libro docente de asistencia (`BZPGLAAC`), avance curricular CAPP (93/142 cr) y simulador financiero TBEA 95%.
+            Sincronización oficial con SIGAA UPB (13 nov 2026): <strong>Programación y Presupuesto (4.40)</strong>, <strong>Hidrología (4.30)</strong>, <strong>Vías II (4.13)</strong>, <strong>Estructuras (4.10)</strong> y <strong>Mecánica de Suelos (3.63)</strong>; libro docente de asistencia (`BZPGLAAC`) y avance CAPP (80/142 cr aprobados, PGA 3.93).
           </p>
         </div>
 
