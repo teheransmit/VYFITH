@@ -79,7 +79,7 @@ export default function AcademicGradesSection() {
             Suite Académica SIGAA, Auditoría CAPP, Cárdex & Proyección 2027-1
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-3xl mt-1">
-            Sincronización oficial con SIGAA UPB (13 nov 2026): <strong>Programación y Presupuesto (4.40)</strong>, <strong>Hidrología (4.30)</strong>, <strong>Vías II (4.13)</strong>, <strong>Estructuras (4.10)</strong> y <strong>Mecánica de Suelos (3.63)</strong>; libro docente de asistencia (`BZPGLAAC`) y avance CAPP (80/142 cr aprobados, PGA 3.93).
+            Sincronización oficial con SIGAA UPB (13 nov 2026): <strong>Programación y Presupuesto (4.40)</strong>, <strong>Hidrología (4.30)</strong>, <strong>Vías II (4.13)</strong>, <strong>Estructuras (4.10)</strong> y <strong>Mecánica de Suelos (2.50)</strong>; libro docente de asistencia (`BZPGLAAC`) y avance CAPP (80/142 cr aprobados, PGA 3.93).
           </p>
         </div>
 
