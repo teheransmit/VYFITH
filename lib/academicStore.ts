@@ -32,7 +32,7 @@ export interface CourseGrade {
   maxPossible: number; // Nota máxima sacando 5.0 en lo restante
   remainingDescription: string; // Qué queda por calificar
   targetGrade: number;
-  status: 'passed' | 'warning' | 'in_progress';
+  status: 'passed' | 'warning' | 'in_progress' | 'failed';
   diagnostic: string;
   breakdown: GradeItem[];
   attendance: CourseAttendance;
@@ -255,10 +255,10 @@ export const initialAcademicData: AcademicSemester = {
       neededForPassing: 0.0,
       neededFor35: 0.0,
       maxPossible: 2.50,
-      remainingDescription: '100% de componentes cargados en SIGAA (Definitiva oficial pendiente de cierre de periodo)',
+      remainingDescription: '100% de componentes cargados en SIGAA (Reprobada < 3.000 — Pendiente cierre periodo)',
       targetGrade: 3.0,
-      status: 'warning',
-      diagnostic: 'Todos los 9 componentes están cargados en SIGAA (bzsksmrk): suma ponderada actual de 2.50 / 5.00 (Seguimiento III aparece vacío/0.00, Examen II 1.00, Examen Final 1.00, Labs 4.57 / 4.25 / 4.20).',
+      status: 'failed',
+      diagnostic: 'Reprobada (< 3.000): todos los 9 componentes cargados en bzsksmrk suman 2.50 / 5.00 (Seguimiento III en 0.00, Examen II 1.00, Examen Final 1.00). Toca repetir Mecánica de Suelos y se mantiene bloqueada Cimentaciones.',
       corte1: 4.50,
       corte2: 4.80,
       corte3: 2.50,
