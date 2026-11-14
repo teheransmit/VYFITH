@@ -26,6 +26,7 @@ import {
   Scale,
 } from 'lucide-react';
 import DateRangePicker, { DateRangeDays } from './DateRangePicker';
+import { useAcademicReactiveState } from '@/lib/useAcademicReactiveState';
 
 // Hook para verificar montaje de Recharts sin mismatch de hidratación
 function subscribeNoop() {
@@ -225,6 +226,8 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
   const xAxisKey = selectedRange === 7 ? 'day' : 'date';
   const xAxisInterval = selectedRange === 7 ? 0 : selectedRange === 30 ? 4 : 11;
 
+  const { projection } = useAcademicReactiveState();
+
   return (
     <section className="w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-8 shadow-xs border border-slate-200/80 dark:border-slate-800 mb-10 transition-colors">
       <div className="mb-6 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/70 bg-indigo-50/70 dark:bg-indigo-950/30 p-4">
@@ -234,10 +237,27 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
             <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
               Usa este resumen para decidir qué revisar primero; las métricas inferiores son datos de referencia simulados.
             </p>
+            <p className="mt-1.5 text-xs font-semibold text-indigo-900 dark:text-indigo-200">
+              SIGAA → Agenda 2027-1 en vivo:{' '}
+              {projection.schedule2027Real.blockedCourses.length > 0
+                ? `${projection.schedule2027Real.blockedCourses.map((b) => b.name).join(', ')} bloqueada(s)`
+                : 'Todas las materias desbloqueadas'}{' '}
+              •{' '}
+              {projection.schedule2027Real.suelosMode === 'theory_only_homologated'
+                ? `Suelos Solo Teoría (Lab ${projection.suelosLabSummary.weightedAverage.toFixed(2)} homol.)`
+                : projection.schedule2027Real.suelosMode === 'full_theory_and_lab'
+                ? 'Suelos Teoría + Lab 119'
+                : 'Cimentaciones activa'}{' '}
+              • <strong>{projection.schedule2027Real.totalCredits} cr</strong> ($
+              {projection.schedule2027Real.totalNetTuition.toLocaleString('es-CO')} TBEA).
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button onClick={() => onNavigate?.('health')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-rose-700 shadow-xs hover:bg-rose-50 dark:bg-slate-900 dark:text-rose-300 dark:hover:bg-slate-800">
               Revisar salud
+            </button>
+            <button onClick={() => onNavigate?.('grades')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-indigo-700 shadow-xs hover:bg-indigo-50 dark:bg-slate-900 dark:text-indigo-300 dark:hover:bg-slate-800">
+              Ver estudio
             </button>
             <button onClick={() => onNavigate?.('horario')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 shadow-xs hover:bg-blue-50 dark:bg-slate-900 dark:text-blue-300 dark:hover:bg-slate-800">
               Ver agenda

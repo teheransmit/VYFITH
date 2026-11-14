@@ -173,10 +173,10 @@ export default function StructuralStudySection() {
         </div>
         <div className="relative z-10 mt-5 flex flex-wrap gap-2 text-xs">
           <span className="rounded-lg border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-amber-200">
-            Meta para aprobar: <strong>{structuralCourse?.neededForPassing.toFixed(2) ?? '2.97'}</strong>
+            Meta para aprobar: <strong>{structuralCourse?.neededForPassing.toFixed(2) ?? '—'}</strong>
           </span>
           <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-1.5 text-slate-300">
-            Acumulado: <strong className="text-white">{structuralCourse?.accumulatedPoints.toFixed(2) ?? '2.11'}</strong> / 5.00
+            Acumulado: <strong className="text-white">{structuralCourse?.accumulatedPoints.toFixed(2) ?? '—'}</strong> / 5.00
           </span>
         </div>
       </div>

@@ -266,13 +266,13 @@ function HomeDashboard() {
               )}
               {activeTab === 'horario' && (
                 <div className="animate-fadeIn">
-                  <UnifiedScheduleCalendarSection />
+                  <UnifiedScheduleCalendarSection onNavigate={setActiveTab} />
                 </div>
               )}
 
               {activeTab === 'grades' && (
                 <div className="animate-fadeIn">
-                  <UnifiedAcademicSection />
+                  <UnifiedAcademicSection onNavigate={setActiveTab} />
                 </div>
               )}
 

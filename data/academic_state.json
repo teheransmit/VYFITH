@@ -1,0 +1,16 @@
+{
+  "courseStatuses": {
+    "c-vias": "sigaa_auto",
+    "c-presupuesto": "sigaa_auto",
+    "c-suelos": "sigaa_auto",
+    "c-estructuras": "sigaa_auto",
+    "c-hidrologia": "sigaa_auto"
+  },
+  "homologateSuelosLab": true,
+  "includeEtica": true,
+  "includeContratacion": false,
+  "includeElementosCiudad": false,
+  "includeEmprendimiento": "auto",
+  "includeEnglish": true,
+  "updatedAt": "2026-11-14T20:50:33.620Z"
+}

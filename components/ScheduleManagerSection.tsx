@@ -11,849 +11,61 @@ import {
   Dumbbell,
   Layers,
   ShieldCheck,
+  Lock,
+  FlaskConical,
+  AlertTriangle,
+  RotateCcw,
+  ArrowUpRight,
+  CheckCircle2,
 } from 'lucide-react';
+import {
+  ScheduleBlock,
+  DayName,
+  TrackedCourseId,
+  CourseOverrideMode,
+  generateScheduleIcs,
+  toMinutes,
+} from '@/lib/academicReactiveEngine';
+import { useAcademicReactiveState } from '@/lib/useAcademicReactiveState';
+import { DashboardTab } from '@/lib/navigation';
 
-export interface ScheduleBlock {
-  id: string;
-  name: string;
-  code: string; // NRC
-  professor: string;
-  classroom: string;
-  building: string;
-  day: 'Lunes' | 'Martes' | 'Miércoles' | 'Jueves' | 'Viernes' | 'Sábado';
-  startTime: string; // "08:00"
-  endTime: string; // "10:00"
-  colorClass: string; // tailwind color token
-  bgDark: string;
-  borderDark: string;
-  textDark: string;
-  isGymOrEnglish?: boolean;
+export type { ScheduleBlock };
+
+type ScheduleScenarioKey = '2027_1_dynamic' | '2026_2_official' | '2027_1_contingency';
+
+const DAYS: DayName[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+function formatCop(amount: number): string {
+  return `$${amount.toLocaleString('es-CO')}`;
 }
 
-type ScheduleScenarioKey = '2026_2_official' | '2027_1_scenario_1' | '2027_1_scenario_2a';
-
-const SCHEDULE_2026_2_OFFICIAL: ScheduleBlock[] = [
-  // LUNES
-  {
-    id: 'sch-vias-lun',
-    name: 'Vías II (✅ Def: 4.03)',
-    code: 'NRC 52893',
-    professor: 'Ing. Nelson Junior Molinares Doria',
-    classroom: 'Bloque Principal-Mon 323',
-    building: 'Edificio Principal',
-    day: 'Lunes',
-    startTime: '10:00',
-    endTime: '11:40',
-    colorClass: 'bg-amber-500/15 border-amber-400/40 text-amber-300',
-    bgDark: 'dark:bg-amber-950/40',
-    borderDark: 'dark:border-amber-800/60',
-    textDark: 'dark:text-amber-300',
-  },
-  {
-    id: 'sch-hidro-lun',
-    name: 'Fundamentos de Hidrología',
-    code: 'NRC 52910',
-    professor: 'Ing. Hernán José Tapia Contreras',
-    classroom: 'Bloque Principal 3-Mon 402',
-    building: 'Edificio Principal 3',
-    day: 'Lunes',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-blue-500/15 border-blue-400/40 text-blue-300',
-    bgDark: 'dark:bg-blue-950/40',
-    borderDark: 'dark:border-blue-800/60',
-    textDark: 'dark:text-blue-300',
-  },
-  {
-    id: 'sch-suelos-lun',
-    name: 'Mecánica de Suelos',
-    code: 'NRC 52906',
-    professor: 'Ing. David Jesús González Arteaga',
-    classroom: 'Bloque Laboratorios-Mon 119',
-    building: 'Bloque Laboratorios',
-    day: 'Lunes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-  {
-    id: 'sch-presup-lun',
-    name: 'Programación y Presupuesto (✅ Def: 3.63)',
-    code: 'NRC 52914',
-    professor: 'Ing. Pablo Javier Berdugo Arroyo',
-    classroom: 'Bloque Principal 3-Mon 301',
-    building: 'Edificio Principal 3',
-    day: 'Lunes',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-
-  // MARTES
-  {
-    id: 'sch-estruct-mar',
-    name: 'Análisis de Estructuras',
-    code: 'NRC 52885',
-    professor: 'Ing. Sergio Elías Flórez Causil',
-    classroom: 'Bloque Laboratorios-Mon 109',
-    building: 'Bloque Laboratorios',
-    day: 'Martes',
-    startTime: '08:00',
-    endTime: '09:40',
-    colorClass: 'bg-rose-500/15 border-rose-400/40 text-rose-300',
-    bgDark: 'dark:bg-rose-950/40',
-    borderDark: 'dark:border-rose-800/60',
-    textDark: 'dark:text-rose-300',
-  },
-  {
-    id: 'sch-suelos-mar',
-    name: 'Mecánica de Suelos',
-    code: 'NRC 52906',
-    professor: 'Ing. David Jesús González Arteaga',
-    classroom: 'Bloque Principal 3-Mon 407',
-    building: 'Edificio Principal 3',
-    day: 'Martes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-  {
-    id: 'sch-presup-mar',
-    name: 'Programación y Presupuesto (✅ Def: 3.63)',
-    code: 'NRC 52914',
-    professor: 'Ing. Pablo Javier Berdugo Arroyo',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Martes',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-
-  // MIÉRCOLES
-  {
-    id: 'sch-vias-mie',
-    name: 'Vías II (✅ Def: 4.03)',
-    code: 'NRC 52893',
-    professor: 'Ing. Nelson Junior Molinares Doria',
-    classroom: 'Bloque Principal 3-Mon 401',
-    building: 'Edificio Principal 3',
-    day: 'Miércoles',
-    startTime: '10:00',
-    endTime: '11:40',
-    colorClass: 'bg-amber-500/15 border-amber-400/40 text-amber-300',
-    bgDark: 'dark:bg-amber-950/40',
-    borderDark: 'dark:border-amber-800/60',
-    textDark: 'dark:text-amber-300',
-  },
-  {
-    id: 'sch-hidro-mie',
-    name: 'Fundamentos de Hidrología',
-    code: 'NRC 52910',
-    professor: 'Ing. Hernán José Tapia Contreras',
-    classroom: 'Bloque Principal-Mon 211',
-    building: 'Edificio Principal',
-    day: 'Miércoles',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-blue-500/15 border-blue-400/40 text-blue-300',
-    bgDark: 'dark:bg-blue-950/40',
-    borderDark: 'dark:border-blue-800/60',
-    textDark: 'dark:text-blue-300',
-  },
-  {
-    id: 'sch-suelos-mie',
-    name: 'Mecánica de Suelos',
-    code: 'NRC 52906',
-    professor: 'Ing. David Jesús González Arteaga',
-    classroom: 'Bloque Laboratorios-Mon 119',
-    building: 'Bloque Laboratorios',
-    day: 'Miércoles',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-  {
-    id: 'sch-presup-mie',
-    name: 'Programación y Presupuesto (✅ Def: 3.63)',
-    code: 'NRC 52914',
-    professor: 'Ing. Pablo Javier Berdugo Arroyo',
-    classroom: 'Bloque Principal 3-Mon 301',
-    building: 'Edificio Principal 3',
-    day: 'Miércoles',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-
-  // JUEVES
-  {
-    id: 'sch-estruct-jue',
-    name: 'Análisis de Estructuras',
-    code: 'NRC 52885',
-    professor: 'Ing. Sergio Elías Flórez Causil',
-    classroom: 'Bloque Principal-Mon 407',
-    building: 'Edificio Principal',
-    day: 'Jueves',
-    startTime: '08:00',
-    endTime: '09:40',
-    colorClass: 'bg-rose-500/15 border-rose-400/40 text-rose-300',
-    bgDark: 'dark:bg-rose-950/40',
-    borderDark: 'dark:border-rose-800/60',
-    textDark: 'dark:text-rose-300',
-  },
-  {
-    id: 'sch-suelos-jue',
-    name: 'Mecánica de Suelos',
-    code: 'NRC 52906',
-    professor: 'Ing. David Jesús González Arteaga',
-    classroom: 'Bloque Principal 3-Mon 308',
-    building: 'Edificio Principal 3',
-    day: 'Jueves',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-  {
-    id: 'sch-presup-jue',
-    name: 'Programación y Presupuesto (✅ Def: 3.63)',
-    code: 'NRC 52914',
-    professor: 'Ing. Pablo Javier Berdugo Arroyo',
-    classroom: 'Bloque Principal 3-Mon 303',
-    building: 'Edificio Principal 3',
-    day: 'Jueves',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-
-  // VIERNES
-  {
-    id: 'sch-vias-vie',
-    name: 'Vías II (✅ Def: 4.03)',
-    code: 'NRC 52893',
-    professor: 'Ing. Nelson Junior Molinares Doria',
-    classroom: 'Bloque Principal 3-Mon 307',
-    building: 'Edificio Principal 3',
-    day: 'Viernes',
-    startTime: '10:00',
-    endTime: '11:40',
-    colorClass: 'bg-amber-500/15 border-amber-400/40 text-amber-300',
-    bgDark: 'dark:bg-amber-950/40',
-    borderDark: 'dark:border-amber-800/60',
-    textDark: 'dark:text-amber-300',
-  },
-];
-
-// ESCENARIO 1 (2027-1): APRUEBA TODO (13 CRÉDITOS COMPACTOS + INGLÉS 202750 + GYM UPB 16:00)
-const SCHEDULE_2027_1_SCENARIO_1: ScheduleBlock[] = [
-  // LUNES
-  {
-    id: 's1-transp-lun',
-    name: 'Transporte (2 cr)',
-    code: 'NRC 22223',
-    professor: 'Ing. Nelson Junior Molinares Doria',
-    classroom: 'Bloque Principal-Mon 212',
-    building: 'Edificio Principal',
-    day: 'Lunes',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-amber-500/15 border-amber-400/40 text-amber-300',
-    bgDark: 'dark:bg-amber-950/40',
-    borderDark: 'dark:border-amber-800/60',
-    textDark: 'dark:text-amber-300',
-  },
-  {
-    id: 's1-concreto-lun',
-    name: 'Concreto I (3 cr)',
-    code: 'NRC 13826',
-    professor: 'Ing. Sergio Elías Flórez Causil',
-    classroom: 'Bloque Principal 3-Mon 305',
-    building: 'Edificio Principal 3',
-    day: 'Lunes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-rose-500/15 border-rose-400/40 text-rose-300',
-    bgDark: 'dark:bg-rose-950/40',
-    borderDark: 'dark:border-rose-800/60',
-    textDark: 'dark:text-rose-300',
-  },
-  {
-    id: 's1-gym-lun',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Lunes',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's1-acued-lun',
-    name: 'Acueducto (2 cr)',
-    code: 'NRC 22229',
-    professor: 'Ing. Jorge Eliecer Cabrales',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Lunes',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-blue-500/15 border-blue-400/40 text-blue-300',
-    bgDark: 'dark:bg-blue-950/40',
-    borderDark: 'dark:border-blue-800/60',
-    textDark: 'dark:text-blue-300',
-  },
-
-  // MARTES
-  {
-    id: 's1-eng-mar',
-    name: '🌐 Inglés Nivel 10 — Threshold',
-    code: 'NRC 50242 (202750)',
-    professor: 'Prof. Katia Díaz',
-    classroom: 'Bloque 2-Mon 203',
-    building: 'Formación Continua 202750',
-    day: 'Martes',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-indigo-500/15 border-indigo-400/40 text-indigo-300',
-    bgDark: 'dark:bg-indigo-950/40',
-    borderDark: 'dark:border-indigo-800/60',
-    textDark: 'dark:text-indigo-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's1-transp-mar',
-    name: 'Transporte (2 cr)',
-    code: 'NRC 22223',
-    professor: 'Ing. Nelson Junior Molinares Doria',
-    classroom: 'Bloque Principal 3-Mon 404',
-    building: 'Edificio Principal 3',
-    day: 'Martes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-amber-500/15 border-amber-400/40 text-amber-300',
-    bgDark: 'dark:bg-amber-950/40',
-    borderDark: 'dark:border-amber-800/60',
-    textDark: 'dark:text-amber-300',
-  },
-  {
-    id: 's1-gym-mar',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Martes',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's1-acued-mar',
-    name: 'Acueducto (2 cr)',
-    code: 'NRC 22229',
-    professor: 'Ing. Jorge Eliecer Cabrales',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Martes',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-blue-500/15 border-blue-400/40 text-blue-300',
-    bgDark: 'dark:bg-blue-950/40',
-    borderDark: 'dark:border-blue-800/60',
-    textDark: 'dark:text-blue-300',
-  },
-
-  // MIÉRCOLES
-  {
-    id: 's1-concreto-mie',
-    name: 'Concreto I (3 cr)',
-    code: 'NRC 13826',
-    professor: 'Ing. Sergio Elías Flórez Causil',
-    classroom: 'Bloque Laboratorios-Mon 109',
-    building: 'Bloque Laboratorios',
-    day: 'Miércoles',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-rose-500/15 border-rose-400/40 text-rose-300',
-    bgDark: 'dark:bg-rose-950/40',
-    borderDark: 'dark:border-rose-800/60',
-    textDark: 'dark:text-rose-300',
-  },
-  {
-    id: 's1-gym-mie',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Miércoles',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's1-alcant-mie',
-    name: 'Alcantarillado (2 cr)',
-    code: 'NRC 22231',
-    professor: 'Ing. Hernán José Tapia Contreras',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Miércoles',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-
-  // JUEVES
-  {
-    id: 's1-eng-jue',
-    name: '🌐 Inglés Nivel 10 — Threshold',
-    code: 'NRC 50242 (202750)',
-    professor: 'Prof. Katia Díaz',
-    classroom: 'Bloque 2-Mon 203',
-    building: 'Formación Continua 202750',
-    day: 'Jueves',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-indigo-500/15 border-indigo-400/40 text-indigo-300',
-    bgDark: 'dark:bg-indigo-950/40',
-    borderDark: 'dark:border-indigo-800/60',
-    textDark: 'dark:text-indigo-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's1-concreto-jue',
-    name: 'Concreto I (3 cr)',
-    code: 'NRC 13826',
-    professor: 'Ing. Sergio Elías Flórez Causil',
-    classroom: 'Bloque Principal 3-Mon 305',
-    building: 'Edificio Principal 3',
-    day: 'Jueves',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-rose-500/15 border-rose-400/40 text-rose-300',
-    bgDark: 'dark:bg-rose-950/40',
-    borderDark: 'dark:border-rose-800/60',
-    textDark: 'dark:text-rose-300',
-  },
-  {
-    id: 's1-gym-jue',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Jueves',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's1-alcant-jue',
-    name: 'Alcantarillado (2 cr)',
-    code: 'NRC 22231',
-    professor: 'Ing. Hernán José Tapia Contreras',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Jueves',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-
-  // VIERNES
-  {
-    id: 's1-ecologia-vie',
-    name: 'Ecología y Sostenibilidad (2 cr • CBFH II)',
-    code: 'NRC 12475 (ELE)',
-    professor: 'Facultad Ing. Ambiental',
-    classroom: 'Bloque Principal-Mon 106',
-    building: 'Edificio Principal',
-    day: 'Viernes',
-    startTime: '08:00',
-    endTime: '09:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-  {
-    id: 's1-eng-vie',
-    name: '🌐 Inglés Nivel 10 — Threshold',
-    code: 'NRC 50242 (202750)',
-    professor: 'Prof. Katia Díaz',
-    classroom: 'Bloque 2-Mon 203',
-    building: 'Formación Continua 202750',
-    day: 'Viernes',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-indigo-500/15 border-indigo-400/40 text-indigo-300',
-    bgDark: 'dark:bg-indigo-950/40',
-    borderDark: 'dark:border-indigo-800/60',
-    textDark: 'dark:text-indigo-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's1-etica-vie',
-    name: 'Ética Profesional (1 cr • CBFH)',
-    code: 'NRC 22674',
-    professor: 'Formación Humanista',
-    classroom: 'Bloque Principal 3-Mon 305',
-    building: 'Edificio Principal 3',
-    day: 'Viernes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-];
-
-// ESCENARIO 2A (2027-1): PLAN DE CONTINGENCIA (11 CRÉDITOS TARDES + EMPRENDIMIENTO + GYM 16:00)
-const SCHEDULE_2027_1_SCENARIO_2A: ScheduleBlock[] = [
-  // LUNES
-  {
-    id: 's2-transp-lun',
-    name: 'Transporte (2 cr)',
-    code: 'NRC 22223',
-    professor: 'Ing. Nelson Junior Molinares Doria',
-    classroom: 'Bloque Principal-Mon 212',
-    building: 'Edificio Principal',
-    day: 'Lunes',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-amber-500/15 border-amber-400/40 text-amber-300',
-    bgDark: 'dark:bg-amber-950/40',
-    borderDark: 'dark:border-amber-800/60',
-    textDark: 'dark:text-amber-300',
-  },
-  {
-    id: 's2-suelos-lun',
-    name: 'Mecánica de Suelos (3 cr)',
-    code: 'NRC 13812',
-    professor: 'Ing. David Jesús González Arteaga',
-    classroom: 'Bloque Laboratorios-Mon 119',
-    building: 'Bloque Laboratorios',
-    day: 'Lunes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-  {
-    id: 's2-gym-lun',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Lunes',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's2-acued-lun',
-    name: 'Acueducto (2 cr)',
-    code: 'NRC 22229',
-    professor: 'Ing. Jorge Eliecer Cabrales',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Lunes',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-blue-500/15 border-blue-400/40 text-blue-300',
-    bgDark: 'dark:bg-blue-950/40',
-    borderDark: 'dark:border-blue-800/60',
-    textDark: 'dark:text-blue-300',
-  },
-
-  // MARTES
-  {
-    id: 's2-eng-mar',
-    name: '🌐 Inglés Nivel 10 — Threshold',
-    code: 'NRC 50242 (202750)',
-    professor: 'Prof. Katia Díaz',
-    classroom: 'Bloque 2-Mon 203',
-    building: 'Formación Continua 202750',
-    day: 'Martes',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-indigo-500/15 border-indigo-400/40 text-indigo-300',
-    bgDark: 'dark:bg-indigo-950/40',
-    borderDark: 'dark:border-indigo-800/60',
-    textDark: 'dark:text-indigo-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's2-transp-mar',
-    name: 'Transporte (2 cr)',
-    code: 'NRC 22223',
-    professor: 'Ing. Nelson Junior Molinares Doria',
-    classroom: 'Bloque Principal 3-Mon 404',
-    building: 'Edificio Principal 3',
-    day: 'Martes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-amber-500/15 border-amber-400/40 text-amber-300',
-    bgDark: 'dark:bg-amber-950/40',
-    borderDark: 'dark:border-amber-800/60',
-    textDark: 'dark:text-amber-300',
-  },
-  {
-    id: 's2-gym-mar',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Martes',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's2-acued-mar',
-    name: 'Acueducto (2 cr)',
-    code: 'NRC 22229',
-    professor: 'Ing. Jorge Eliecer Cabrales',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Martes',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-blue-500/15 border-blue-400/40 text-blue-300',
-    bgDark: 'dark:bg-blue-950/40',
-    borderDark: 'dark:border-blue-800/60',
-    textDark: 'dark:text-blue-300',
-  },
-
-  // MIÉRCOLES
-  {
-    id: 's2-suelos-mie',
-    name: 'Mecánica de Suelos (3 cr)',
-    code: 'NRC 13812',
-    professor: 'Ing. David Jesús González Arteaga',
-    classroom: 'Bloque Laboratorios-Mon 119',
-    building: 'Bloque Laboratorios',
-    day: 'Miércoles',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-  {
-    id: 's2-gym-mie',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Miércoles',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's2-alcant-mie',
-    name: 'Alcantarillado (2 cr)',
-    code: 'NRC 22231',
-    professor: 'Ing. Hernán José Tapia Contreras',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Miércoles',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-
-  // JUEVES
-  {
-    id: 's2-eng-jue',
-    name: '🌐 Inglés Nivel 10 — Threshold',
-    code: 'NRC 50242 (202750)',
-    professor: 'Prof. Katia Díaz',
-    classroom: 'Bloque 2-Mon 203',
-    building: 'Formación Continua 202750',
-    day: 'Jueves',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-indigo-500/15 border-indigo-400/40 text-indigo-300',
-    bgDark: 'dark:bg-indigo-950/40',
-    borderDark: 'dark:border-indigo-800/60',
-    textDark: 'dark:text-indigo-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's2-emprend-jue',
-    name: 'Emprendimiento y Resp. Social (2 cr)',
-    code: 'NRC 21967',
-    professor: 'Escuela de Economía',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Jueves',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-rose-500/15 border-rose-400/40 text-rose-300',
-    bgDark: 'dark:bg-rose-950/40',
-    borderDark: 'dark:border-rose-800/60',
-    textDark: 'dark:text-rose-300',
-  },
-  {
-    id: 's2-gym-jue',
-    name: '🏋️‍♂️ Gimnasio UPB (Ventana Protegida)',
-    code: 'TG01-1 ($51.6k)',
-    professor: 'Entrenamiento Hipertrofia Hevy',
-    classroom: 'Gimnasio Campus UPB',
-    building: 'Bienestar Universitario',
-    day: 'Jueves',
-    startTime: '16:00',
-    endTime: '17:40',
-    colorClass: 'bg-purple-500/15 border-purple-400/40 text-purple-300',
-    bgDark: 'dark:bg-purple-950/40',
-    borderDark: 'dark:border-purple-800/60',
-    textDark: 'dark:text-purple-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's2-alcant-jue',
-    name: 'Alcantarillado (2 cr)',
-    code: 'NRC 22231',
-    professor: 'Ing. Hernán José Tapia Contreras',
-    classroom: 'Bloque Principal 3-Mon 302',
-    building: 'Edificio Principal 3',
-    day: 'Jueves',
-    startTime: '18:00',
-    endTime: '19:40',
-    colorClass: 'bg-emerald-500/15 border-emerald-400/40 text-emerald-300',
-    bgDark: 'dark:bg-emerald-950/40',
-    borderDark: 'dark:border-emerald-800/60',
-    textDark: 'dark:text-emerald-300',
-  },
-
-  // VIERNES
-  {
-    id: 's2-eng-vie',
-    name: '🌐 Inglés Nivel 10 — Threshold',
-    code: 'NRC 50242 (202750)',
-    professor: 'Prof. Katia Díaz',
-    classroom: 'Bloque 2-Mon 203',
-    building: 'Formación Continua 202750',
-    day: 'Viernes',
-    startTime: '12:00',
-    endTime: '13:40',
-    colorClass: 'bg-indigo-500/15 border-indigo-400/40 text-indigo-300',
-    bgDark: 'dark:bg-indigo-950/40',
-    borderDark: 'dark:border-indigo-800/60',
-    textDark: 'dark:text-indigo-300',
-    isGymOrEnglish: true,
-  },
-  {
-    id: 's2-suelos-vie',
-    name: 'Mecánica de Suelos (3 cr)',
-    code: 'NRC 13812',
-    professor: 'Ing. David Jesús González Arteaga',
-    classroom: 'Bloque Principal 3-Mon 308',
-    building: 'Edificio Principal 3',
-    day: 'Viernes',
-    startTime: '14:00',
-    endTime: '15:40',
-    colorClass: 'bg-teal-500/15 border-teal-400/40 text-teal-300',
-    bgDark: 'dark:bg-teal-950/40',
-    borderDark: 'dark:border-teal-800/60',
-    textDark: 'dark:text-teal-300',
-  },
-];
-
-const DAYS: Array<'Lunes' | 'Martes' | 'Miércoles' | 'Jueves' | 'Viernes' | 'Sábado'> = [
-  'Lunes',
-  'Martes',
-  'Miércoles',
-  'Jueves',
-  'Viernes',
-  'Sábado',
-];
-
-export default function ScheduleManagerSection() {
-  const [scenario, setScenario] = useState<ScheduleScenarioKey>('2026_2_official');
+export default function ScheduleManagerSection({
+  onNavigate,
+}: {
+  onNavigate?: (tab: DashboardTab) => void;
+}) {
+  const [scenario, setScenario] = useState<ScheduleScenarioKey>('2027_1_dynamic');
   const [selectedDay, setSelectedDay] = useState<string>('todos');
   const [filterView, setFilterView] = useState<'grid' | 'cards'>('grid');
 
-  const schedule =
-    scenario === '2026_2_official'
-      ? SCHEDULE_2026_2_OFFICIAL
-      : scenario === '2027_1_scenario_1'
-      ? SCHEDULE_2027_1_SCENARIO_1
-      : SCHEDULE_2027_1_SCENARIO_2A;
+  const {
+    overrides,
+    projection,
+    saving,
+    lastSyncError,
+    updateOverrides,
+    setCourseResolution,
+    toggleHomologateSuelosLab,
+    resetAcademicOverrides,
+  } = useAcademicReactiveState();
+
+  const activePlan =
+    scenario === '2027_1_contingency'
+      ? projection.schedule2027Contingency
+      : projection.schedule2027Real;
+
+  const schedule: ScheduleBlock[] =
+    scenario === '2026_2_official' ? projection.schedule2026Official : activePlan.blocks;
 
   const filteredBlocks =
     selectedDay === 'todos' ? schedule : schedule.filter((s) => s.day === selectedDay);
@@ -863,45 +75,8 @@ export default function ScheduleManagerSection() {
   };
 
   const handleExportIcs = () => {
-    const dayMap: Record<string, string> = {
-      Lunes: 'MO',
-      Martes: 'TU',
-      Miércoles: 'WE',
-      Jueves: 'TH',
-      Viernes: 'FR',
-      Sábado: 'SA',
-    };
-
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//UPB Monteria//Horario Santiago Teheran//ES',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-      `X-WR-CALNAME:Horario UPB (${scenario}) - Santiago Teheran`,
-      'X-WR-TIMEZONE:America/Bogota',
-    ];
-
-    schedule.forEach((block) => {
-      const byDay = dayMap[block.day] || 'MO';
-      const startClean = block.startTime.replace(':', '') + '00';
-      const endClean = block.endTime.replace(':', '') + '00';
-      icsContent.push(
-        'BEGIN:VEVENT',
-        `UID:${block.id}-${scenario}@upb.edu.co`,
-        `SUMMARY:${block.name} (${block.code})`,
-        `DESCRIPTION:Profesor: ${block.professor}\\nAula: ${block.classroom} - ${block.building}`,
-        `LOCATION:${block.classroom}, ${block.building}, UPB Montería`,
-        `RRULE:FREQ=WEEKLY;BYDAY=${byDay}`,
-        `DTSTART:20260803T${startClean}`,
-        `DTEND:20260803T${endClean}`,
-        'STATUS:CONFIRMED',
-        'END:VEVENT'
-      );
-    });
-
-    icsContent.push('END:VCALENDAR');
-    const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const icsRaw = generateScheduleIcs(schedule, scenario);
+    const blob = new Blob([icsRaw], { type: 'text/calendar;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -909,6 +84,69 @@ export default function ScheduleManagerSection() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const suelosProj = projection.projectedCourseMap['c-suelos'];
+  const estProj = projection.projectedCourseMap['c-estructuras'];
+  const hidroProj = projection.projectedCourseMap['c-hidrologia'];
+
+  const renderResolutionControl = (
+    courseId: TrackedCourseId,
+    label: string,
+    scoreText: string,
+    defaultModeLabel: string
+  ) => {
+    const mode = overrides.courseStatuses[courseId];
+    const buttons: Array<{ val: CourseOverrideMode; text: string; tone: string }> = [
+      {
+        val: 'sigaa_auto',
+        text: defaultModeLabel,
+        tone: 'bg-slate-900 dark:bg-indigo-600 text-white',
+      },
+      {
+        val: 'passed',
+        text: 'Aprobada ≥3.0',
+        tone: 'bg-emerald-600 text-white',
+      },
+      {
+        val: 'failed',
+        text: 'Reprobada <3.0',
+        tone: 'bg-rose-600 text-white',
+      },
+    ];
+
+    return (
+      <div
+        key={courseId}
+        className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 px-3 py-2"
+      >
+        <div className="min-w-0">
+          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block truncate">
+            {label}
+          </span>
+          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            {scoreText}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
+          {buttons.map((b) => (
+            <button
+              key={b.val}
+              type="button"
+              onClick={() => setCourseResolution(courseId, b.val)}
+              className={`cursor-pointer px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                mode === b.val
+                  ? b.tone
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700'
+              }`}
+            >
+              {b.text}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -922,28 +160,58 @@ export default function ScheduleManagerSection() {
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80">
               <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-              Motor de Horarios SIGAA UPB (`202620` / `202710` / `202750`)
+              Motor Reactivo de Horarios SIGAA (`202620` → `202710` / `202750`)
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               <ShieldCheck className="w-3 h-3" />
-              0 Cruces • Paseos Caninos & Gimnasio UPB Protegidos
+              {scenario === '2026_2_official'
+                ? 'Horario SIGAA 2026-2 Verificado'
+                : `${activePlan.overlapMinutes} min cruce • ${
+                    activePlan.morningProtected ? 'Mañanas L-J protegidas' : 'Con clase en mañana'
+                  }`}
             </span>
+            {saving && (
+              <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400">
+                Sincronizando…
+              </span>
+            )}
           </div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {scenario === '2026_2_official'
               ? 'Horario Académico Oficial 2026-II (5 Materias • 13 Créditos)'
-              : scenario === '2027_1_scenario_1'
-              ? 'Proyección 2027-I • Escenario 1: Aprueba Todo (13 cr + Inglés 202750 + Gym 16:00)'
-              : 'Proyección 2027-I • Escenario 2A: Contingencia Compacta (11 cr + Inglés 202750 + Gym 16:00)'}
+              : scenario === '2027_1_dynamic'
+              ? `Proyección Viva 2027-I • ${activePlan.totalCredits} Créditos (${
+                  activePlan.suelosMode === 'theory_only_homologated'
+                    ? 'Suelos Solo Teoría + Lab Homologado'
+                    : activePlan.suelosMode === 'full_theory_and_lab'
+                    ? 'Suelos Completo Teoría + Lab'
+                    : 'Cimentaciones Desbloqueada'
+                })`
+              : `Contingencia Extrema 2027-I • ${activePlan.totalCredits} Créditos (Si reprueba pendientes)`}
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-3xl mt-1">
-            Conmuta entre tu horario oficial vigente en SIGAA (`202620`) y los dos escenarios óptimos de matrícula para **2027-I (`202710` + `202750`)** con mañanas despejadas para paseos caninos y ventana fija de **Gimnasio UPB (16:00 - 17:40)**.
+            Conectado en vivo con <strong>Estudio / SIGAA</strong>: perder{' '}
+            <strong>Mecánica de Suelos (2.50 &lt; 3.000)</strong> bloquea{' '}
+            <strong>Cimentaciones</strong> y programa su repetición en <strong>2027-I</strong>. Al
+            homologar su laboratorio (promedio <strong>{projection.suelosLabSummary.weightedAverage.toFixed(2)} ≥ 4.00</strong>), solo cursas teoría{' '}
+            <strong>Mar/Jue 14:00</strong> y se liberan <strong>Mié/Vie 14:00</strong>.
           </p>
         </div>
 
         {/* Acciones */}
         <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+          {onNavigate && (
+            <button
+              type="button"
+              onClick={() => onNavigate('grades')}
+              className="cursor-pointer flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors"
+            >
+              <span>Editar Notas en Estudio</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
+            type="button"
             onClick={handleExportIcs}
             className="cursor-pointer flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors"
             title="Descargar archivo estándar .ics compatible con Google Calendar, Apple Calendar y Outlook"
@@ -958,27 +226,44 @@ export default function ScheduleManagerSection() {
             className="cursor-pointer flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span>Notion Oficial</span>
+            <span>Notion</span>
           </a>
-
           <button
+            type="button"
             onClick={handlePrintPdf}
             className="cursor-pointer flex-1 sm:flex-initial justify-center inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors"
           >
             <Printer className="w-3.5 h-3.5" />
-            <span>PDF / Imprimir</span>
+            <span>PDF</span>
           </button>
         </div>
       </div>
 
-      {/* Selector de Periodo / Escenario 2027-1 */}
+      {/* Selector de Escenario */}
       <div className="mt-5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
           <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-          <span>Simulador de Escenarios SIGAA:</span>
+          <span>Escenario Activo:</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1 max-w-3xl">
           <button
+            type="button"
+            onClick={() => setScenario('2027_1_dynamic')}
+            className={`cursor-pointer px-3 py-2 rounded-xl text-xs font-bold text-left transition-all border ${
+              scenario === '2027_1_dynamic'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <div className="truncate">⚡ 2027-1 Plan Real Reactivo</div>
+            <div className="text-[10px] opacity-85 font-normal">
+              {projection.schedule2027Real.totalCredits} cr ({formatCop(projection.schedule2027Real.totalNetTuition)}) •{' '}
+              {projection.schedule2027Real.englishNrc ?? 'Sin Inglés'}
+            </div>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setScenario('2026_2_official')}
             className={`cursor-pointer px-3 py-2 rounded-xl text-xs font-bold text-left transition-all border ${
               scenario === '2026_2_official'
@@ -987,40 +272,257 @@ export default function ScheduleManagerSection() {
             }`}
           >
             <div className="truncate">📌 2026-2 Oficial (Actual)</div>
-            <div className="text-[10px] opacity-80 font-normal">5 Materias • 13 cr • 14 bloques</div>
+            <div className="text-[10px] opacity-85 font-normal">
+              5 Materias • 13 cr • {projection.schedule2026Official.length} bloques
+            </div>
           </button>
 
           <button
-            onClick={() => setScenario('2027_1_scenario_1')}
+            type="button"
+            onClick={() => setScenario('2027_1_contingency')}
             className={`cursor-pointer px-3 py-2 rounded-xl text-xs font-bold text-left transition-all border ${
-              scenario === '2027_1_scenario_1'
-                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-            }`}
-          >
-            <div className="truncate">🚀 2027-1 Escenario 1 (Ideal)</div>
-            <div className="text-[10px] opacity-80 font-normal">13 cr ($409k) + Inglés 202750 + Gym</div>
-          </button>
-
-          <button
-            onClick={() => setScenario('2027_1_scenario_2a')}
-            className={`cursor-pointer px-3 py-2 rounded-xl text-xs font-bold text-left transition-all border ${
-              scenario === '2027_1_scenario_2a'
+              scenario === '2027_1_contingency'
                 ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
             }`}
           >
-            <div className="truncate">🛡️ 2027-1 Escenario 2A (Tardes)</div>
-            <div className="text-[10px] opacity-80 font-normal">11 cr ($352k) • Mañanas 100% libres</div>
+            <div className="truncate">🛡️ 2027-1 Contingencia Total</div>
+            <div className="text-[10px] opacity-85 font-normal">
+              {projection.schedule2027Contingency.totalCredits} cr ({formatCop(projection.schedule2027Contingency.totalNetTuition)}) si cae todo
+            </div>
           </button>
         </div>
       </div>
 
+      {/* PANEL DE IMPACTO SISTÉMICO & HOMOLOGACIÓN EN VIVO */}
+      {scenario !== '2026_2_official' && (
+        <div
+          id="systemic-impact-panel"
+          className="mt-4 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/60 bg-indigo-50/50 dark:bg-slate-950/60 p-4 space-y-4"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-indigo-900 dark:text-indigo-200">
+                Panel de Impacto Sistémico & Homologación en Vivo
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={resetAcademicOverrides}
+              className="cursor-pointer inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Restaurar SIGAA</span>
+            </button>
+          </div>
+
+          {lastSyncError && (
+            <div className="text-[11px] font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-1.5">
+              {lastSyncError}
+            </div>
+          )}
+
+          {/* Fila 1: Bloqueos por Prerrequisito + Toggle Homologación Lab Suelos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {/* Tarjeta Homologación Lab Suelos */}
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800/70 p-3 flex flex-col justify-between gap-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-300 shrink-0">
+                    <FlaskConical className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        Homologación Laboratorio de Suelos (NRC 13812)
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                        Lab Prom: {projection.suelosLabSummary.weightedAverage.toFixed(2)} ≥ 4.00
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Labs 2026-2: I ({projection.suelosLabSummary.items[0]?.grade?.toFixed(2)}), II (
+                      {projection.suelosLabSummary.items[1]?.grade?.toFixed(2)}), III (
+                      {projection.suelosLabSummary.items[2]?.grade?.toFixed(2)}).{' '}
+                      {activePlan.suelosMode === 'not_repeated'
+                        ? 'Suelos simulada aprobada: no requiere repetir laboratorio.'
+                        : activePlan.suelosMode === 'theory_only_homologated'
+                        ? 'ACTIVA: Solo ves Teoría (Mar/Jue 14:00 B3). Se liberan Mié y Vie 14:00 (Lab 119) y encaja Ética.'
+                        : 'DESACTIVADA: Incluye las 2 sesiones semanales de Lab 119 (Mié/Vie 14:00).'}
+                    </p>
+                  </div>
+                </div>
+
+                {!suelosProj.isPassingForPrereqs && (
+                  <button
+                    type="button"
+                    data-testid="toggle-homologate-suelos-lab"
+                    onClick={() => toggleHomologateSuelosLab()}
+                    className={`cursor-pointer shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border ${
+                      overrides.homologateSuelosLab
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+                    }`}
+                  >
+                    {overrides.homologateSuelosLab ? 'Solo Teoría ✓' : 'Incluir Lab 119'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Tarjeta Bloqueos Automáticos */}
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-rose-200/90 dark:border-rose-900/60 p-3 space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-bold text-rose-700 dark:text-rose-300">
+                <Lock className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  Prerrequisitos Bloqueados ({activePlan.blockedCourses.length}) • Descartadas por Cruce ({activePlan.skippedForConflict.length})
+                </span>
+              </div>
+
+              {activePlan.blockedCourses.length === 0 ? (
+                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-300">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>Todas las materias siguientes de 7.° semestre desbloqueadas.</span>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {activePlan.blockedCourses.map((b) => (
+                    <div
+                      key={b.nrc}
+                      className="text-[11px] text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 rounded-lg px-2.5 py-1 flex items-center justify-between gap-2"
+                    >
+                      <span className="font-semibold">
+                        🔒 {b.name} ({b.nrc}, {b.credits} cr)
+                      </span>
+                      <span className="text-[10px] opacity-85 truncate">{b.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activePlan.skippedForConflict.map((s) => (
+                <div
+                  key={s.nrc}
+                  className="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 rounded-lg px-2.5 py-1 flex items-center gap-1.5"
+                >
+                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                  <span>
+                    <strong>{s.name}</strong> ({s.nrc}) excluida: {s.reason}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Fila 2: Simulación rápida de materias SIGAA + Optativas 2027-1 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block">
+                Resolución de Materias Llave 2026-2 (Sincroniza con Estudio)
+              </span>
+              {renderResolutionControl(
+                'c-suelos',
+                'Mecánica de Suelos (llave Cimentaciones)',
+                `SIGAA: ${suelosProj.accumulatedPoints.toFixed(2)} / 5.00 (100%)`,
+                'SIGAA ❌ 2.50'
+              )}
+              {renderResolutionControl(
+                'c-estructuras',
+                'Análisis de Estructuras (llave Concreto I)',
+                `SIGAA: ${estProj.accumulatedPoints.toFixed(2)} (${estProj.evaluatedPercent}% eval.)`,
+                'Proyección Pasa'
+              )}
+              {renderResolutionControl(
+                'c-hidrologia',
+                'Fund. Hidrología (llave Acueducto/Alcant.)',
+                `SIGAA: ${hidroProj.accumulatedPoints.toFixed(2)} (${hidroProj.evaluatedPercent}% eval.)`,
+                'Proyección Pasa'
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block">
+                Optativas CBFH & Módulos 2027-1 (Auto-Encaje Sin Cruces)
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateOverrides({ includeEtica: !overrides.includeEtica })}
+                  className={`cursor-pointer text-left px-3 py-2 rounded-xl border text-xs transition-all ${
+                    overrides.includeEtica
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <div className="font-bold">Ética Profesional (1 cr)</div>
+                  <div className="text-[10px] opacity-85">Mié 14:00 (si Lab libre)</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateOverrides({
+                      includeEmprendimiento:
+                        overrides.includeEmprendimiento === 'auto'
+                          ? 'always'
+                          : overrides.includeEmprendimiento === 'always'
+                          ? 'never'
+                          : 'auto',
+                    })
+                  }
+                  className={`cursor-pointer text-left px-3 py-2 rounded-xl border text-xs transition-all ${
+                    overrides.includeEmprendimiento !== 'never'
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <div className="font-bold">
+                    Emprendimiento ({overrides.includeEmprendimiento.toUpperCase()})
+                  </div>
+                  <div className="text-[10px] opacity-85">Mar/Jue 12:00 • Plan B Concreto I</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateOverrides({ includeElementosCiudad: !overrides.includeElementosCiudad })
+                  }
+                  className={`cursor-pointer text-left px-3 py-2 rounded-xl border text-xs transition-all ${
+                    overrides.includeElementosCiudad
+                      ? 'bg-purple-600 text-white border-purple-600'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <div className="font-bold">Elementos Ciudad (2 cr)</div>
+                  <div className="text-[10px] opacity-85">Vie 14:00-17:20 (solo sin Lab)</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateOverrides({ includeContratacion: !overrides.includeContratacion })
+                  }
+                  className={`cursor-pointer text-left px-3 py-2 rounded-xl border text-xs transition-all ${
+                    overrides.includeContratacion
+                      ? 'bg-amber-600 text-white border-amber-600'
+                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  <div className="font-bold">Contratación y Leg. (2 cr)</div>
+                  <div className="text-[10px] opacity-85">Vie 06:00-09:40 (mañana)</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Barra de Filtros por Día y Vista */}
       <div className="my-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        {/* Píldoras de Días */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-none">
           <button
+            type="button"
             onClick={() => setSelectedDay('todos')}
             className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${
               selectedDay === 'todos'
@@ -1032,6 +534,7 @@ export default function ScheduleManagerSection() {
           </button>
           {DAYS.map((d) => (
             <button
+              type="button"
               key={d}
               onClick={() => setSelectedDay(d)}
               className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${
@@ -1045,9 +548,9 @@ export default function ScheduleManagerSection() {
           ))}
         </div>
 
-        {/* Toggle Rejilla vs Lista */}
         <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl shrink-0">
           <button
+            type="button"
             onClick={() => setFilterView('grid')}
             className={`cursor-pointer px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
               filterView === 'grid'
@@ -1058,6 +561,7 @@ export default function ScheduleManagerSection() {
             Rejilla Semanal
           </button>
           <button
+            type="button"
             onClick={() => setFilterView('cards')}
             className={`cursor-pointer px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
               filterView === 'cards'
@@ -1094,7 +598,9 @@ export default function ScheduleManagerSection() {
 
               {/* Columnas Días */}
               {DAYS.map((day) => {
-                const dayBlocks = schedule.filter((b) => b.day === day);
+                const dayBlocks = schedule
+                  .filter((b) => b.day === day)
+                  .sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
                 return (
                   <div key={day} className="p-2.5 flex flex-col justify-start">
                     <div className="text-center pb-2 mb-2 border-b border-slate-200/80 dark:border-slate-800">
@@ -1121,6 +627,16 @@ export default function ScheduleManagerSection() {
                               <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                                 {b.startTime} - {b.endTime}
                               </span>
+                              {b.componentType === 'theory' && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200">
+                                  TEORÍA
+                                </span>
+                              )}
+                              {b.componentType === 'lab' && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
+                                  LAB
+                                </span>
+                              )}
                             </div>
 
                             <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-snug line-clamp-2">
@@ -1167,6 +683,9 @@ export default function ScheduleManagerSection() {
 
               <h4 className="text-sm font-bold text-slate-900 dark:text-white">{b.name}</h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{b.professor}</p>
+              {b.note && (
+                <p className="text-[11px] text-teal-600 dark:text-teal-300 mt-1 font-medium">{b.note}</p>
+              )}
 
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
                 <div className="flex items-center gap-1.5">
@@ -1180,7 +699,7 @@ export default function ScheduleManagerSection() {
         </div>
       )}
 
-      {/* Resumen de Carga Académica */}
+      {/* Resumen Dinámico de Carga Académica */}
       <div className="mt-6 p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs">
@@ -1190,16 +709,23 @@ export default function ScheduleManagerSection() {
             <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
               {scenario === '2026_2_official'
                 ? 'Distribución Espacial Oficial SIGAA 2026-II (Campus UPB Montería)'
-                : 'Arquitectura Compacta de Tardes 2027-I + Inglés 202750 + Gimnasio UPB'}
+                : `Arquitectura Reactiva 2027-I • ${activePlan.enrolledCourses.length} Asignaturas / Módulos`}
             </span>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {scenario === '2026_2_official' ? (
                 <>
-                  Tus 5 asignaturas oficiales (`202620`) se distribuyen en el <strong>Edificio Principal 3</strong> (Presupuesto, Hidrología, Vías, Suelos), <strong>Edificio Principal 1</strong> y <strong>Bloque Laboratorios</strong> (Suelos 119, Estructuras 109).
+                  Tus 5 asignaturas vigentes (<code>202620</code>): <strong>Vías II (3.10)</strong>,{' '}
+                  <strong>Presupuesto (3.28)</strong>, <strong>Estructuras (2.47/60%)</strong>,{' '}
+                  <strong>Hidrología (1.72/40%)</strong> y{' '}
+                  <strong>Mecánica de Suelos (❌ 2.50 — Reprobada)</strong>.
                 </>
               ) : (
                 <>
-                  Mañanas de Lunes a Jueves 100% despejadas para paseos caninos (<em>Sienna</em> y <em>Frida</em>), almuerzo e <strong>Inglés Threshold (`NRC 50242`) a las 12:00 m.</strong> y bloque sagrado de <strong>Gimnasio UPB de 16:00 a 17:40</strong> antes de Acueducto/Alcantarillado.
+                  Inscritas: {activePlan.enrolledCourses.map((c) => c.name).join(' • ')}. Matrícula neta TBEA 95%:{' '}
+                  <strong>{formatCop(activePlan.totalNetTuition)}</strong> (sobrante{' '}
+                  <strong>{formatCop(activePlan.surplusForGym)}</strong> ={' '}
+                  <strong>{activePlan.gymMonthsCovered}</strong> meses Gym).{' '}
+                  {activePlan.fridayAfternoonFree ? 'Viernes tarde 100% libre.' : 'Viernes tarde ocupado.'}
                 </>
               )}
             </p>
@@ -1208,13 +734,13 @@ export default function ScheduleManagerSection() {
 
         <div className="flex items-center gap-4 text-xs shrink-0 font-medium">
           <div className="text-center">
-            <span className="text-[10px] text-slate-400 uppercase block">Bloques Semanales</span>
+            <span className="text-[10px] text-slate-400 uppercase block">Bloques</span>
             <span className="font-bold text-slate-900 dark:text-white">{schedule.length} Bloques</span>
           </div>
           <div className="text-center">
             <span className="text-[10px] text-slate-400 uppercase block">Créditos</span>
             <span className="font-bold text-indigo-600 dark:text-indigo-400">
-              {scenario === '2027_1_scenario_2a' ? '11 Créditos' : '13 Créditos'}
+              {scenario === '2026_2_official' ? '13 Créditos' : `${activePlan.totalCredits} Créditos`}
             </span>
           </div>
         </div>

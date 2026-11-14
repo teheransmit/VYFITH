@@ -39,10 +39,19 @@ export interface LiveTelemetrySnapshot {
   };
   academic?: {
     pga: number;
-    estructurasAcum: number;
-    estructurasNeeded: number;
-    suelosAcum: number;
+    viasAcum: number;
     presupuestoAcum: number;
+    suelosAcum: number;
+    suelosLabAverage: number;
+    homologationApplied: boolean;
+    estructurasAcum: number;
+    estructurasEvaluatedPct: number;
+    hidrologiaAcum: number;
+    hidrologiaEvaluatedPct: number;
+    blocked2027Courses: string[];
+    enrolled2027Courses: string[];
+    planned2027Credits: number;
+    planned2027NetTuition: number;
   };
 }
 
@@ -145,10 +154,11 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
   * **Opción Tarde (16:00 – 17:30 PM):** Al salir de Mecánica de Suelos (15:40) y antes de Presupuesto (18:00), con ducha obligatoria antes de clase.
 - **Meta Física:** Subir de 57 kg a **60 kg de masa muscular magra y limpia** (170 cm, 8 abdominales visibles).
 
-### 📚 ACADEMIA UPB (6.° SEMESTRE):
-- **Análisis de Estructuras (NRC 52885):** Acumulado **2.11 / 5.00** sobre el 70%. Para aprobar y desbloquear Concreto I, necesita sacar **2.97 (~3.0)** en el Examen Final (30%) de mañana jueves (08:00 – 09:40 AM en Aula 109, Edificio B2).
-- **Mecánica de Suelos:** Acumulado **2.45 / 5.00** (asegurada para pasar a Cimentaciones).
-- **Programación y Presupuesto:** Acumulado **2.55 / 5.00** (tras el 4.40 en el Quiz).
+### 📚 ACADEMIA UPB (SIGAA 2026-II → PROYECCIÓN REACTIVA 2027-I):
+- **Escala de aprobación UPB:** Nota mínima **3.000**. Si una asignatura cierra < 3.000 queda reprobada, bloquea sus prerrequisitos siguientes y se programa en 2027-1.
+- **Mecánica de Suelos (NRC 52906 / 8825-0050):** Evaluada al 100% con **2.50 / 5.00** (REPROBADA < 3.000 -> **Cimentaciones BLOQUEADA**). Sin embargo, los 3 laboratorios en SIGAA (4.57 [8%], 4.25 [6%], 4.20 [6%]) promedian **4.36 ≥ 4.00**, habilitando homologación de laboratorio para repetir únicamente Teoría (NRC 13812 Mar/Jue 14:00) y liberar Mié/Vie 14:00.
+- **Ya aseguradas ≥ 3.000 (2026-2):** Programación y Presupuesto (**3.28 / 5.00** al 75%) y Vías II (**3.10 / 5.00** al 75%).
+- **Pendientes de publicación de notas finales:** Análisis de Estructuras (**2.47 / 5.00** al 60%, promedio 4.10; requiere 1.33/5.00 en 40% restante para superar **3.000**) y Fundamentos de Hidrología (**1.72 / 5.00** al 40%, promedio 4.30; requiere 2.13/5.00 en 60% restante).
 
 ### 💰 FINANZAS NU & DEUDAS:
 - **Cajita Nu (9.30% E.A.):** ~$116.929 COP.
@@ -190,7 +200,7 @@ export function buildLiveSystemInstruction(
   * Ingreso diario proyectado: +$${walkAnalysis.incomeDay.toLocaleString('es-CO')} COP.
 - **Gimnasio & Hevy:** Última sesión: "${snapshot.hevy?.lastWorkoutName || 'Horizontal Torso (Chest & Back)'}" con tonelaje de ${snapshot.hevy?.totalVolumeKg?.toLocaleString('es-CO') || '4,484'} kg (${snapshot.hevy?.date || 'ayer'}).
 - **Finanzas Nu:** Saldo líquido en Cajita Nu: $116.929 COP | Efectivo: $5.000 COP | Por cobrar Laura: $25.000 COP | Deuda Daniela: $22.000 COP | Compromiso Yessid: $580.000 COP.
-- **Academia UPB:** Análisis de Estructuras acumulado 2.11 / 5.00 (requiere 2.97 en Examen Final) | Suelos: 2.45 | Presupuesto: 2.55.
+- **Academia UPB & Agenda 2027-I en Vivo (PGA ${snapshot.academic?.pga ?? 3.93}):** Vías II ${snapshot.academic?.viasAcum?.toFixed(2) ?? '3.10'} (✅) | Presupuesto ${snapshot.academic?.presupuestoAcum?.toFixed(2) ?? '3.28'} (✅) | Suelos ${snapshot.academic?.suelosAcum?.toFixed(2) ?? '2.50'} (❌ Lab ${snapshot.academic?.suelosLabAverage?.toFixed(2) ?? '4.36'}, homologación ${snapshot.academic?.homologationApplied ? 'ACTIVA → Solo Teoría Mar/Jue 14:00' : 'DESACTIVADA'}) | Estructuras ${snapshot.academic?.estructurasAcum?.toFixed(2) ?? '2.47'} (${snapshot.academic?.estructurasEvaluatedPct ?? 60}%, meta ≥ 3.000) | Hidrología ${snapshot.academic?.hidrologiaAcum?.toFixed(2) ?? '1.72'} (${snapshot.academic?.hidrologiaEvaluatedPct ?? 40}%). Bloqueadas 2027-1: ${snapshot.academic?.blocked2027Courses?.join(', ') || 'Cimentaciones'}. Plan 2027-1 activo (${snapshot.academic?.planned2027Credits ?? 12} cr, $${(snapshot.academic?.planned2027NetTuition ?? 381000).toLocaleString('es-CO')} TBEA): ${snapshot.academic?.enrolled2027Courses?.join(' • ') || 'Suelos Solo Teoría, Transporte, Concreto I, Ética, Acueducto, Alcantarillado, Inglés NRC 50244'}.
 - **Ventana óptima de gym:** 10:00 - 11:30 AM (Hueco Dorado) o 16:00 - 17:30 PM.`;
   }
 

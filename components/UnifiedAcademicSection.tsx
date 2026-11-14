@@ -17,8 +17,13 @@ import AcademicGradesSection from './AcademicGradesSection';
 import ScientificNotesSection from './ScientificNotesSection';
 import StructuralStudySection from './StructuralStudySection';
 import CareerTopicRoulette from './CareerTopicRoulette';
+import { DashboardTab } from '@/lib/navigation';
 
-export default function UnifiedAcademicSection() {
+export default function UnifiedAcademicSection({
+  onNavigate,
+}: {
+  onNavigate?: (tab: DashboardTab) => void;
+}) {
   const [viewType, setViewType] = useState<'combined' | 'grades' | 'science' | 'study' | 'curiosity'>('combined');
 
   return (
@@ -127,7 +132,7 @@ export default function UnifiedAcademicSection() {
                 <span>Bloque 1: Calificaciones Oficiales & Metas de Parciales (SIGAA UPB)</span>
               </span>
             </div>
-            <AcademicGradesSection />
+            <AcademicGradesSection onNavigate={onNavigate} />
           </div>
 
           {/* Bloque 2: Literatura y Referencias Científicas */}
@@ -145,7 +150,7 @@ export default function UnifiedAcademicSection() {
 
       {viewType === 'grades' && (
         <div className="animate-fadeIn">
-          <AcademicGradesSection />
+          <AcademicGradesSection onNavigate={onNavigate} />
         </div>
       )}
 

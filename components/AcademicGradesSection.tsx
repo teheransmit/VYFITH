@@ -21,32 +21,62 @@ import {
   UserCheck,
   History,
   Compass,
+  FlaskConical,
+  Lock,
+  ArrowUpRight,
 } from 'lucide-react';
 import {
   initialAcademicData,
   CourseGrade,
   calculateSemesterGPA,
 } from '@/lib/academicStore';
+import {
+  TrackedCourseId,
+  CourseOverrideMode,
+} from '@/lib/academicReactiveEngine';
+import { useAcademicReactiveState } from '@/lib/useAcademicReactiveState';
+import { DashboardTab } from '@/lib/navigation';
 
 type AcademicViewTab = 'current_2026' | 'capp_bags' | 'kardex_history' | 'offer_finances_2027';
 
-export default function AcademicGradesSection() {
+export default function AcademicGradesSection({
+  onNavigate,
+}: {
+  onNavigate?: (tab: DashboardTab) => void;
+}) {
   const [courses] = useState<CourseGrade[]>(initialAcademicData.courses);
-  const [expandedCourse, setExpandedCourse] = useState<string | null>('c-estructuras');
+  const [expandedCourse, setExpandedCourse] = useState<string | null>('c-suelos');
   const [activeTab, setActiveTab] = useState<AcademicViewTab>('current_2026');
-  const [simulatedCredits2027, setSimulatedCredits2027] = useState<number>(13);
+  const [customSimulatedCredits, setCustomSimulatedCredits] = useState<number | null>(null);
+
+  const {
+    overrides,
+    projection,
+    setCourseResolution,
+    toggleHomologateSuelosLab,
+    resetAcademicOverrides,
+  } = useAcademicReactiveState();
 
   const currentGPA = calculateSemesterGPA(courses);
   const totalCredits = courses.reduce((acc, c) => acc + c.credits, 0);
 
-  const failedCourses = courses.filter((c) => c.status === 'failed' || (c.evaluatedPercent === 100 && c.accumulatedPoints < 3.0));
-  const safeOrPassedCourses = courses.filter((c) => c.accumulatedPoints >= 3.0);
-  const awaitingDeliveryCourses = courses.filter(
-    (c) => c.evaluatedPercent < 100 && c.accumulatedPoints < 3.0 && c.status !== 'failed'
+  const failedCourses = courses.filter(
+    (c) => !projection.projectedCourseMap[c.id as TrackedCourseId]?.isPassingForPrereqs
   );
+  const safeOrPassedCourses = courses.filter((c) => {
+    const p = projection.projectedCourseMap[c.id as TrackedCourseId];
+    return p?.effectiveOutcome === 'passed';
+  });
+  const awaitingDeliveryCourses = courses.filter((c) => {
+    const p = projection.projectedCourseMap[c.id as TrackedCourseId];
+    return p?.effectiveOutcome === 'projected_pass';
+  });
   const safeCredits = safeOrPassedCourses.reduce((acc, c) => acc + c.credits, 0);
   const awaitingCredits = awaitingDeliveryCourses.reduce((acc, c) => acc + c.credits, 0);
   const failedCredits = failedCourses.reduce((acc, c) => acc + c.credits, 0);
+
+  const simulatedCredits2027 =
+    customSimulatedCredits ?? projection.schedule2027Real.totalCredits;
 
   // Cálculos financieros TBEA 95% 2027-1
   const fin = initialAcademicData.financialConfig2027;
@@ -193,31 +223,85 @@ export default function AcademicGradesSection() {
       {/* ===================================================================== */}
       {activeTab === 'current_2026' && (
         <>
-          {/* Resumen Real SIGAA (Sin simuladores: evaluaciones presentadas esperando publicación) */}
-          <div className="mb-6 p-4 rounded-2xl bg-linear-to-r from-slate-50 via-blue-50/50 to-indigo-50/70 dark:from-slate-800/70 dark:via-blue-950/30 dark:to-indigo-950/30 border border-slate-200 dark:border-slate-800 flex items-start gap-3">
-            <div className="p-2 bg-blue-600 text-white rounded-xl shrink-0 mt-0.5">
-              <Sparkles className="w-4 h-4" />
+          {/* Resumen Real SIGAA + Motor Reactivo de Homologación & Prerrequisitos */}
+          <div className="mb-4 p-4 rounded-2xl bg-linear-to-r from-slate-50 via-blue-50/50 to-indigo-50/70 dark:from-slate-800/70 dark:via-blue-950/30 dark:to-indigo-950/30 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-blue-600 text-white rounded-xl shrink-0 mt-0.5">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
+                <strong>Estado en SIGAA (`202620`) + Propagación Viva a Agenda 2027-1:</strong> Ya superan el mínimo de <strong>3.000</strong> en puntos acumulados:{' '}
+                <strong>{safeOrPassedCourses.map((c) => `${c.name} (${c.accumulatedPoints.toFixed(2)}/5.00)`).join(' y ')}</strong>.
+                {failedCourses.length > 0 && (
+                  <>
+                    {' '}No superan <strong>3.000</strong> (bloquean prerrequisitos y pasan a repetición en 2027-1):{' '}
+                    <strong className="text-rose-600 dark:text-rose-400">
+                      {failedCourses.map((c) => `${c.name} (${c.accumulatedPoints.toFixed(2)}/5.00)`).join(', ')}
+                    </strong>.
+                  </>
+                )}
+                {awaitingDeliveryCourses.length > 0 && (
+                  <>
+                    {' '}Pendientes de entrega final:{' '}
+                    <strong>
+                      {awaitingDeliveryCourses.map((c) => `${c.name} (${c.accumulatedPoints.toFixed(2)}/5.00 al ${c.evaluatedPercent}%)`).join(' y ')}
+                    </strong>.
+                  </>
+                )}
+              </div>
             </div>
-            <div className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
-              <strong>Estado Real en SIGAA (`202620`):</strong> Todas las evaluaciones ya fueron presentadas; se está a la espera de publicación de las notas faltantes por parte de los docentes.
-              {' '}Ya superan el mínimo de <strong>3.000</strong> en puntos acumulados:{' '}
-              <strong>{safeOrPassedCourses.map((c) => `${c.name} (${c.accumulatedPoints.toFixed(2)}/5.00)`).join(' y ')}</strong>.
-              {failedCourses.length > 0 && (
-                <>
-                  {' '}Reprobada (&lt; 3.000, toca repetirla):{' '}
-                  <strong className="text-rose-600 dark:text-rose-400">
-                    {failedCourses.map((c) => `${c.name} (${c.accumulatedPoints.toFixed(2)}/5.00 al 100%)`).join(', ')}
-                  </strong>.
-                </>
-              )}
-              {awaitingDeliveryCourses.length > 0 && (
-                <>
-                  {' '}Pendientes de publicación de notas finales:{' '}
-                  <strong>
-                    {awaitingDeliveryCourses.map((c) => `${c.name} (${c.accumulatedPoints.toFixed(2)}/5.00 al ${c.evaluatedPercent}%)`).join(' y ')}
-                  </strong>.
-                </>
-              )}
+
+            {/* Banner Homologación Lab Suelos + Link directo a Agenda */}
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800/70 p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-300 shrink-0">
+                  <FlaskConical className="w-4 h-4" />
+                </div>
+                <div className="text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      Homologación Lab Suelos (`8825-0050`): Promedio {projection.suelosLabSummary.weightedAverage.toFixed(2)} ≥ 4.00
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                      Apto (Lab I {projection.suelosLabSummary.items[0]?.grade?.toFixed(2)} • II {projection.suelosLabSummary.items[1]?.grade?.toFixed(2)} • III {projection.suelosLabSummary.items[2]?.grade?.toFixed(2)})
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    {projection.homologationApplied
+                      ? `Homologación ACTIVA: Solo cursas Teoría Mar/Jue 14:00 (B3). Se liberan Mié/Vie 14:00 (Lab 119) y encaja Ética NRC 22674 (${projection.schedule2027Real.totalCredits} cr totales).`
+                      : projection.projectedCourseMap['c-suelos'].isPassingForPrereqs
+                      ? 'Mecánica de Suelos simulada aprobada: habilita Cimentaciones (NRC 22225).'
+                      : `Homologación DESACTIVADA: Agenda incluye Lab 119 Mié/Vie 14:00 (${projection.schedule2027Real.totalCredits} cr totales).`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {!projection.projectedCourseMap['c-suelos'].isPassingForPrereqs && (
+                  <button
+                    type="button"
+                    data-testid="grades-toggle-homologate-lab"
+                    onClick={() => toggleHomologateSuelosLab()}
+                    className={`cursor-pointer px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
+                      overrides.homologateSuelosLab
+                        ? 'bg-teal-600 text-white border-teal-600 shadow-xs'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+                    }`}
+                  >
+                    {overrides.homologateSuelosLab ? 'Homologar Lab ✓ (Solo Teoría)' : 'Activar Homologación Lab'}
+                  </button>
+                )}
+                {onNavigate && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('horario')}
+                    className="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
+                  >
+                    <span>Ver horario ajustado en Agenda 2027-1</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -225,9 +309,11 @@ export default function AcademicGradesSection() {
           <div className="space-y-4">
             {courses.map((c) => {
               const isExpanded = expandedCourse === c.id;
-              const isFailed = c.status === 'failed' || (c.evaluatedPercent === 100 && c.accumulatedPoints < 3.0);
-              const isSafePassed = !isFailed && (c.status === 'passed' || c.accumulatedPoints >= 3.0);
-              const isCritical = c.id === 'c-estructuras';
+              const proj = projection.projectedCourseMap[c.id as TrackedCourseId];
+              const isFailed = proj ? !proj.isPassingForPrereqs : c.status === 'failed';
+              const isSafePassed = !isFailed && (proj?.effectiveOutcome === 'passed' || c.accumulatedPoints >= 3.0);
+              const isCritical = c.id === 'c-estructuras' && !isFailed;
+              const currentMode: CourseOverrideMode = overrides.courseStatuses[c.id as TrackedCourseId] ?? 'sigaa_auto';
 
               return (
                 <div
@@ -426,20 +512,76 @@ export default function AcademicGradesSection() {
                       </div>
 
                       {/* Resumen & Diagnóstico + Libro de Asistencia */}
-                      <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-                        <div>
-                          <strong>Diagnóstico:</strong> {c.diagnostic}
-                          {c.attendance.absences > 0 && (
-                            <span className="block mt-1 text-rose-600 dark:text-rose-400 font-medium">
-                              ⚠️ Libro de Asistencia (`BZPGLAAC`): {c.attendance.absences} fallas ({c.attendance.absenceHours}h de {c.attendance.totalHours}h) en fechas: {c.attendance.absenceDates.join(', ')}. Cero inasistencias adicionales permitidas.
-                            </span>
-                          )}
+                      <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 space-y-2.5">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
+                          <div>
+                            <strong>Diagnóstico:</strong> {c.diagnostic}
+                            {c.attendance.absences > 0 && (
+                              <span className="block mt-1 text-rose-600 dark:text-rose-400 font-medium">
+                                ⚠️ Libro de Asistencia (`BZPGLAAC`): {c.attendance.absences} fallas ({c.attendance.absenceHours}h de {c.attendance.totalHours}h) en fechas: {c.attendance.absenceDates.join(', ')}. Cero inasistencias adicionales permitidas.
+                              </span>
+                            )}
+                          </div>
+                          <div className="shrink-0 flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                            <span>Para 3.50: <strong>{c.neededFor35.toFixed(2)}</strong></span>
+                            <span>•</span>
+                            <span>Máxima posible: <strong>{c.maxPossible.toFixed(2)}</strong></span>
+                          </div>
                         </div>
-                        <div className="shrink-0 flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                          <span>Para 3.50: <strong>{c.neededFor35.toFixed(2)}</strong></span>
-                          <span>•</span>
-                          <span>Máxima posible: <strong>{c.maxPossible.toFixed(2)}</strong></span>
-                        </div>
+
+                        {/* Fila Reactiva de Impacto en Prerrequisitos y Horario 2027-1 */}
+                        {proj && (
+                          <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                              {proj.blocksNextCourses.length > 0 ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-semibold border border-rose-200 dark:border-rose-800">
+                                  <Lock className="w-3 h-3" />
+                                  Bloquea en 2027-1: {proj.blocksNextCourses.join(', ')}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Habilita en 2027-1: {proj.unlocksNextCourses.join(', ')}
+                                </span>
+                              )}
+                              {proj.labSummary.hasLab && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-semibold border border-teal-200 dark:border-teal-800">
+                                  <FlaskConical className="w-3 h-3" />
+                                  Lab {proj.labSummary.weightedAverage.toFixed(2)} ≥ 4.00 ({proj.labSummary.homologationEligible ? 'Homologable' : 'No'})
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg self-start sm:self-center">
+                              {(['sigaa_auto', 'passed', 'failed'] as CourseOverrideMode[]).map((modeOpt) => (
+                                <button
+                                  key={modeOpt}
+                                  type="button"
+                                  data-testid={`course-res-${c.id}-${modeOpt}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCourseResolution(c.id as TrackedCourseId, modeOpt);
+                                  }}
+                                  className={`cursor-pointer px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                                    currentMode === modeOpt
+                                      ? modeOpt === 'failed'
+                                        ? 'bg-rose-600 text-white'
+                                        : modeOpt === 'passed'
+                                        ? 'bg-emerald-600 text-white'
+                                        : 'bg-slate-900 dark:bg-indigo-600 text-white'
+                                      : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700'
+                                  }`}
+                                >
+                                  {modeOpt === 'sigaa_auto'
+                                    ? 'SIGAA Real'
+                                    : modeOpt === 'passed'
+                                    ? 'Simular ≥ 3.0'
+                                    : 'Simular < 3.0'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -683,13 +825,25 @@ export default function AcademicGradesSection() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                {[11, 13, 15, 16].map((cr) => (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCustomSimulatedCredits(null)}
+                  className={`cursor-pointer px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    customSimulatedCredits === null
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  Plan Reactivo ({projection.schedule2027Real.totalCredits} cr)
+                </button>
+                {[11, 12, 13, 15, 16].map((cr) => (
                   <button
+                    type="button"
                     key={cr}
-                    onClick={() => setSimulatedCredits2027(cr)}
+                    onClick={() => setCustomSimulatedCredits(cr)}
                     className={`cursor-pointer px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                      simulatedCredits2027 === cr
+                      customSimulatedCredits === cr
                         ? 'bg-amber-600 text-white shadow-xs'
                         : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                     }`}
@@ -747,55 +901,87 @@ export default function AcademicGradesSection() {
 
           {/* Catálogo de Oferta 2027-1 y Bypasses */}
           <div>
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
-              Catálogo Verificado de Secciones `202710` (Pregrado) y `202750` (Inglés Oculto)
-            </h4>
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                Catálogo Reactivo `202710` & `202750` (Bloqueos y Homologación en Vivo)
+              </h4>
+              <button
+                type="button"
+                onClick={resetAcademicOverrides}
+                className="cursor-pointer px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+              >
+                Restaurar SIGAA
+              </button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {initialAcademicData.offer2027.map((item) => (
-                <div
-                  key={item.nrc}
-                  className={`p-4 rounded-2xl border ${
-                    item.isZeroCreditTrap
-                      ? 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800'
-                      : item.period === '202750'
-                      ? 'bg-blue-50/60 dark:bg-blue-950/30 border-blue-300 dark:border-blue-800'
-                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-900 dark:bg-slate-700 text-white">
-                        {item.nrc}
-                      </span>
-                      <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                        Periodo {item.period} • {item.code}
-                      </span>
-                    </div>
-                    <span
-                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                        item.isZeroCreditTrap
-                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200'
-                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                      }`}
-                    >
-                      {item.credits} Créditos • Cupos: {item.seatsAvailable}/{item.seatsTotal}
-                    </span>
-                  </div>
+              {projection.offerCatalogWithStatus.map((item) => {
+                const badgeMap = {
+                  enrolled: {
+                    label: '✅ En Plan 2027-1',
+                    card: 'bg-emerald-50/50 dark:bg-emerald-950/25 border-emerald-300 dark:border-emerald-800',
+                    pill: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+                  },
+                  blocked_prereq: {
+                    label: '🔒 Bloqueada Prerrequisito',
+                    card: 'bg-rose-50/50 dark:bg-rose-950/25 border-rose-300 dark:border-rose-800 opacity-90',
+                    pill: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
+                  },
+                  conflict: {
+                    label: '⚠️ Cruce de Horario',
+                    card: 'bg-amber-50/50 dark:bg-amber-950/25 border-amber-300 dark:border-amber-800',
+                    pill: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+                  },
+                  trap: {
+                    label: '🚫 TRAMPA 0 CR',
+                    card: 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800',
+                    pill: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
+                  },
+                  available: {
+                    label: 'Disponible',
+                    card:
+                      item.period === '202750'
+                        ? 'bg-blue-50/60 dark:bg-blue-950/30 border-blue-300 dark:border-blue-800'
+                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800',
+                    pill: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+                  },
+                }[item.reactiveStatus];
 
-                  <h5 className="text-sm font-bold text-slate-900 dark:text-white">{item.name}</h5>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
-                    <strong>Horario:</strong> {item.schedule} ({item.classroom}) • {item.professor}
-                  </p>
-                  <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1">
-                    {item.bagFulfilled}
-                  </p>
-                  {item.bypassNote && (
-                    <div className="mt-2 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 font-medium">
-                      🔑 {item.bypassNote}
+                return (
+                  <div key={item.nrc} className={`p-4 rounded-2xl border ${badgeMap.card}`}>
+                    <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-900 dark:bg-slate-700 text-white">
+                          {item.nrc}
+                        </span>
+                        <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
+                          {item.period} • {item.code}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeMap.pill}`}>
+                          {badgeMap.label}
+                        </span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                          {item.credits} cr
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <h5 className="text-sm font-bold text-slate-900 dark:text-white">{item.name}</h5>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                      <strong>Horario:</strong> {item.schedule} ({item.classroom}) • {item.professor}
+                    </p>
+                    <p className="text-[11px] text-indigo-700 dark:text-indigo-300 font-semibold mt-1">
+                      {item.reactiveReason}
+                    </p>
+                    {item.bypassNote && (
+                      <div className="mt-2 px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-[11px] text-amber-800 dark:text-amber-300 font-medium">
+                        🔑 {item.bypassNote}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

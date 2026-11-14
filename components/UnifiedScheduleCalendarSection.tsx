@@ -12,8 +12,13 @@ import {
 } from 'lucide-react';
 import ScheduleManagerSection from './ScheduleManagerSection';
 import GoogleCalendarSection from './GoogleCalendarSection';
+import { DashboardTab } from '@/lib/navigation';
 
-export default function UnifiedScheduleCalendarSection() {
+export default function UnifiedScheduleCalendarSection({
+  onNavigate,
+}: {
+  onNavigate?: (tab: DashboardTab) => void;
+}) {
   const [viewType, setViewType] = useState<'grid' | 'calendar' | 'combined'>('combined');
 
   return (
@@ -33,8 +38,7 @@ export default function UnifiedScheduleCalendarSection() {
               Horario Académico & Google Calendar
             </h1>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              Pilar integrado que consolida en un solo lugar la <strong>cuadrícula semanal de clases universitarias (6.° Semestre)</strong> con los
-              <strong> eventos en vivo de Google Calendar</strong> (exámenes, paseos de Frida, citas y recordatorios).
+              Pilar reactivo conectado con <strong>Estudio UPB / SIGAA</strong>: consolida tu <strong>proyección semanal 2027-I (bloqueos, repetición e homologación de laboratorio)</strong>, tu horario oficial <code>202620</code> y los <strong>eventos en vivo de Google Calendar</strong>.
             </p>
           </div>
 
@@ -88,7 +92,7 @@ export default function UnifiedScheduleCalendarSection() {
                 <span>Bloque 1: Matriz de Clases Semanales UPB</span>
               </span>
             </div>
-            <ScheduleManagerSection />
+            <ScheduleManagerSection onNavigate={onNavigate} />
           </div>
 
           {/* Abajo: Agenda en Vivo de Google Calendar */}
@@ -106,7 +110,7 @@ export default function UnifiedScheduleCalendarSection() {
 
       {viewType === 'grid' && (
         <div className="animate-fadeIn">
-          <ScheduleManagerSection />
+          <ScheduleManagerSection onNavigate={onNavigate} />
         </div>
       )}
 

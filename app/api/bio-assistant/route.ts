@@ -5,6 +5,8 @@ import {
   buildLiveSystemInstruction,
   LiveTelemetrySnapshot,
 } from '@/lib/santiagoKnowledgeBase';
+import { computeAcademicProjection } from '@/lib/academicReactiveEngine';
+import { readAcademicOverridesFromDisk } from '@/lib/academicStatePersistence';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -146,12 +148,27 @@ function readLivePageSnapshot(): LiveTelemetrySnapshot {
     console.warn('[BioAssistant API] Error leyendo calendar state:', err);
   }
 
+  const academicOverrides = readAcademicOverridesFromDisk();
+  const projection = computeAcademicProjection(academicOverrides);
+  const cMap = projection.projectedCourseMap;
+
   snapshot.academic = {
     pga: 3.93,
-    estructurasAcum: 2.11,
-    estructurasNeeded: 2.97,
-    suelosAcum: 2.45,
-    presupuestoAcum: 2.55,
+    viasAcum: cMap['c-vias'].accumulatedPoints,
+    presupuestoAcum: cMap['c-presupuesto'].accumulatedPoints,
+    suelosAcum: cMap['c-suelos'].accumulatedPoints,
+    suelosLabAverage: projection.suelosLabSummary.weightedAverage,
+    homologationApplied: projection.homologationApplied,
+    estructurasAcum: cMap['c-estructuras'].accumulatedPoints,
+    estructurasEvaluatedPct: cMap['c-estructuras'].evaluatedPercent,
+    hidrologiaAcum: cMap['c-hidrologia'].accumulatedPoints,
+    hidrologiaEvaluatedPct: cMap['c-hidrologia'].evaluatedPercent,
+    blocked2027Courses: projection.schedule2027Real.blockedCourses.map((b) => b.name),
+    enrolled2027Courses: projection.schedule2027Real.enrolledCourses.map((c) =>
+      c.theoryOnlyMode ? `${c.name} (Solo Teoría)` : c.name
+    ),
+    planned2027Credits: projection.schedule2027Real.totalCredits,
+    planned2027NetTuition: projection.schedule2027Real.totalNetTuition,
   };
 
   return snapshot;

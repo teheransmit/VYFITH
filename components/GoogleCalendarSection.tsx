@@ -151,6 +151,12 @@ export function classifyCalendarEvent(evt: CalendarEvent): EventClassification {
     text.includes('hidrología') ||
     text.includes('hidrologia') ||
     text.includes('suelos') ||
+    text.includes('cimentaciones') ||
+    text.includes('acueducto') ||
+    text.includes('alcantarillado') ||
+    text.includes('transporte') ||
+    text.includes('ética') ||
+    text.includes('etica') ||
     text.includes('vías') ||
     text.includes('vias') ||
     text.includes('presupuesto') ||

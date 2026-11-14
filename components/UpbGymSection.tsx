@@ -30,8 +30,10 @@ import {
   GymLiveStatus,
   DayGymSchedule,
 } from '@/lib/upbGymStore';
+import { useAcademicReactiveState } from '@/lib/useAcademicReactiveState';
 
 export default function UpbGymSection() {
+  const { projection } = useAcademicReactiveState();
   const [liveStatus, setLiveStatus] = useState<GymLiveStatus | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number>(1); // 1 = Lunes por defecto
   const [sigaaCompleted, setSigaaCompleted] = useState<boolean>(false);
@@ -238,6 +240,37 @@ export default function UpbGymSection() {
           <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 flex items-center gap-2.5">
             <span className="text-base">⏰</span>
             <span><strong>Regla de las 17:30 (Si vas lunes):</strong> Si decides sumar el lunes a las 16:00, corte innegociable a las 17:30 para ducharte antes de Presupuesto (18:00).</span>
+          </div>
+        </div>
+
+        {/* Ventanas Reactivas 2027-1 sincronizadas con Estudio / Agenda */}
+        <div className="rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/60 p-4 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs font-extrabold text-indigo-900 dark:text-indigo-200">
+              ⚡ Impacto en Vivo Horario 2027-I ({projection.schedule2027Real.totalCredits} cr •{' '}
+              {projection.homologationApplied
+                ? 'Suelos Solo Teoría / Lab Homologado'
+                : projection.schedule2027Real.suelosMode === 'not_repeated'
+                ? 'Cimentaciones Activa'
+                : 'Suelos Completo + Lab 119'}
+              )
+            </span>
+            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+              Sobrante TBEA: ${projection.schedule2027Real.surplusForGym.toLocaleString('es-CO')} ({projection.schedule2027Real.gymMonthsCovered} meses Gym)
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {projection.schedule2027Real.blocks
+              .filter((b) => b.componentType === 'gym')
+              .map((g) => (
+                <div
+                  key={g.id}
+                  className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-[11px] font-semibold text-slate-800 dark:text-slate-200"
+                >
+                  🏋️ {g.day}: {g.startTime}-{g.endTime}
+                  {g.note && g.startTime !== '16:00' ? ` (${g.note})` : ''}
+                </div>
+              ))}
           </div>
         </div>
       </div>
