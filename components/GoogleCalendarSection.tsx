@@ -20,7 +20,7 @@ import {
   LayoutGrid,
   CheckCircle2,
 } from 'lucide-react';
-import { CalendarEvent, getEventRsvpState } from '@/lib/googleCalendar';
+import { CalendarEvent, getEventRsvpState, computeWalksIncomeFromCalendar } from '@/lib/googleCalendar';
 
 interface CalendarUser {
   displayName: string | null;
@@ -365,16 +365,18 @@ export default function GoogleCalendarSection() {
     return classifiedEvents.filter((c) => c.info.type === selectedCategory);
   }, [classifiedEvents, selectedCategory]);
 
-  // Agrupación de eventos cronológicamente por día
+  const walksSummary = useMemo(
+    () => computeWalksIncomeFromCalendar(displayEvents),
+    [displayEvents]
+  );
+
+  // Agrupación de eventos cronológicamente por día (desde el lunes de la semana actual)
   const groupedByDay = useMemo(() => {
     const groups: { [key: string]: { label: string; isToday: boolean; isTomorrow: boolean; events: typeof filteredEvents } } = {};
 
-    const now = new Date();
-    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-    // Ordenar cronológicamente y filtrar desde hoy en adelante (ocultando eventos pasados de meses anteriores)
+    // Ordenar cronológicamente y filtrar desde el lunes de la semana actual en adelante
     const sorted = [...filteredEvents]
-      .filter((item) => item.sched.isoDate >= todayIso)
+      .filter((item) => item.sched.isoDate >= walksSummary.weekMondayIso)
       .sort((a, b) => {
         const rawA = a.evt.start?.dateTime || a.evt.start?.date || '';
         const rawB = b.evt.start?.dateTime || b.evt.start?.date || '';
@@ -398,7 +400,7 @@ export default function GoogleCalendarSection() {
       isoDate,
       ...data,
     }));
-  }, [filteredEvents]);
+  }, [filteredEvents, walksSummary.weekMondayIso]);
 
   // Formato de hoy en español
   const todayLabel = useMemo(() => {
@@ -537,13 +539,64 @@ export default function GoogleCalendarSection() {
             <span className="text-xs font-bold text-blue-900 dark:text-blue-300">{counts.uni} clases</span>
           </div>
           <div className="text-center px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-amber-200/60 dark:border-amber-900/60">
-            <span className="text-[10px] text-amber-700 dark:text-amber-400 uppercase block font-semibold">Paseos Frida</span>
+            <span className="text-[10px] text-amber-700 dark:text-amber-400 uppercase block font-semibold">Paseos Caninos</span>
             <span className="text-xs font-bold text-amber-900 dark:text-amber-300">{counts.dog} sesiones</span>
           </div>
           <div className="text-center px-3 py-1.5 bg-white/90 dark:bg-slate-900/90 rounded-xl border border-emerald-200/60 dark:border-emerald-900/60">
             <span className="text-[10px] text-emerald-700 dark:text-emerald-400 uppercase block font-semibold">Salud & Gym</span>
             <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">{counts.gym + counts.health} bloques</span>
           </div>
+        </div>
+      </div>
+
+      {/* Resumen Rápido de Ganancias por Color / Auto-Invite (Esta Semana) */}
+      <div className="mb-6 p-4 rounded-2xl bg-[#131314] text-white border border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30">
+          <span className="text-[10px] font-bold uppercase text-emerald-300 block">
+            🟢 Con Color (Fui / Voy a ir)
+          </span>
+          <span className="text-lg font-black text-emerald-400 font-mono">
+            +${walksSummary.weeklyConfirmedIncome.toLocaleString('es-CO')} COP
+          </span>
+          <span className="text-[10px] text-slate-300 block">
+            {walksSummary.weeklyConfirmedCount} paseos ({walksSummary.fridaWeekly.confirmedCount} Frida • {walksSummary.siennaWeekly.confirmedCount} Sienna)
+          </span>
+        </div>
+
+        <div className="p-3 rounded-xl bg-slate-900 border border-amber-500/30">
+          <span className="text-[10px] font-bold uppercase text-amber-300 block">
+            ⚪ Sin Color (Sin confirmar)
+          </span>
+          <span className="text-lg font-black text-amber-300 font-mono">
+            ${walksSummary.weeklyUnconfirmedIncome.toLocaleString('es-CO')} COP
+          </span>
+          <span className="text-[10px] text-slate-400 block">
+            {walksSummary.weeklyUnconfirmedCount} paseos pendientes de confirmar
+          </span>
+        </div>
+
+        <div className="p-3 rounded-xl bg-rose-950/30 border border-rose-500/30">
+          <span className="text-[10px] font-bold uppercase text-rose-300 block">
+            🔴 Tachado (No fui)
+          </span>
+          <span className="text-lg font-black text-rose-400 font-mono">
+            $0 COP
+          </span>
+          <span className="text-[10px] text-rose-300/80 block">
+            {walksSummary.weeklyDeclinedCount} paseo(s) tachado(s) (-${walksSummary.weeklyDeclinedLostIncome.toLocaleString('es-CO')})
+          </span>
+        </div>
+
+        <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/30">
+          <span className="text-[10px] font-bold uppercase text-indigo-300 block">
+            🚀 Techo Semana ({walksSummary.weekRangeLabel})
+          </span>
+          <span className="text-lg font-black text-indigo-300 font-mono">
+            ${walksSummary.weeklyMaxPotentialIncome.toLocaleString('es-CO')} COP
+          </span>
+          <span className="text-[10px] text-slate-300 block">
+            Ya hechos: +${walksSummary.weeklyAlreadyDoneIncome.toLocaleString('es-CO')} COP
+          </span>
         </div>
       </div>
 
