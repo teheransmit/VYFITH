@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Wallet,
   CreditCard,
@@ -9,6 +9,8 @@ import {
   Coins,
   ShieldCheck,
   CheckCircle2,
+  XCircle,
+  RefreshCw,
   Clock,
   PlusCircle,
   TrendingUp,
@@ -45,16 +47,89 @@ import {
   Coffee,
 } from 'lucide-react';
 import { initialFinanceData, FinanceSummary, ExpenseItem, ReceivableItem } from '@/lib/financeStore';
+import { CalendarEvent, computeWalksIncomeFromCalendar } from '@/lib/googleCalendar';
 import Rome2RioRouteMap from '@/components/Rome2RioRouteMap';
 
 export default function FinanceSection() {
   const [finance, setFinance] = useState<FinanceSummary>(initialFinanceData);
-  const [activeTab, setActiveTab] = useState<'goals-debt' | 'weekly-flow' | 'medellin' | 'cobros' | 'general'>('goals-debt');
+  const [activeTab, setActiveTab] = useState<'goals-debt' | 'weekly-flow' | 'medellin' | 'cobros' | 'general'>('weekly-flow');
   const [quickNotice, setQuickNotice] = useState<string | null>(null);
   const [debtPayInput, setDebtPayInput] = useState<number>(50000);
   const [iphoneSaveInput, setIphoneSaveInput] = useState<number>(100000);
   const [contingencyFilter, setContingencyFilter] = useState<'all' | 'flight' | 'luggage' | 'arrival' | 'finance'>('all');
   const [expandedContingency, setExpandedContingency] = useState<string | null>(null);
+
+  // Eventos de Google Calendar y tarifas por paseo para liquidación automática por RSVP (Auto-Invite)
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState<boolean>(true);
+  const [calendarSyncing, setCalendarSyncing] = useState<boolean>(false);
+  const [lastCalendarSync, setLastCalendarSync] = useState<string | null>(null);
+  const [fridaRate, setFridaRate] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vyfith_frida_rate');
+      return saved ? Number(saved) : 5000;
+    }
+    return 5000;
+  });
+  const [siennaRate, setSiennaRate] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vyfith_sienna_rate');
+      return saved ? Number(saved) : 9000;
+    }
+    return 9000;
+  });
+
+  const handleFridaRateChange = (val: number) => {
+    setFridaRate(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_frida_rate', String(val));
+    }
+  };
+
+  const handleSiennaRateChange = (val: number) => {
+    setSiennaRate(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_sienna_rate', String(val));
+    }
+  };
+
+  const loadCalendarWalkEvents = useCallback(async (forceRefresh = false) => {
+    if (forceRefresh) {
+      setCalendarSyncing(true);
+    } else {
+      setCalendarLoading(true);
+    }
+    try {
+      const res = await fetch(`/api/calendar/events${forceRefresh ? '?refresh=true' : ''}`, {
+        cache: 'no-store',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.events)) {
+          setCalendarEvents(data.events);
+          setLastCalendarSync(new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }));
+        }
+      }
+    } catch (err) {
+      console.warn('Error cargando eventos de calendario en Finanzas:', err);
+    } finally {
+      setCalendarLoading(false);
+      setCalendarSyncing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCalendarWalkEvents(false);
+  }, [loadCalendarWalkEvents]);
+
+  const calendarWalksSummary = useMemo(
+    () =>
+      computeWalksIncomeFromCalendar(calendarEvents, {
+        fridaRate,
+        siennaRate,
+      }),
+    [calendarEvents, fridaRate, siennaRate]
+  );
 
   // Checklist interactivo pre-vuelo para no tener ningún imprevisto
   const [checklist, setChecklist] = useState([
@@ -147,8 +222,12 @@ export default function FinanceSection() {
     }
   };
 
-  // Cálculos dinámicos de Flujo Semanal (Paseos de perros, pasajes UPB, Rappi con Andrés Bello y trabajos U)
-  const weeklyDogIncome = (finance.weeklyFlow?.dogWalksIncome || []).reduce((acc, curr) => acc + curr.weeklyTotal, 0);
+  // Cálculos dinámicos de Flujo Semanal (Paseos desde Google Calendar Auto-Invite, pasajes UPB, Rappi y trabajos U)
+  const fallbackWeeklyDogIncome = (finance.weeklyFlow?.dogWalksIncome || []).reduce((acc, curr) => acc + curr.weeklyTotal, 0);
+  const weeklyDogIncome =
+    calendarWalksSummary.weeklyTotalEvents > 0
+      ? calendarWalksSummary.weeklyConfirmedIncome
+      : fallbackWeeklyDogIncome;
   const weeklyRappiIncome = didRappi ? rappiAmount : 0;
   const weeklyHomeworkIncome = didHomework ? homeworkAmount : 0;
   const totalWeeklyIncome = weeklyDogIncome + (finance.weeklyFlow?.upbTransportSavings || 0) + weeklyRappiIncome + weeklyHomeworkIncome;
@@ -960,6 +1039,340 @@ export default function FinanceSection() {
       {/* ======================================================== */}
       {activeTab === 'weekly-flow' && (
         <div className="mt-6 space-y-6 animate-fadeIn">
+          {/* CONSOLA EN VIVO: LIQUIDACIÓN DE PASEOS POR AUTO-INVITE DE GOOGLE CALENDAR */}
+          <div className="p-6 rounded-3xl bg-[#131314] text-white border border-slate-800 shadow-xl space-y-5">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Google Calendar Auto-Invite (RSVP) • santiagosmitttt@gmail.com
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+                    Semana: {calendarWalksSummary.weekRangeLabel}
+                  </span>
+                  {lastCalendarSync && (
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      Sync: {lastCalendarSync}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-xl font-black tracking-tight text-white">
+                  Liquidación de Ganancias por Color & Confirmación en Google Calendar
+                </h3>
+                <p className="text-xs text-slate-400 mt-1 max-w-3xl leading-relaxed">
+                  Lectura directa de tu auto-invitación: <strong className="text-emerald-300">Con color sólido</strong> = Fui o voy a ir (suma ganancia) • <strong className="text-amber-300">Sin color (solo borde)</strong> = No has confirmado aún • <strong className="text-rose-400 line-through">Tachado</strong> = No fui ($0 COP).
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 self-start lg:self-center">
+                <button
+                  type="button"
+                  onClick={() => loadCalendarWalkEvents(true)}
+                  disabled={calendarSyncing}
+                  className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm transition-all disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${calendarSyncing ? 'animate-spin' : ''}`} />
+                  <span>{calendarSyncing ? 'Sincronizando Calendar...' : 'Sincronizar Calendar en Vivo'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Leyenda Visual Idéntica a Google Calendar + Selectores de Tarifa */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-slate-900/90 p-4 rounded-2xl border border-slate-800">
+              <div className="lg:col-span-7 flex flex-wrap items-center gap-3 text-xs">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <span className="w-4 h-3 rounded-xs bg-[#e67c73] inline-block" />
+                  <span className="w-4 h-3 rounded-xs bg-[#4285f4] inline-block -ml-1" />
+                  <span className="font-bold text-white">Con Color:</span>
+                  <span className="text-emerald-400 font-semibold">Fui / Voy a ir (+Ganancia)</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <span className="w-4 h-3 rounded-xs border-2 border-[#e67c73] bg-transparent inline-block" />
+                  <span className="font-bold text-slate-200">Sin Color:</span>
+                  <span className="text-amber-300 font-semibold">Sin confirmar (Pendiente)</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <span className="px-1.5 py-0.5 rounded-xs border border-[#e67c73]/50 text-[#f28b82]/70 text-[10px] line-through font-mono">
+                    06:30
+                  </span>
+                  <span className="font-bold text-slate-300">Tachado:</span>
+                  <span className="text-rose-400 font-semibold">No fui ($0 COP)</span>
+                </div>
+              </div>
+
+              <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-[#f28b82] block">Tarifa Frida (Laura)</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      {[5000, 5850].map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => handleFridaRateChange(r)}
+                          className={`cursor-pointer px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                            fridaRate === r
+                              ? 'bg-[#e67c73] text-slate-950'
+                              : 'bg-slate-800 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          ${r.toLocaleString('es-CO')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <input
+                    type="number"
+                    value={fridaRate}
+                    onChange={(e) => handleFridaRateChange(Math.max(0, Number(e.target.value)))}
+                    className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-right font-mono text-xs font-bold text-white"
+                  />
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase text-[#8ab4f8] block">Tarifa Sienna (Elena)</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      {[9000, 16666].map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => handleSiennaRateChange(r)}
+                          className={`cursor-pointer px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                            siennaRate === r
+                              ? 'bg-[#4285f4] text-slate-950'
+                              : 'bg-slate-800 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          ${r === 16666 ? '16.6k (50k/3)' : r.toLocaleString('es-CO')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <input
+                    type="number"
+                    value={siennaRate}
+                    onChange={(e) => handleSiennaRateChange(Math.max(0, Number(e.target.value)))}
+                    className="w-20 px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-right font-mono text-xs font-bold text-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4 Tarjetas de Contabilidad Semanal por Estado del Evento */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {/* 1. Con Color (Confirmados: Fui o Voy a ir) */}
+              <div className="p-4 rounded-2xl bg-emerald-950/40 border-2 border-emerald-500/40">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+                    🟢 Con Color (Fui / Voy a ir)
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300">
+                    {calendarWalksSummary.weeklyConfirmedCount} paseos
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-emerald-400 font-mono mt-1.5 block">
+                  +{formatCurrency(calendarWalksSummary.weeklyConfirmedIncome)}
+                </span>
+                <div className="text-[11px] text-slate-300 mt-1 space-y-0.5">
+                  <div>
+                    • Frida: <strong>{calendarWalksSummary.fridaWeekly.confirmedCount}</strong> ({formatCurrency(calendarWalksSummary.fridaWeekly.confirmedIncome)})
+                  </div>
+                  <div>
+                    • Sienna: <strong>{calendarWalksSummary.siennaWeekly.confirmedCount}</strong> ({formatCurrency(calendarWalksSummary.siennaWeekly.confirmedIncome)})
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Sin Color (Pendientes de Confirmar) */}
+              <div className="p-4 rounded-2xl bg-slate-900/90 border-2 border-amber-500/40">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">
+                    ⚪ Sin Color (Sin Confirmar)
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300">
+                    {calendarWalksSummary.weeklyUnconfirmedCount} paseos
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-amber-300 font-mono mt-1.5 block">
+                  {formatCurrency(calendarWalksSummary.weeklyUnconfirmedIncome)}
+                </span>
+                <div className="text-[11px] text-slate-400 mt-1 space-y-0.5">
+                  <div>
+                    • Frida sin color: <strong>{calendarWalksSummary.fridaWeekly.unconfirmedCount}</strong> ({formatCurrency(calendarWalksSummary.fridaWeekly.unconfirmedIncome)})
+                  </div>
+                  <div>
+                    • Sienna sin color: <strong>{calendarWalksSummary.siennaWeekly.unconfirmedCount}</strong> ({formatCurrency(calendarWalksSummary.siennaWeekly.unconfirmedIncome)})
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Tachados (No fui / Cancelados) */}
+              <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-500/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-rose-300">
+                    🔴 Tachado (No fui / No voy)
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300">
+                    {calendarWalksSummary.weeklyDeclinedCount} paseo(s)
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-rose-400 font-mono mt-1.5 block">
+                  $0 COP
+                </span>
+                <div className="text-[11px] text-rose-300/80 mt-1">
+                  Descartados por responder &quot;No&quot;: <span className="line-through font-mono">{formatCurrency(calendarWalksSummary.weeklyDeclinedLostIncome)}</span> no cobrados.
+                </div>
+              </div>
+
+              {/* 4. Techo Semanal si confirmas los pendientes */}
+              <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+                    🚀 Potencial Total Semana
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300">
+                    {calendarWalksSummary.weeklyConfirmedCount + calendarWalksSummary.weeklyUnconfirmedCount}/{calendarWalksSummary.weeklyTotalEvents} activos
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-indigo-300 font-mono mt-1.5 block">
+                  {formatCurrency(calendarWalksSummary.weeklyMaxPotentialIncome)}
+                </span>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  Ya ejecutados hoy: <strong className="text-emerald-300">{formatCurrency(calendarWalksSummary.weeklyAlreadyDoneIncome)}</strong> • Resto con color: <strong className="text-sky-300">{formatCurrency(calendarWalksSummary.weeklyUpcomingColoredIncome)}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* ESPEJO VISUAL DE TU GOOGLE CALENDAR (LUNES A VIERNES) */}
+            <div className="pt-2">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                  <Footprints className="w-4 h-4 text-emerald-400" />
+                  Tablero Visual de Paseos (Espejo Exacto de tu Google Calendar)
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {calendarWalksSummary.weeklyTotalEvents} eventos de paseo detectados esta semana
+                </span>
+              </div>
+
+              {calendarLoading ? (
+                <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800 text-center text-xs text-slate-400">
+                  Cargando eventos de paseo desde Google Calendar...
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-2.5">
+                  {(['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'] as const).map((dayName) => {
+                    const dayWalks = calendarWalksSummary.currentWeekWalks.filter(
+                      (w) => w.dayName.toLowerCase() === dayName.toLowerCase()
+                    );
+                    const dayEarned = dayWalks.reduce((acc, w) => acc + w.earnedAmount, 0);
+                    const dayPending = dayWalks.reduce((acc, w) => acc + w.pendingAmount, 0);
+                    const dateHeader = dayWalks[0]?.shortDateLabel || dayName;
+
+                    return (
+                      <div
+                        key={dayName}
+                        className="p-3 rounded-2xl bg-[#1a1a1c] border border-slate-800/90 flex flex-col justify-between space-y-3"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-slate-800">
+                            <span className="text-xs font-extrabold text-white">{dateHeader}</span>
+                            <span
+                              className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                                dayEarned > 0
+                                  ? 'bg-emerald-500/20 text-emerald-300'
+                                  : dayPending > 0
+                                  ? 'bg-amber-500/15 text-amber-300'
+                                  : 'bg-slate-800 text-slate-400'
+                              }`}
+                            >
+                              {dayEarned > 0 ? `+${formatCurrency(dayEarned)}` : '$0 conf.'}
+                            </span>
+                          </div>
+
+                          <div className="space-y-2">
+                            {dayWalks.length === 0 ? (
+                              <div className="py-4 text-center text-[11px] text-slate-500 italic">
+                                Sin paseos
+                              </div>
+                            ) : (
+                              dayWalks.map((w) => {
+                                const isFrida = w.dogName === 'Frida';
+                                // Estilo visual idéntico a Google Calendar Dark Mode
+                                const pillStyle =
+                                  w.visualState === 'attended'
+                                    ? isFrida
+                                      ? 'bg-[#e67c73] text-slate-950 border border-[#e67c73] font-bold shadow-xs'
+                                      : 'bg-[#4285f4] text-slate-950 border border-[#4285f4] font-bold shadow-xs'
+                                    : w.visualState === 'unconfirmed'
+                                    ? isFrida
+                                      ? 'bg-transparent text-[#f28b82] border-2 border-[#e67c73]'
+                                      : 'bg-transparent text-[#8ab4f8] border-2 border-[#4285f4]'
+                                    : isFrida
+                                    ? 'bg-transparent text-[#f28b82]/60 border border-[#e67c73]/40'
+                                    : 'bg-transparent text-[#8ab4f8]/60 border border-[#4285f4]/40';
+
+                                return (
+                                  <div
+                                    key={w.id}
+                                    className={`p-2.5 rounded-xl transition-all text-xs ${pillStyle}`}
+                                  >
+                                    <div className="flex items-center justify-between gap-1">
+                                      <span
+                                        className={`font-bold truncate ${
+                                          w.visualState === 'declined' ? 'line-through' : ''
+                                        }`}
+                                      >
+                                        {w.summary}
+                                      </span>
+                                      <span
+                                        className={`text-[10px] font-mono shrink-0 ${
+                                          w.visualState === 'declined' ? 'line-through' : ''
+                                        }`}
+                                      >
+                                        {w.timeLabel}
+                                      </span>
+                                    </div>
+
+                                    <div className="mt-1.5 flex items-center justify-between text-[10px]">
+                                      <span>
+                                        {w.visualState === 'attended'
+                                          ? '✅ Con color (Fui / Voy)'
+                                          : w.visualState === 'unconfirmed'
+                                          ? '⏳ Sin color (Por confirmar)'
+                                          : '❌ Tachado (No fui)'}
+                                      </span>
+                                      <span className="font-mono font-extrabold">
+                                        {w.visualState === 'attended'
+                                          ? `+${formatCurrency(w.earnedAmount)}`
+                                          : w.visualState === 'unconfirmed'
+                                          ? `(${formatCurrency(w.pendingAmount)})`
+                                          : '$0'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+
+                        {dayPending > 0 && (
+                          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-amber-300/90 font-mono">
+                            <span>Por confirmar:</span>
+                            <span>+{formatCurrency(dayPending)}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Tarjeta Destacada: Modelo de Volatilidad (Semanas Buenas vs Semanas Malas) */}
           <div className="p-6 rounded-3xl bg-linear-to-br from-indigo-950 via-slate-900 to-indigo-950 text-white shadow-md relative overflow-hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-indigo-900/60">
@@ -1215,16 +1628,48 @@ export default function FinanceSection() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {finance.weeklyFlow?.dogWalksIncome?.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-semibold text-slate-900">
-                        {item.dogName} <span className="text-slate-400 font-normal">({item.client})</span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">{item.walksPerWeek} paseos/semana</td>
-                      <td className="px-4 py-3 text-slate-600">{formatCurrency(item.ratePerWalk)}</td>
-                      <td className="px-4 py-3 font-bold text-emerald-600">{formatCurrency(item.weeklyTotal)}</td>
-                    </tr>
-                  ))}
+                  <tr className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      Frida <span className="text-slate-400 font-normal">(Laura • Google Calendar)</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      <span className="font-bold text-emerald-700">{calendarWalksSummary.fridaWeekly.confirmedCount} con color</span>
+                      {' • '}
+                      <span className="text-amber-600">{calendarWalksSummary.fridaWeekly.unconfirmedCount} sin color</span>
+                      {' • '}
+                      <span className="text-rose-600 line-through">{calendarWalksSummary.fridaWeekly.declinedCount} tachado(s)</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{formatCurrency(fridaRate)}/paseo</td>
+                    <td className="px-4 py-3 font-bold text-emerald-600">
+                      +{formatCurrency(calendarWalksSummary.fridaWeekly.confirmedIncome)}
+                      {calendarWalksSummary.fridaWeekly.unconfirmedIncome > 0 && (
+                        <span className="block text-[10px] text-amber-600 font-normal">
+                          (+{formatCurrency(calendarWalksSummary.fridaWeekly.unconfirmedIncome)} por confirmar)
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      Sienna <span className="text-slate-400 font-normal">(Elena • Google Calendar)</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">
+                      <span className="font-bold text-emerald-700">{calendarWalksSummary.siennaWeekly.confirmedCount} con color</span>
+                      {' • '}
+                      <span className="text-amber-600">{calendarWalksSummary.siennaWeekly.unconfirmedCount} sin color</span>
+                      {' • '}
+                      <span className="text-rose-600">{calendarWalksSummary.siennaWeekly.declinedCount} tachado(s)</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{formatCurrency(siennaRate)}/paseo</td>
+                    <td className="px-4 py-3 font-bold text-emerald-600">
+                      +{formatCurrency(calendarWalksSummary.siennaWeekly.confirmedIncome)}
+                      {calendarWalksSummary.siennaWeekly.unconfirmedIncome > 0 && (
+                        <span className="block text-[10px] text-amber-600 font-normal">
+                          (+{formatCurrency(calendarWalksSummary.siennaWeekly.unconfirmedIncome)} por confirmar)
+                        </span>
+                      )}
+                    </td>
+                  </tr>
                   <tr className="bg-indigo-50/40">
                     <td className="px-4 py-3 font-bold text-indigo-900">
                       Aporte Pasajes Papá (Tarjeta Estudiantil Gratis)

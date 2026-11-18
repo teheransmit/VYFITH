@@ -20,7 +20,7 @@ import {
   LayoutGrid,
   CheckCircle2,
 } from 'lucide-react';
-import { CalendarEvent } from '@/lib/googleCalendar';
+import { CalendarEvent, getEventRsvpState } from '@/lib/googleCalendar';
 
 interface CalendarUser {
   displayName: string | null;
@@ -60,11 +60,16 @@ export function classifyCalendarEvent(evt: CalendarEvent): EventClassification {
     text.includes('perrita') ||
     text.includes('perro')
   ) {
+    const isSienna = text.includes('sienna');
     return {
       type: 'dog-walk',
-      label: 'Paseo Canino (Frida)',
-      badgeClass: 'bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-200',
-      cardClass: 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50 hover:border-amber-300',
+      label: isSienna ? 'Paseo Canino (Sienna)' : 'Paseo Canino (Frida)',
+      badgeClass: isSienna
+        ? 'bg-sky-100 dark:bg-sky-950/80 border border-sky-300 dark:border-sky-800/60 text-sky-800 dark:text-sky-200'
+        : 'bg-amber-100 dark:bg-amber-950/80 border border-amber-300 dark:border-amber-800/60 text-amber-800 dark:text-amber-200',
+      cardClass: isSienna
+        ? 'bg-sky-50/50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-900/50 hover:border-sky-300'
+        : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/50 hover:border-amber-300',
     };
   }
 
@@ -637,51 +642,88 @@ export default function GoogleCalendarSection() {
 
               {/* Tarjetas del Día */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                {group.events.map(({ evt, info, sched }) => (
-                  <div
-                    key={evt.id}
-                    className={`p-4 rounded-2xl border transition-all ${info.cardClass}`}
-                  >
-                    {/* Fila Superior: Fecha y Badge */}
-                    <div className="flex items-center justify-between mb-2.5 gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
-                        <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
-                        <span className="font-mono">{sched.timeRange}</span>
-                      </span>
+                {group.events.map(({ evt, info, sched }) => {
+                  const rsvp = getEventRsvpState(evt);
+                  const rsvpCardStyle =
+                    rsvp.visualState === 'declined'
+                      ? 'bg-transparent border-dashed border-rose-300 dark:border-rose-800/60 opacity-70'
+                      : rsvp.visualState === 'unconfirmed'
+                      ? 'bg-transparent border-2 border-amber-400/70 dark:border-amber-500/60'
+                      : info.cardClass;
 
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${info.badgeClass}`}>
-                        {info.type === 'dog-walk' && <Footprints className="w-3 h-3 text-amber-600 dark:text-amber-300" />}
-                        {info.type === 'gym' && <Dumbbell className="w-3 h-3 text-emerald-600 dark:text-emerald-300" />}
-                        {info.type === 'health' && <Heart className="w-3 h-3 text-teal-600 dark:text-teal-300" />}
-                        {info.type === 'exam' && <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-300" />}
-                        {info.type === 'university' && <GraduationCap className="w-3 h-3 text-blue-600 dark:text-blue-300" />}
-                        {info.type === 'trip' && <Plane className="w-3 h-3 text-purple-600 dark:text-purple-300" />}
-                        {info.type === 'personal' && <Tag className="w-3 h-3 text-slate-500" />}
-                        <span>{info.label}</span>
-                      </span>
-                    </div>
+                  return (
+                    <div
+                      key={evt.id}
+                      className={`p-4 rounded-2xl border transition-all ${rsvpCardStyle}`}
+                    >
+                      {/* Fila Superior: Fecha y Badge */}
+                      <div className="flex items-center justify-between mb-2.5 gap-2">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                          <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                          <span className={`font-mono ${rsvp.visualState === 'declined' ? 'line-through text-rose-500' : ''}`}>
+                            {sched.timeRange}
+                          </span>
+                        </span>
 
-                    {/* Título del Evento */}
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug line-clamp-1">
-                      {evt.summary}
-                    </h4>
-
-                    {/* Ubicación */}
-                    {evt.location && (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 truncate">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{evt.location}</span>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${info.badgeClass}`}>
+                          {info.type === 'dog-walk' && <Footprints className="w-3 h-3 text-amber-600 dark:text-amber-300" />}
+                          {info.type === 'gym' && <Dumbbell className="w-3 h-3 text-emerald-600 dark:text-emerald-300" />}
+                          {info.type === 'health' && <Heart className="w-3 h-3 text-teal-600 dark:text-teal-300" />}
+                          {info.type === 'exam' && <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-300" />}
+                          {info.type === 'university' && <GraduationCap className="w-3 h-3 text-blue-600 dark:text-blue-300" />}
+                          {info.type === 'trip' && <Plane className="w-3 h-3 text-purple-600 dark:text-purple-300" />}
+                          {info.type === 'personal' && <Tag className="w-3 h-3 text-slate-500" />}
+                          <span>{info.label}</span>
+                        </span>
                       </div>
-                    )}
 
-                    {/* Descripción */}
-                    {evt.description && (
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
-                        {evt.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                      {/* Título del Evento */}
+                      <h4
+                        className={`text-sm font-bold leading-snug line-clamp-1 ${
+                          rsvp.visualState === 'declined'
+                            ? 'line-through text-slate-400 dark:text-slate-500'
+                            : 'text-slate-900 dark:text-slate-100'
+                        }`}
+                      >
+                        {evt.summary}
+                      </h4>
+
+                      {/* Estado de Auto-Invite RSVP */}
+                      <div className="mt-2">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                            rsvp.visualState === 'attended'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
+                              : rsvp.visualState === 'unconfirmed'
+                              ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300'
+                              : 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300'
+                          }`}
+                        >
+                          {rsvp.visualState === 'attended'
+                            ? '🟢 Con color • Fui / Voy a ir'
+                            : rsvp.visualState === 'unconfirmed'
+                            ? '⚪ Sin color • Sin confirmar'
+                            : '🔴 Tachado • No fui'}
+                        </span>
+                      </div>
+
+                      {/* Ubicación */}
+                      {evt.location && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 truncate">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate">{evt.location}</span>
+                        </div>
+                      )}
+
+                      {/* Descripción */}
+                      {evt.description && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                          {evt.description}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -689,53 +731,74 @@ export default function GoogleCalendarSection() {
       ) : (
         /* Modo Cuadrícula Continua */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredEvents.map(({ evt, info, sched }) => (
-            <div
-              key={evt.id}
-              className={`p-4 rounded-2xl border transition-all ${info.cardClass}`}
-            >
-              {/* Badge del Día y Hora */}
-              <div className="flex items-center justify-between mb-2.5 gap-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 bg-white/80 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200/80 dark:border-slate-700">
-                    {sched.dayOfWeek} {sched.dayNumber} {sched.monthName.slice(0, 3)}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 font-mono">
-                    <Clock className="w-3 h-3" />
-                    {sched.timeRange}
+          {filteredEvents.map(({ evt, info, sched }) => {
+            const rsvp = getEventRsvpState(evt);
+            return (
+              <div
+                key={evt.id}
+                className={`p-4 rounded-2xl border transition-all ${info.cardClass}`}
+              >
+                {/* Badge del Día y Hora */}
+                <div className="flex items-center justify-between mb-2.5 gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 bg-white/80 dark:bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-200/80 dark:border-slate-700">
+                      {sched.dayOfWeek} {sched.dayNumber} {sched.monthName.slice(0, 3)}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 font-mono ${rsvp.visualState === 'declined' ? 'line-through' : ''}`}>
+                      <Clock className="w-3 h-3" />
+                      {sched.timeRange}
+                    </span>
+                  </div>
+
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${info.badgeClass}`}>
+                    {info.type === 'dog-walk' && <Footprints className="w-3 h-3 text-amber-600 dark:text-amber-300" />}
+                    {info.type === 'gym' && <Dumbbell className="w-3 h-3 text-emerald-600 dark:text-emerald-300" />}
+                    {info.type === 'health' && <Heart className="w-3 h-3 text-teal-600 dark:text-teal-300" />}
+                    {info.type === 'exam' && <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-300" />}
+                    {info.type === 'university' && <GraduationCap className="w-3 h-3 text-blue-600 dark:text-blue-300" />}
+                    {info.type === 'trip' && <Plane className="w-3 h-3 text-purple-600 dark:text-purple-300" />}
+                    {info.type === 'personal' && <Tag className="w-3 h-3 text-slate-500" />}
+                    <span>{info.label}</span>
                   </span>
                 </div>
 
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${info.badgeClass}`}>
-                  {info.type === 'dog-walk' && <Footprints className="w-3 h-3 text-amber-600 dark:text-amber-300" />}
-                  {info.type === 'gym' && <Dumbbell className="w-3 h-3 text-emerald-600 dark:text-emerald-300" />}
-                  {info.type === 'health' && <Heart className="w-3 h-3 text-teal-600 dark:text-teal-300" />}
-                  {info.type === 'exam' && <AlertTriangle className="w-3 h-3 text-rose-600 dark:text-rose-300" />}
-                  {info.type === 'university' && <GraduationCap className="w-3 h-3 text-blue-600 dark:text-blue-300" />}
-                  {info.type === 'trip' && <Plane className="w-3 h-3 text-purple-600 dark:text-purple-300" />}
-                  {info.type === 'personal' && <Tag className="w-3 h-3 text-slate-500" />}
-                  <span>{info.label}</span>
-                </span>
+                <h4 className={`text-sm font-bold leading-snug line-clamp-1 ${rsvp.visualState === 'declined' ? 'line-through text-slate-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                  {evt.summary}
+                </h4>
+
+                <div className="mt-2">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                      rsvp.visualState === 'attended'
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
+                        : rsvp.visualState === 'unconfirmed'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300'
+                        : 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300'
+                    }`}
+                  >
+                    {rsvp.visualState === 'attended'
+                      ? '🟢 Con color • Fui / Voy a ir'
+                      : rsvp.visualState === 'unconfirmed'
+                      ? '⚪ Sin color • Sin confirmar'
+                      : '🔴 Tachado • No fui'}
+                  </span>
+                </div>
+
+                {evt.location && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 truncate">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">{evt.location}</span>
+                  </div>
+                )}
+
+                {evt.description && (
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
+                    {evt.description}
+                  </p>
+                )}
               </div>
-
-              <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug line-clamp-1">
-                {evt.summary}
-              </h4>
-
-              {evt.location && (
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-2 truncate">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="truncate">{evt.location}</span>
-                </div>
-              )}
-
-              {evt.description && (
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 line-clamp-2 leading-relaxed">
-                  {evt.description}
-                </p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>

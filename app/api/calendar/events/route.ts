@@ -17,7 +17,10 @@ export async function GET(req: NextRequest) {
   // Si se solicita refrescar en vivo o el archivo no existe
   if (shouldRefresh || !fs.existsSync(jsonPath)) {
     try {
-      const gcalendarCmd = `"C:\\Users\\Luis\\.gemini\\config\\plugins\\gcalendar\\skills\\gcalendar\\scripts\\gcalendar.cmd" readonly events --max 100 --json`;
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const endWindow = new Date(now.getFullYear(), now.getMonth() + 1, 15).toISOString();
+      const gcalendarCmd = `"C:\\Users\\Luis\\.gemini\\config\\plugins\\gcalendar\\skills\\gcalendar\\scripts\\gcalendar.cmd" readonly events --start "${startOfMonth}" --end "${endWindow}" --max 250 --json`;
       const { stdout } = await execAsync(gcalendarCmd, {
         maxBuffer: 15 * 1024 * 1024,
         timeout: 15000,
@@ -54,7 +57,7 @@ export async function GET(req: NextRequest) {
   // Lectura rápida de caché local
   try {
     if (fs.existsSync(jsonPath)) {
-      const raw = fs.readFileSync(jsonPath, 'utf8');
+      const raw = fs.readFileSync(jsonPath, 'utf8').replace(/^\uFEFF/, '');
       const events = JSON.parse(raw);
       return NextResponse.json(
         {
