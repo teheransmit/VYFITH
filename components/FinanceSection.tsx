@@ -120,6 +120,25 @@ export default function FinanceSection() {
 
   useEffect(() => {
     loadCalendarWalkEvents(false);
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadCalendarWalkEvents(true);
+      }
+    };
+    window.addEventListener('focus', onFocusOrVisible);
+    document.addEventListener('visibilitychange', onFocusOrVisible);
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadCalendarWalkEvents(false);
+      }
+    }, 15000);
+
+    return () => {
+      window.removeEventListener('focus', onFocusOrVisible);
+      document.removeEventListener('visibilitychange', onFocusOrVisible);
+      clearInterval(intervalId);
+    };
   }, [loadCalendarWalkEvents]);
 
   const calendarWalksSummary = useMemo(

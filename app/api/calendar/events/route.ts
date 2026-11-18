@@ -9,13 +9,17 @@ const execAsync = promisify(exec);
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+let lastLiveFetchMs = 0;
+
 export async function GET(req: NextRequest) {
   const jsonPath = path.join(process.cwd(), 'data', 'real_calendar_events.json');
   const url = new URL(req.url);
-  const shouldRefresh = url.searchParams.get('refresh') === 'true';
+  const forceRefresh = url.searchParams.get('refresh') === 'true';
+  const nowMs = Date.now();
+  // Siempre refresca en vivo desde Google Calendar si pasaron >5s o si se pide refresh=true
+  const shouldRefresh = forceRefresh || !fs.existsSync(jsonPath) || nowMs - lastLiveFetchMs > 5000;
 
-  // Si se solicita refrescar en vivo o el archivo no existe
-  if (shouldRefresh || !fs.existsSync(jsonPath)) {
+  if (shouldRefresh) {
     try {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -26,8 +30,10 @@ export async function GET(req: NextRequest) {
         timeout: 15000,
       });
 
-      if (stdout && stdout.trim().startsWith('[')) {
-        const freshEvents = JSON.parse(stdout.trim());
+      const cleanedOut = (stdout || '').replace(/^\uFEFF/, '').trim();
+      if (cleanedOut.startsWith('[')) {
+        const freshEvents = JSON.parse(cleanedOut);
+        lastLiveFetchMs = Date.now();
         // Guardar copia local limpia en data/real_calendar_events.json
         fs.writeFileSync(jsonPath, JSON.stringify(freshEvents, null, 2), 'utf8');
 
@@ -50,7 +56,6 @@ export async function GET(req: NextRequest) {
       }
     } catch (execErr: any) {
       console.warn('Live gcalendar fetch failed, falling back to local file:', execErr?.message || execErr);
-      // Caída elegante a la copia local si la ejecución CLI tarda o falla
     }
   }
 

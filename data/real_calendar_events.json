@@ -214,7 +214,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Vertical \u0026 Incline Torso (Chest \u0026 Back)",
+    "summary": "Vertical & Incline Torso (Chest & Back)",
     "updated": "2026-11-11T20:57:17.765Z"
   },
   {
@@ -519,7 +519,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Arms \u0026 Shoulders",
+    "summary": "Arms & Shoulders",
     "updated": "2026-11-06T01:02:19.111Z"
   },
   {
@@ -840,7 +840,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Horizontal Torso (Chest \u0026 Back)",
+    "summary": "Horizontal Torso (Chest & Back)",
     "updated": "2026-11-11T20:57:12.132Z"
   },
   {
@@ -1017,7 +1017,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Vertical \u0026 Incline Torso (Chest \u0026 Back)",
+    "summary": "Vertical & Incline Torso (Chest & Back)",
     "updated": "2026-11-11T20:57:17.765Z"
   },
   {
@@ -1304,7 +1304,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Arms \u0026 Shoulders",
+    "summary": "Arms & Shoulders",
     "updated": "2026-10-30T19:47:54.820Z"
   },
   {
@@ -1526,7 +1526,7 @@
       "dateTime": "2026-11-16T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590055237095966\"",
+    "etag": "\"3590056991670654\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -1559,7 +1559,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -1621,7 +1621,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Horizontal Torso (Chest \u0026 Back)",
+    "summary": "Horizontal Torso (Chest & Back)",
     "updated": "2026-11-11T20:57:12.132Z"
   },
   {
@@ -1789,7 +1789,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Vertical \u0026 Incline Torso (Chest \u0026 Back)",
+    "summary": "Vertical & Incline Torso (Chest & Back)",
     "updated": "2026-11-18T18:40:31.363Z"
   },
   {
@@ -1900,7 +1900,7 @@
       {
         "email": "santiagosmitttt@gmail.com",
         "organizer": true,
-        "responseStatus": "needsAction",
+        "responseStatus": "accepted",
         "self": true
       }
     ],
@@ -1931,7 +1931,7 @@
       "dateTime": "2026-11-18T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590058746245342\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -1964,9 +1964,34 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "conferenceData": {
+      "conferenceId": "iwb-vymc-vxa",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/iwb-vymc-vxa",
+          "uri": "https://meet.google.com/iwb-vymc-vxa"
+        }
+      ]
+    },
     "created": "2026-11-18T18:43:15.000Z",
     "creator": {
       "email": "santiagosmitttt@gmail.com",
@@ -1976,8 +2001,9 @@
       "dateTime": "2026-11-18T15:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054920724670\"",
+    "etag": "\"3590058733585214\"",
     "eventType": "default",
+    "hangoutLink": "https://meet.google.com/iwb-vymc-vxa",
     "htmlLink": "https://www.google.com/calendar/event?eid=MHEzM3U0aXIwbnF0NGp1b3A1ZWlpZXVvMHZfMjAyNjExMThUMjAxNTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
     "iCalUID": "0q33u4ir0nqt4juop5eiieuo0v@google.com",
     "id": "0q33u4ir0nqt4juop5eiieuo0v_20261118T201500Z",
@@ -2002,7 +2028,7 @@
     },
     "status": "confirmed",
     "summary": " Paseo de Sienna",
-    "updated": "2026-11-18T18:44:20.362Z"
+    "updated": "2026-11-18T19:16:06.792Z"
   },
   {
     "attendees": [
@@ -2239,6 +2265,31 @@
     "updated": "2026-11-18T18:47:03.459Z"
   },
   {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "conferenceData": {
+      "conferenceId": "iwb-vymc-vxa",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/iwb-vymc-vxa",
+          "uri": "https://meet.google.com/iwb-vymc-vxa"
+        }
+      ]
+    },
     "created": "2026-11-18T18:43:15.000Z",
     "creator": {
       "email": "santiagosmitttt@gmail.com",
@@ -2248,8 +2299,9 @@
       "dateTime": "2026-11-19T15:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054920724670\"",
+    "etag": "\"3590058733585214\"",
     "eventType": "default",
+    "hangoutLink": "https://meet.google.com/iwb-vymc-vxa",
     "htmlLink": "https://www.google.com/calendar/event?eid=MHEzM3U0aXIwbnF0NGp1b3A1ZWlpZXVvMHZfMjAyNjExMTlUMjAxNTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
     "iCalUID": "0q33u4ir0nqt4juop5eiieuo0v@google.com",
     "id": "0q33u4ir0nqt4juop5eiieuo0v_20261119T201500Z",
@@ -2274,7 +2326,7 @@
     },
     "status": "confirmed",
     "summary": " Paseo de Sienna",
-    "updated": "2026-11-18T18:44:20.362Z"
+    "updated": "2026-11-18T19:16:06.792Z"
   },
   {
     "attendees": [
@@ -2337,7 +2389,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Arms \u0026 Shoulders",
+    "summary": "Arms & Shoulders",
     "updated": "2026-10-30T19:47:54.820Z"
   },
   {
@@ -2479,7 +2531,7 @@
       "dateTime": "2026-11-20T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590056629004398\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -2512,7 +2564,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -2579,6 +2631,31 @@
     "updated": "2026-10-30T19:42:16.703Z"
   },
   {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "conferenceData": {
+      "conferenceId": "iwb-vymc-vxa",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/iwb-vymc-vxa",
+          "uri": "https://meet.google.com/iwb-vymc-vxa"
+        }
+      ]
+    },
     "created": "2026-11-18T18:43:15.000Z",
     "creator": {
       "email": "santiagosmitttt@gmail.com",
@@ -2588,8 +2665,9 @@
       "dateTime": "2026-11-20T15:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054920724670\"",
+    "etag": "\"3590058733585214\"",
     "eventType": "default",
+    "hangoutLink": "https://meet.google.com/iwb-vymc-vxa",
     "htmlLink": "https://www.google.com/calendar/event?eid=MHEzM3U0aXIwbnF0NGp1b3A1ZWlpZXVvMHZfMjAyNjExMjBUMjAxNTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
     "iCalUID": "0q33u4ir0nqt4juop5eiieuo0v@google.com",
     "id": "0q33u4ir0nqt4juop5eiieuo0v_20261120T201500Z",
@@ -2614,7 +2692,7 @@
     },
     "status": "confirmed",
     "summary": " Paseo de Sienna",
-    "updated": "2026-11-18T18:44:20.362Z"
+    "updated": "2026-11-18T19:16:06.792Z"
   },
   {
     "attendees": [
@@ -2783,7 +2861,7 @@
       "dateTime": "2026-11-23T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590056629004398\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -2816,7 +2894,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -2878,7 +2956,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Horizontal Torso (Chest \u0026 Back)",
+    "summary": "Horizontal Torso (Chest & Back)",
     "updated": "2026-11-11T20:57:12.132Z"
   },
   {
@@ -3110,7 +3188,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Vertical \u0026 Incline Torso (Chest \u0026 Back)",
+    "summary": "Vertical & Incline Torso (Chest & Back)",
     "updated": "2026-11-11T20:57:17.765Z"
   },
   {
@@ -3317,7 +3395,7 @@
       "dateTime": "2026-11-25T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590056629004398\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -3350,7 +3428,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -3712,7 +3790,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Arms \u0026 Shoulders",
+    "summary": "Arms & Shoulders",
     "updated": "2026-10-30T19:47:54.820Z"
   },
   {
@@ -3919,7 +3997,7 @@
       "dateTime": "2026-11-27T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590056629004398\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -3952,7 +4030,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -4185,7 +4263,7 @@
       "dateTime": "2026-11-30T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590056629004398\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -4218,7 +4296,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -4280,7 +4358,7 @@
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
-    "summary": "Horizontal Torso (Chest \u0026 Back)",
+    "summary": "Horizontal Torso (Chest & Back)",
     "updated": "2026-11-11T20:57:12.132Z"
   },
   {
@@ -4656,7 +4734,7 @@
       "dateTime": "2026-12-02T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590056629004398\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -4689,7 +4767,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -5130,7 +5208,7 @@
       "dateTime": "2026-12-04T06:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590054874429710\"",
+    "etag": "\"3590056629004398\"",
     "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
@@ -5163,7 +5241,7 @@
     },
     "status": "confirmed",
     "summary": "Paseo de Frida",
-    "updated": "2026-11-18T18:46:58.547Z"
+    "updated": "2026-11-18T19:16:13.122Z"
   },
   {
     "attendees": [
@@ -5230,5 +5308,1307 @@
     "status": "confirmed",
     "summary": "Paseo de Frida (Tarde)",
     "updated": "2026-11-18T18:48:21.914Z"
+  },
+  {
+    "birthdayProperties": {
+      "contact": "people/c9204251038193100852",
+      "type": "birthday"
+    },
+    "created": "2024-12-06T23:05:11.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "date": "2026-12-08"
+    },
+    "etag": "\"3478767681360000\"",
+    "eventType": "birthday",
+    "htmlLink": "https://www.google.com/calendar/event?eid=OGpucnY1YXJkODBkOWE5djFuM2o0aWlxcnNfMjAyNjEyMDcgc2FudGlhZ29zbWl0dHR0QG0",
+    "iCalUID": "8jnrv5ard80d9a9v1n3j4iiqrs@google.com",
+    "id": "8jnrv5ard80d9a9v1n3j4iiqrs_20261207",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "date": "2026-12-07"
+    },
+    "recurringEventId": "8jnrv5ard80d9a9v1n3j4iiqrs",
+    "reminders": {
+      "overrides": [
+        {
+          "method": "popup",
+          "minutes": 9540
+        }
+      ]
+    },
+    "start": {
+      "date": "2026-12-07"
+    },
+    "status": "confirmed",
+    "summary": "Cumpleaños de Johan Silva",
+    "transparency": "transparent",
+    "updated": "2025-02-12T18:10:40.680Z",
+    "visibility": "private"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "eps-afgu-szr",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/eps-afgu-szr",
+          "uri": "https://meet.google.com/eps-afgu-szr"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:51:51.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-07T06:25:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055848749726\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/eps-afgu-szr",
+    "htmlLink": "https://www.google.com/calendar/event?eid=N3J2cjI3Y2Rwb3Q1MHY3YWxybzV1ZnNrb2xfMjAyNjEyMDdUMTA1NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "7rvr27cdpot50v7alro5ufskol@google.com",
+    "id": "7rvr27cdpot50v7alro5ufskol_20261207T105500Z",
+    "kind": "calendar#event",
+    "location": "Palma Nova, Cra. 13 #64-51, Montería, Córdoba, Colombia",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-07T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "7rvr27cdpot50v7alro5ufskol",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-07T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Sienna",
+    "updated": "2026-11-18T18:52:04.374Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "weg-yhhw-kvk",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/weg-yhhw-kvk",
+          "uri": "https://meet.google.com/weg-yhhw-kvk"
+        }
+      ]
+    },
+    "created": "2026-06-19T20:19:27.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-07T06:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590056629004398\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
+    "htmlLink": "https://www.google.com/calendar/event?eid=cGMxcnVlajBjdWZxaGpudHMxMHY5NjlwNXRfMjAyNjEyMDdUMTEzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "pc1ruej0cufqhjnts10v969p5t@google.com",
+    "id": "pc1ruej0cufqhjnts10v969p5t_20261207T113000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-07T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "pc1ruej0cufqhjnts10v969p5t",
+    "reminders": {
+      "overrides": [
+        {
+          "method": "popup",
+          "minutes": 10
+        }
+      ]
+    },
+    "sequence": 5,
+    "start": {
+      "dateTime": "2026-12-07T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-11-18T19:16:13.122Z"
+  },
+  {
+    "created": "2026-07-09T00:22:16.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-07T20:35:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573081369227646\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=bXZ1aWx2ZnEwbWwxNHNqcmowc3JtZ3VrNHZfMjAyNjEyMDhUMDEyMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "mvuilvfq0ml14sjrj0srmguk4v@google.com",
+    "id": "mvuilvfq0ml14sjrj0srmguk4v_20261208T012000Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-07T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "mvuilvfq0ml14sjrj0srmguk4v",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-07T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-12T13:18:04.613Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "eps-afgu-szr",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/eps-afgu-szr",
+          "uri": "https://meet.google.com/eps-afgu-szr"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:51:51.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-08T06:25:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055848749726\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/eps-afgu-szr",
+    "htmlLink": "https://www.google.com/calendar/event?eid=N3J2cjI3Y2Rwb3Q1MHY3YWxybzV1ZnNrb2xfMjAyNjEyMDhUMTA1NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "7rvr27cdpot50v7alro5ufskol@google.com",
+    "id": "7rvr27cdpot50v7alro5ufskol_20261208T105500Z",
+    "kind": "calendar#event",
+    "location": "Palma Nova, Cra. 13 #64-51, Montería, Córdoba, Colombia",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-08T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "7rvr27cdpot50v7alro5ufskol",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-08T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Sienna",
+    "updated": "2026-11-18T18:52:04.374Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "ixm-oqvt-pzk",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/ixm-oqvt-pzk",
+          "uri": "https://meet.google.com/ixm-oqvt-pzk"
+        }
+      ]
+    },
+    "created": "2026-07-06T14:29:32.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-08T06:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055246918910\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/ixm-oqvt-pzk",
+    "htmlLink": "https://www.google.com/calendar/event?eid=Zjc1NTNyNmRhZjhzZWRsbWRybHVuZ3NkZjdfMjAyNjEyMDhUMTEzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "f7553r6daf8sedlmdrlungsdf7_R20261119T113000@google.com",
+    "id": "f7553r6daf8sedlmdrlungsdf7_20261208T113000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-08T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "f7553r6daf8sedlmdrlungsdf7_R20261119T113000",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-08T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-11-18T18:47:03.459Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "thz-zrqy-wzv",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/thz-zrqy-wzv",
+          "uri": "https://meet.google.com/thz-zrqy-wzv"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:47:43.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-08T19:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055403828766\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/thz-zrqy-wzv",
+    "htmlLink": "https://www.google.com/calendar/event?eid=M3JoYmw1c2NmaGdmNWV1cnFoZms1cm1tZW5fMjAyNjEyMDlUMDAzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "3rhbl5scfhgf5eurqhfk5rmmen@google.com",
+    "id": "3rhbl5scfhgf5eurqhfk5rmmen_20261209T003000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-08T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "3rhbl5scfhgf5eurqhfk5rmmen",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-08T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida (Tarde)",
+    "updated": "2026-11-18T18:48:21.914Z"
+  },
+  {
+    "created": "2026-07-09T23:44:28.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-08T21:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573795710921118\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=MDJuYjVoZG5tZWhzZjhyNGtlbmhwN2UxbzVfMjAyNjEyMDlUMDE0NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "02nb5hdnmehsf8r4kenhp7e1o5@google.com",
+    "id": "02nb5hdnmehsf8r4kenhp7e1o5_20261209T014500Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-08T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "02nb5hdnmehsf8r4kenhp7e1o5",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-08T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-16T16:30:55.460Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "eps-afgu-szr",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/eps-afgu-szr",
+          "uri": "https://meet.google.com/eps-afgu-szr"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:51:51.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-09T06:25:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055848749726\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/eps-afgu-szr",
+    "htmlLink": "https://www.google.com/calendar/event?eid=N3J2cjI3Y2Rwb3Q1MHY3YWxybzV1ZnNrb2xfMjAyNjEyMDlUMTA1NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "7rvr27cdpot50v7alro5ufskol@google.com",
+    "id": "7rvr27cdpot50v7alro5ufskol_20261209T105500Z",
+    "kind": "calendar#event",
+    "location": "Palma Nova, Cra. 13 #64-51, Montería, Córdoba, Colombia",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-09T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "7rvr27cdpot50v7alro5ufskol",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-09T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Sienna",
+    "updated": "2026-11-18T18:52:04.374Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "weg-yhhw-kvk",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/weg-yhhw-kvk",
+          "uri": "https://meet.google.com/weg-yhhw-kvk"
+        }
+      ]
+    },
+    "created": "2026-06-19T20:19:27.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-09T06:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590056629004398\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
+    "htmlLink": "https://www.google.com/calendar/event?eid=cGMxcnVlajBjdWZxaGpudHMxMHY5NjlwNXRfMjAyNjEyMDlUMTEzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "pc1ruej0cufqhjnts10v969p5t@google.com",
+    "id": "pc1ruej0cufqhjnts10v969p5t_20261209T113000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-09T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "pc1ruej0cufqhjnts10v969p5t",
+    "reminders": {
+      "overrides": [
+        {
+          "method": "popup",
+          "minutes": 10
+        }
+      ]
+    },
+    "sequence": 5,
+    "start": {
+      "dateTime": "2026-12-09T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-11-18T19:16:13.122Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "thz-zrqy-wzv",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/thz-zrqy-wzv",
+          "uri": "https://meet.google.com/thz-zrqy-wzv"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:47:43.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-09T19:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055403828766\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/thz-zrqy-wzv",
+    "htmlLink": "https://www.google.com/calendar/event?eid=M3JoYmw1c2NmaGdmNWV1cnFoZms1cm1tZW5fMjAyNjEyMTBUMDAzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "3rhbl5scfhgf5eurqhfk5rmmen@google.com",
+    "id": "3rhbl5scfhgf5eurqhfk5rmmen_20261210T003000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-09T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "3rhbl5scfhgf5eurqhfk5rmmen",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-09T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida (Tarde)",
+    "updated": "2026-11-18T18:48:21.914Z"
+  },
+  {
+    "created": "2026-07-09T00:22:16.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-09T20:35:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573081369227646\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=bXZ1aWx2ZnEwbWwxNHNqcmowc3JtZ3VrNHZfMjAyNjEyMTBUMDEyMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "mvuilvfq0ml14sjrj0srmguk4v@google.com",
+    "id": "mvuilvfq0ml14sjrj0srmguk4v_20261210T012000Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-09T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "mvuilvfq0ml14sjrj0srmguk4v",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-09T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-12T13:18:04.613Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "eps-afgu-szr",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/eps-afgu-szr",
+          "uri": "https://meet.google.com/eps-afgu-szr"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:51:51.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-10T06:25:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055848749726\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/eps-afgu-szr",
+    "htmlLink": "https://www.google.com/calendar/event?eid=N3J2cjI3Y2Rwb3Q1MHY3YWxybzV1ZnNrb2xfMjAyNjEyMTBUMTA1NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "7rvr27cdpot50v7alro5ufskol@google.com",
+    "id": "7rvr27cdpot50v7alro5ufskol_20261210T105500Z",
+    "kind": "calendar#event",
+    "location": "Palma Nova, Cra. 13 #64-51, Montería, Córdoba, Colombia",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-10T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "7rvr27cdpot50v7alro5ufskol",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-10T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Sienna",
+    "updated": "2026-11-18T18:52:04.374Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "ixm-oqvt-pzk",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/ixm-oqvt-pzk",
+          "uri": "https://meet.google.com/ixm-oqvt-pzk"
+        }
+      ]
+    },
+    "created": "2026-07-06T14:29:32.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-10T06:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055246918910\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/ixm-oqvt-pzk",
+    "htmlLink": "https://www.google.com/calendar/event?eid=Zjc1NTNyNmRhZjhzZWRsbWRybHVuZ3NkZjdfMjAyNjEyMTBUMTEzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "f7553r6daf8sedlmdrlungsdf7_R20261119T113000@google.com",
+    "id": "f7553r6daf8sedlmdrlungsdf7_20261210T113000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-10T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "f7553r6daf8sedlmdrlungsdf7_R20261119T113000",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-10T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-11-18T18:47:03.459Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "thz-zrqy-wzv",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/thz-zrqy-wzv",
+          "uri": "https://meet.google.com/thz-zrqy-wzv"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:47:43.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-10T19:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055403828766\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/thz-zrqy-wzv",
+    "htmlLink": "https://www.google.com/calendar/event?eid=M3JoYmw1c2NmaGdmNWV1cnFoZms1cm1tZW5fMjAyNjEyMTFUMDAzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "3rhbl5scfhgf5eurqhfk5rmmen@google.com",
+    "id": "3rhbl5scfhgf5eurqhfk5rmmen_20261211T003000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-10T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "3rhbl5scfhgf5eurqhfk5rmmen",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-10T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida (Tarde)",
+    "updated": "2026-11-18T18:48:21.914Z"
+  },
+  {
+    "created": "2026-07-09T23:44:28.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-10T21:00:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573795710921118\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=MDJuYjVoZG5tZWhzZjhyNGtlbmhwN2UxbzVfMjAyNjEyMTFUMDE0NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "02nb5hdnmehsf8r4kenhp7e1o5@google.com",
+    "id": "02nb5hdnmehsf8r4kenhp7e1o5_20261211T014500Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-10T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "02nb5hdnmehsf8r4kenhp7e1o5",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-10T20:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-16T16:30:55.460Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "eps-afgu-szr",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/eps-afgu-szr",
+          "uri": "https://meet.google.com/eps-afgu-szr"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:51:51.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-11T06:25:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055848749726\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/eps-afgu-szr",
+    "htmlLink": "https://www.google.com/calendar/event?eid=N3J2cjI3Y2Rwb3Q1MHY3YWxybzV1ZnNrb2xfMjAyNjEyMTFUMTA1NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "7rvr27cdpot50v7alro5ufskol@google.com",
+    "id": "7rvr27cdpot50v7alro5ufskol_20261211T105500Z",
+    "kind": "calendar#event",
+    "location": "Palma Nova, Cra. 13 #64-51, Montería, Córdoba, Colombia",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-11T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "7rvr27cdpot50v7alro5ufskol",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-11T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Sienna",
+    "updated": "2026-11-18T18:52:04.374Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "weg-yhhw-kvk",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/weg-yhhw-kvk",
+          "uri": "https://meet.google.com/weg-yhhw-kvk"
+        }
+      ]
+    },
+    "created": "2026-06-19T20:19:27.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-11T06:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590056629004398\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
+    "htmlLink": "https://www.google.com/calendar/event?eid=cGMxcnVlajBjdWZxaGpudHMxMHY5NjlwNXRfMjAyNjEyMTFUMTEzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "pc1ruej0cufqhjnts10v969p5t@google.com",
+    "id": "pc1ruej0cufqhjnts10v969p5t_20261211T113000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-11T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "pc1ruej0cufqhjnts10v969p5t",
+    "reminders": {
+      "overrides": [
+        {
+          "method": "popup",
+          "minutes": 10
+        }
+      ]
+    },
+    "sequence": 5,
+    "start": {
+      "dateTime": "2026-12-11T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-11-18T19:16:13.122Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "thz-zrqy-wzv",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/thz-zrqy-wzv",
+          "uri": "https://meet.google.com/thz-zrqy-wzv"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:47:43.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-11T19:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055403828766\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/thz-zrqy-wzv",
+    "htmlLink": "https://www.google.com/calendar/event?eid=M3JoYmw1c2NmaGdmNWV1cnFoZms1cm1tZW5fMjAyNjEyMTJUMDAzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "3rhbl5scfhgf5eurqhfk5rmmen@google.com",
+    "id": "3rhbl5scfhgf5eurqhfk5rmmen_20261212T003000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-11T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "3rhbl5scfhgf5eurqhfk5rmmen",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-11T19:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida (Tarde)",
+    "updated": "2026-11-18T18:48:21.914Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "eps-afgu-szr",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/eps-afgu-szr",
+          "uri": "https://meet.google.com/eps-afgu-szr"
+        }
+      ]
+    },
+    "created": "2026-11-18T18:51:51.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-14T06:25:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590055848749726\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/eps-afgu-szr",
+    "htmlLink": "https://www.google.com/calendar/event?eid=N3J2cjI3Y2Rwb3Q1MHY3YWxybzV1ZnNrb2xfMjAyNjEyMTRUMTA1NTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "7rvr27cdpot50v7alro5ufskol@google.com",
+    "id": "7rvr27cdpot50v7alro5ufskol_20261214T105500Z",
+    "kind": "calendar#event",
+    "location": "Palma Nova, Cra. 13 #64-51, Montería, Córdoba, Colombia",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-14T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "7rvr27cdpot50v7alro5ufskol",
+    "reminders": {
+      "useDefault": true
+    },
+    "start": {
+      "dateTime": "2026-12-14T05:55:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Sienna",
+    "updated": "2026-11-18T18:52:04.374Z"
+  },
+  {
+    "attendees": [
+      {
+        "email": "santiagosmitttt@gmail.com",
+        "organizer": true,
+        "responseStatus": "needsAction",
+        "self": true
+      }
+    ],
+    "colorId": "4",
+    "conferenceData": {
+      "conferenceId": "weg-yhhw-kvk",
+      "conferenceSolution": {
+        "iconUri": "https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png",
+        "key": {
+          "type": "hangoutsMeet"
+        },
+        "name": "Google Meet"
+      },
+      "entryPoints": [
+        {
+          "entryPointType": "video",
+          "label": "meet.google.com/weg-yhhw-kvk",
+          "uri": "https://meet.google.com/weg-yhhw-kvk"
+        }
+      ]
+    },
+    "created": "2026-06-19T20:19:27.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-14T06:45:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3590056629004398\"",
+    "eventLabelId": "2609a9a9-299b-4d37-ada9-3b5a1f7476ab",
+    "eventType": "default",
+    "hangoutLink": "https://meet.google.com/weg-yhhw-kvk",
+    "htmlLink": "https://www.google.com/calendar/event?eid=cGMxcnVlajBjdWZxaGpudHMxMHY5NjlwNXRfMjAyNjEyMTRUMTEzMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "pc1ruej0cufqhjnts10v969p5t@google.com",
+    "id": "pc1ruej0cufqhjnts10v969p5t_20261214T113000Z",
+    "kind": "calendar#event",
+    "location": "Cll 63 # 6-41 Edificio Castellana 101",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-14T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "pc1ruej0cufqhjnts10v969p5t",
+    "reminders": {
+      "overrides": [
+        {
+          "method": "popup",
+          "minutes": 10
+        }
+      ]
+    },
+    "sequence": 5,
+    "start": {
+      "dateTime": "2026-12-14T06:30:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Paseo de Frida",
+    "updated": "2026-11-18T19:16:13.122Z"
+  },
+  {
+    "created": "2026-07-09T00:22:16.000Z",
+    "creator": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "end": {
+      "dateTime": "2026-12-14T20:35:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "etag": "\"3573081369227646\"",
+    "eventLabelId": "cc6de818-e8bb-4117-bc66-8762f114610c",
+    "eventType": "default",
+    "htmlLink": "https://www.google.com/calendar/event?eid=bXZ1aWx2ZnEwbWwxNHNqcmowc3JtZ3VrNHZfMjAyNjEyMTVUMDEyMDAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
+    "iCalUID": "mvuilvfq0ml14sjrj0srmguk4v@google.com",
+    "id": "mvuilvfq0ml14sjrj0srmguk4v_20261215T012000Z",
+    "kind": "calendar#event",
+    "organizer": {
+      "email": "santiagosmitttt@gmail.com",
+      "self": true
+    },
+    "originalStartTime": {
+      "dateTime": "2026-12-14T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "recurringEventId": "mvuilvfq0ml14sjrj0srmguk4v",
+    "reminders": {
+      "useDefault": true
+    },
+    "sequence": 1,
+    "start": {
+      "dateTime": "2026-12-14T20:20:00-05:00",
+      "timeZone": "America/Bogota"
+    },
+    "status": "confirmed",
+    "summary": "Baño de recuperación térmica",
+    "updated": "2026-08-12T13:18:04.613Z"
   }
 ]

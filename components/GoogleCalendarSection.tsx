@@ -283,9 +283,9 @@ export default function GoogleCalendarSection() {
   const [viewMode, setViewMode] = useState<'grouped' | 'grid'>('grouped');
   const [refreshNotice, setRefreshNotice] = useState<string | null>(null);
 
-  const loadEvents = useCallback(async (isManualRefresh: boolean = false) => {
+  const loadEvents = useCallback(async (isManualRefresh: boolean = false, silent: boolean = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       setErrorMsg(null);
       const url = `/api/calendar/events?t=${Date.now()}${isManualRefresh ? '&refresh=true' : ''}`;
       const res = await fetch(url, { cache: 'no-store' });
@@ -298,7 +298,7 @@ export default function GoogleCalendarSection() {
             email: data.account,
           });
         }
-        if (isManualRefresh) {
+        if (isManualRefresh && !silent) {
           if (data.refreshed) {
             setRefreshNotice(
               `✅ Google Calendar sincronizado en vivo exitosamente (${data.events.length} eventos actualizados).`
@@ -310,21 +310,42 @@ export default function GoogleCalendarSection() {
           }
           setTimeout(() => setRefreshNotice(null), 5000);
         }
-      } else {
+      } else if (!silent) {
         setEvents([]);
         setErrorMsg('❌ Error al sincronizar el calendario: ' + (data.error || 'No se recibieron eventos de Google Calendar'));
       }
     } catch (err: any) {
       console.warn('Calendar fetch error:', err);
-      setErrorMsg('❌ Error de conexión al sincronizar calendario: ' + (err.message || 'Sin respuesta del servidor'));
-      setEvents([]);
+      if (!silent) {
+        setErrorMsg('❌ Error de conexión al sincronizar calendario: ' + (err.message || 'Sin respuesta del servidor'));
+        setEvents([]);
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadEvents();
+    loadEvents(false, false);
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadEvents(true, true);
+      }
+    };
+    window.addEventListener('focus', onFocusOrVisible);
+    document.addEventListener('visibilitychange', onFocusOrVisible);
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        loadEvents(false, true);
+      }
+    }, 15000);
+
+    return () => {
+      window.removeEventListener('focus', onFocusOrVisible);
+      document.removeEventListener('visibilitychange', onFocusOrVisible);
+      clearInterval(intervalId);
+    };
   }, [loadEvents]);
 
   const handleRefresh = async () => {
