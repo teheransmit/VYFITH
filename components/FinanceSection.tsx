@@ -93,6 +93,32 @@ export default function FinanceSection() {
     }
   };
 
+  const [fridaTransferredToNu, setFridaTransferredToNu] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('vyfith_frida_to_nu') === 'true';
+    }
+    return false;
+  });
+
+  const handleTransferFridaToNu = () => {
+    setFridaTransferredToNu(true);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_frida_to_nu', 'true');
+    }
+    setQuickNotice('💜 ¡$25.000 COP de Frida transferidos exitosamente a la Cajita Nu al 9.30% E.A.!');
+  };
+
+  const handleUndoTransferFrida = () => {
+    setFridaTransferredToNu(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vyfith_frida_to_nu', 'false');
+    }
+    setQuickNotice('🟣 $25.000 COP devueltos al saldo de Nequi.');
+  };
+
+  const nequiLiquidBalance = fridaTransferredToNu ? 20724.27 : 45724.27;
+  const nuBoxBalance = fridaTransferredToNu ? 25000 : 0;
+
   const loadCalendarWalkEvents = useCallback(async (forceRefresh = false) => {
     if (forceRefresh) {
       setCalendarSyncing(true);
@@ -566,83 +592,115 @@ export default function FinanceSection() {
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                 Auditoría en Tiempo Real
               </span>
-              <span className="text-xs font-mono text-slate-400">Octubre 2026</span>
+              <span className="text-xs font-mono text-slate-400">18 Noviembre 2026 • En Vacaciones</span>
             </div>
             <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
-              Micro-Liquidez Disponible: Gimnasio vs. Deuda Daniela vs. Cajita Nu
+              Consola de Liquidez Viva, Cuentas por Cobrar & Deudas de Honor
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Evaluación matemática de solvencia para autorizar el pago de la mensualidad del gimnasio manteniendo tu colchón seguro.
+              Control exacto de tu única plata líquida en Nequi/Nu, deudas saldadas (Daniela, Gym) y cartera activa por recaudar en calle.
             </p>
           </div>
 
           <div className="px-4 py-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 text-right self-start sm:self-auto">
-            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase block font-mono">Saldo Libre Tras Pagos</span>
-            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">+$50.929 COP</span>
-            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 block font-semibold">+41.8% de colchón intacto</span>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase block font-mono">Única Plata Líquida</span>
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+              ${(45724.27).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} COP
+            </span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 block font-semibold">100% en Nequi / Nu</span>
           </div>
         </div>
 
-        {/* Rejilla de Activos y Compromisos */}
+        {/* Rejilla de Activos Reales y Compromisos */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 pt-1">
-          {/* Cajita Nu */}
-          <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Cajita Nu (9.30%)</span>
-            <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 font-mono">$116.929</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Incluye $50k Sienna</span>
+          {/* Nequi */}
+          <div className="p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-300 block font-mono">Nequi (Activo)</span>
+              {fridaTransferredToNu && (
+                <span className="text-[9px] bg-purple-200 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-1 py-0.2 rounded font-bold">Nu listo</span>
+              )}
+            </div>
+            <span className="text-sm sm:text-base font-black text-purple-900 dark:text-purple-200 font-mono">
+              ${nequiLiquidBalance.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+            <span className="text-[10px] text-purple-700 dark:text-purple-300 block">
+              {fridaTransferredToNu ? 'Saldo libre en Nequi' : 'Incluye $25k Frida de Laura'}
+            </span>
           </div>
 
-          {/* Efectivo */}
+          {/* Cajita Nu */}
+          <div className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800">
+            <span className="text-[10px] uppercase font-bold text-indigo-700 dark:text-indigo-300 block font-mono">Cajita Nu (9.30%)</span>
+            <span className="text-sm sm:text-base font-black text-indigo-700 dark:text-indigo-300 font-mono">
+              ${nuBoxBalance.toLocaleString('es-CO')}
+            </span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
+              {fridaTransferredToNu ? 'Rentando al 9.30% E.A.' : 'Esperando traslado $25k'}
+            </span>
+          </div>
+
+          {/* Efectivo en Mano */}
           <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700">
             <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Efectivo en Mano</span>
-            <span className="text-sm sm:text-base font-black text-slate-800 dark:text-slate-200 font-mono">$5.000</span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Billetes físicos</span>
+            <span className="text-sm sm:text-base font-black text-slate-500 dark:text-slate-400 font-mono">$0 COP</span>
+            <span className="text-[10px] text-slate-400 block">Cero billetes en físico</span>
           </div>
 
-          {/* Deuda Daniela Bula */}
-          <div className="p-3 rounded-2xl bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60">
-            <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-400 block font-mono">Deuda Daniela Bula</span>
-            <span className="text-sm sm:text-base font-black text-rose-600 dark:text-rose-400 font-mono">-$22.000</span>
-            <span className="text-[10px] text-rose-700/80 dark:text-rose-300 block">Prioridad #1</span>
+          {/* Deuda Daniela Bula (PAGADA) */}
+          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800">
+            <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block font-mono">Daniela Bula</span>
+            <span className="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-400 font-mono">$0 COP</span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 block font-semibold">100% Pagada ✅</span>
           </div>
 
-          {/* Gimnasio UPB */}
-          <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60">
-            <span className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400 block font-mono">Mensualidad Gym UPB</span>
-            <span className="text-sm sm:text-base font-black text-amber-600 dark:text-amber-400 font-mono">-$49.000</span>
-            <span className="text-[10px] text-amber-700/80 dark:text-amber-300 block">5 semanas (~$3.266/d)</span>
+          {/* Gimnasio UPB (PAGADO) */}
+          <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800">
+            <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block font-mono">Gimnasio UPB</span>
+            <span className="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-400 font-mono">$0 COP</span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 block font-semibold">Mensualidad Pagada ✅</span>
           </div>
 
-          {/* Laura (Paseos Frida) */}
+          {/* Laura (Paseos Frida - COBRADO) */}
           <div className="p-3 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800">
             <span className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400 block font-mono">Laura (Frida)</span>
-            <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 font-mono">+$25.000</span>
-            <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300 block">5 paseos x $5k (No en Nu)</span>
+            <span className="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-400 font-mono">Cobrado ✅</span>
+            <span className="text-[10px] text-emerald-700 dark:text-emerald-300 block">+$25.000 en Nequi</span>
           </div>
 
-          {/* María Minerva */}
-          <div className="p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60">
-            <span className="text-[10px] uppercase font-bold text-blue-700 dark:text-blue-400 block font-mono">María Minerva</span>
-            <span className="text-sm sm:text-base font-black text-blue-600 dark:text-blue-400 font-mono">+$10.000</span>
-            <span className="text-[10px] text-blue-700/80 dark:text-blue-300 block">Por cobrar</span>
-          </div>
-
-          {/* Reembolso Google Play */}
-          <div className="p-3 rounded-2xl bg-purple-50/80 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-900/60">
-            <span className="text-[10px] uppercase font-bold text-purple-700 dark:text-purple-400 block font-mono">Reembolso Google</span>
-            <span className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400 font-mono">+$20.000</span>
-            <span className="text-[10px] text-purple-700/80 dark:text-purple-300 block">Mastercard-2406</span>
+          {/* Cuentas por Cobrar en Calle */}
+          <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60">
+            <span className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400 block font-mono">Por Cobrar Calle</span>
+            <span className="text-sm sm:text-base font-black text-amber-700 dark:text-amber-400 font-mono">+$295.000</span>
+            <span className="text-[10px] text-amber-800 dark:text-amber-300 block">Richard ($180k) + Maba ($115k)</span>
           </div>
         </div>
 
-        {/* Diagnóstico Resolutivo */}
-        <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center justify-between flex-wrap gap-2">
-          <span>
-            💡 <strong>Diagnóstico de Cobertura:</strong> Tienes <strong>$121.929 COP</strong> disponibles (incluye ya los $50k de Sienna). Pagando los <strong>$22.000</strong> a Daniela y los <strong>$49.000</strong> del gimnasio, te sobran <strong>$50.929 COP</strong> libres. Al cobrar los <strong>$25.000 de Laura (Frida)</strong> y los <strong>$10.000 de Minerva</strong>, tu colchón final sube a <strong>+$85.929 COP</strong>.
-          </span>
-          <span className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase font-mono bg-emerald-600 text-white shadow-xs">
-            Colchón Final: $85.929 COP ✅
-          </span>
+        {/* Acciones Rápidas: Trasladar $25k de Frida a Nu + Diagnóstico */}
+        <div className="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex-1">
+            <span>
+              💡 <strong>Estado Financiero Real:</strong> Tu única plata líquida disponible son los <strong>$45.724,27 COP en Nequi</strong> ($0 en efectivo). De ese valor, <strong>$25.000 COP</strong> corresponden a los paseos de Frida que pagó la señora Laura. Daniela ($22k) y el Gimnasio UPB ($48.760) ya están <strong>100% pagados</strong>. Tienes <strong>$295.000 COP por cobrar en la calle</strong> ($180.000 Richard David + $115.000 Maba), y a Yessid le restan <strong>$519.000 COP</strong> tras abonarle $31.000 recientes ($4.500 helado + $26.500 trago).
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {!fridaTransferredToNu ? (
+              <button
+                onClick={handleTransferFridaToNu}
+                className="cursor-pointer px-3.5 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Pasar $25.000 de Frida a Cajita Nu
+              </button>
+            ) : (
+              <button
+                onClick={handleUndoTransferFrida}
+                className="cursor-pointer px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 text-slate-800 dark:text-slate-200 text-xs font-medium transition-all"
+              >
+                Revertir a Nequi
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -655,10 +713,10 @@ export default function FinanceSection() {
               <span>Consola Ejecutiva de Capital • Estándar Midday & Envelope Budgeting</span>
             </div>
             <h3 className="text-xl font-bold tracking-tight text-white">
-              Runway Personal, Rendimiento Nu & Flujo Post-Viaje
+              Runway Personal, Rendimiento Nu & Flujo de Vacaciones
             </h3>
             <p className="text-xs text-slate-300 max-w-xl">
-              Monitoreo de liquidez en Cajita Nu ($116.929 COP al 9.30% E.A.), saneamiento de deudas y flujo estudiantil. (Viaje Medellín 8-12 Octubre concluido; auditoría de gastos a fin de mes).
+              Monitoreo de liquidez en Nequi/Nu ($45.724,27 COP), cobro de cartera ($295.000 COP en calle) y saneamiento de la deuda de Yessid ($519.000 COP restantes).
             </p>
           </div>
 
@@ -2930,9 +2988,11 @@ export default function FinanceSection() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-slate-900">{rec.client}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-medium">
-                      {rec.dogName}
-                    </span>
+                    {rec.dogName && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-medium">
+                        {rec.dogName}
+                      </span>
+                    )}
                     <span className="text-xs text-slate-400">• {rec.concept}</span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">{rec.notes}</p>
@@ -2940,7 +3000,9 @@ export default function FinanceSection() {
                 <div className="flex items-center gap-3 self-end sm:self-center">
                   <div className="text-right">
                     <span className="text-base font-extrabold text-slate-900 block">{formatCurrency(rec.amount)}</span>
-                    <span className="text-[10px] text-amber-700 font-bold uppercase">{rec.status}</span>
+                    <span className={`text-[10px] font-bold uppercase ${rec.status === 'Cobrado' ? 'text-emerald-600' : 'text-amber-700'}`}>
+                      {rec.status === 'Cobrado' ? 'Cobrado ✅' : rec.status}
+                    </span>
                   </div>
                   <button
                     onClick={() => {

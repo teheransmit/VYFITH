@@ -154,13 +154,23 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
   4. ❌ **Análisis de Estructuras (NRC 52885 / 8825-0049, 2 cr):** **REPROBADA** con **2.71 / 5.00** (100%, sin redondeo) -> **Bloquea Concreto I** y repite en 2027-1 (NRC 13801/13802).
   5. ❌ **Fundamentos de Hidrología (NRC 52910 / 8825-0030, 2 cr):** **REPROBADA** con **2.896 / 5.00** (100%, a -0.104 de 3.000; SIGAA jamás redondea) -> **Bloquea Acueducto y Alcantarillado** y repite en 2027-1 (NRC 22221/22222).
 
-### 💰 FINANZAS NU & DEUDAS:
-- **Cajita Nu (9.30% E.A.):** ~$116.929 COP.
-- **Efectivo:** $5.000 COP.
+### 💰 FINANZAS NU & DEUDAS (ACTUALIZADO AL 18 DE NOVIEMBRE DE 2026):
+- **Efectivo en Mano:** **$0 COP** (cero pesos físicos disponibles).
+- **Nequi:** **$45.724,27 COP** (su **única plata disponible** en este momento).
+  * Incluye **$25.000 COP** del pago de Frida de la semana pasada (pagados por la señora Laura).
+  * Se trasladarán de inmediato esos **$25.000 COP a la Cajita Nu** para que comiencen a rentar al 9.30% E.A.
+- **Cajita Nu (9.30% E.A.):** Lista para recibir los $25.000 COP desde Nequi.
+- **Deuda Moral con Yessid ($580.000 iniciales):** **$519.000 COP restantes**.
+  * Abonos acumulados: $30.000 COP inicial + **$4.500 COP** (un helado) + **$26.500 COP** (un trago) = **$61.000 COP abonados en total**.
+  * Prioridad #1 innegociable antes del iPhone 15 Pro.
+- **Pasivo Daniela Bula:** **$0 COP (100% PAGADO Y EXTINTO)** (deuda saldada).
+- **Mensualidad Gimnasio UPB:** **$0 COP (100% PAGADA Y AL DÍA)** ($48.760 COP cancelados).
+- **Cuentas por Cobrar a Terceros (Total en Calle: $295.000 COP):**
+  * **Richard David:** Debe **$180.000 COP** ($150.000 base + **$30.000 COP** que supuestamente había devuelto pero no devolvió; acumulados).
+  * **Maba:** Debe **$115.000 COP** por concepto de trabajos/asignaciones de inglés.
+  * **Señora Laura (Frida):** **$0 COP pendientes (100% PAGADA)**. Canceló los $25.000 de Frida que ya están en Nequi.
 - **Ingresos por Paseos Caninos:** Calculados en vivo desde Google Calendar Auto-Invite (\`computeWalksIncomeFromCalendar\`).
-- **Pasivo Daniela Bula:** **$0 COP (100% PAGADO Y EXTINTO)**.
 - **Viaje a Medellín (8-12 Oct 2026):** **100% CONCLUIDO**.
-- **Deuda Moral con Yessid:** **$550.000 COP** (se abonaron $30.000 COP de los $580.000 iniciales; prioridad #1 antes del iPhone).
 - **Meta Hardware N.° 1 (El iPhone):** Requisito inmutable: **Dynamic Island** (iPhone 14 Pro, iPhone 15, iPhone 15 Pro o iPhone 16) con **mínimo 256 GB**. El Vivo Y20 actual está en estado crítico.
 - **Meta Hardware N.° 2 (Post-iPhone):** **Tablet con lápiz óptico (stylus)**, funda con teclado y mouse para notas a mano y clases, más renovación de ropa personal.
 - **Padre de Santiago (Papá) y Titular del Beneficio UPB:** Su papá es **Jader Smit Teherán Sierra** (\`CC 73182538\`, \`ID UPB 000327911\`, \`jader.teheran@upb.edu.co\`), Técnico Radio Operador de planta en **Frecuencia Bolivariana 1160 AM** (UPB Montería), titular del beneficio \`Categoría C — Auxilio TBEA 95% Empleados\` (descuento del 95% en pregrado, inglés y futura especialización) y quien le transfiere \`$450.000 a $550.000 COP\` por semestre para matrícula + gimnasio UPB.
@@ -187,7 +197,7 @@ export function buildLiveSystemInstruction(
 - **Salud & Mi Fitness Hoy:** ${snapshot.health?.steps?.toLocaleString('es-CO') || '2,375'} pasos | Sueño neto anoche: ${snapshot.health?.sleepHours || '10.2'} horas (${Math.floor(snapshot.health?.sleepHours || 10)}h ${Math.round(((snapshot.health?.sleepHours || 10.2) % 1) * 60)}m) | FC en reposo: ${snapshot.health?.restingHeartRate || 62} lpm | SpO2: ${snapshot.health?.spo2?.toFixed(1) || '96.7'}% | Nivel de estrés: ${snapshot.health?.stressScore || 20}/100 (Relajado).
 - **Composición Corporal Báscula Femmto (28/Oct):** Peso: ${snapshot.health?.weight || 55.7} kg | Grasa corporal (PGC): ${snapshot.health?.bodyFatPct || 10.6}% (5.9 kg de grasa) | MME (Masa muscular esquelética): ${snapshot.health?.skeletalMuscleKg || 25.1} kg | IMC: ${snapshot.health?.bmi || 18.8} kg/m² | Masa libre de grasa: ${snapshot.health?.fatFreeMassKg || 49.8} kg | Agua: ${snapshot.health?.waterL || 32.8} L | Meta: Superávit limpio hacia 60 kg manteniendo definición.
 - **Gimnasio & Hevy:** Última sesión: "${snapshot.hevy?.lastWorkoutName || 'Full Legs'}" con tonelaje de ${snapshot.hevy?.totalVolumeKg?.toLocaleString('es-CO') || '4,484'} kg (${snapshot.hevy?.date || '10 nov 2026'}).
-- **Finanzas Nu & Deudas:** Saldo líquido en Cajita Nu: $116.929 COP | Efectivo: $5.000 COP | Pasivo Daniela Bula: $0 COP (Pagado) | Compromiso Yessid: $550.000 COP restantes.
+- **Finanzas Nequi, Nu & Deudas:** Único saldo líquido: $45.724,27 COP en Nequi ($0 COP en efectivo; incluye $25k de Frida de Laura para pasar a Cajita Nu al 9.30% E.A.) | Pasivo Daniela Bula: $0 COP (100% Pagado) | Mensualidad Gimnasio UPB: Pagada | Compromiso Yessid: $519.000 COP restantes ($61.000 COP abonados: $30k + $4.5k helado + $26.5k trago) | Por cobrar a terceros: $180.000 COP Richard David ($150k + $30k no devueltos) + $115.000 COP Maba (inglés) = $295.000 COP en calle.
 - **Academia UPB (Semestre 2026-II Cerrado al 100% en SIGAA → Agenda 2027-I, PGA ${snapshot.academic?.pga ?? 3.93}):** Vías II ${snapshot.academic?.viasAcum?.toFixed(2) ?? '4.03'} (✅ Aprobada) | Presupuesto ${snapshot.academic?.presupuestoAcum?.toFixed(2) ?? '3.63'} (✅ Aprobada) | Suelos ${snapshot.academic?.suelosAcum?.toFixed(2) ?? '2.50'} (❌ Reprobada, Lab ${snapshot.academic?.suelosLabAverage?.toFixed(2) ?? '4.36'} homologable → Solo Teoría Mar/Jue 14:00) | Estructuras ${snapshot.academic?.estructurasAcum?.toFixed(2) ?? '2.71'} (❌ Reprobada al 100%) | Hidrología ${snapshot.academic?.hidrologiaAcum?.toFixed(2) ?? '2.90'} (❌ Reprobada 2.896 al 100%). Bloqueadas 2027-1: ${snapshot.academic?.blocked2027Courses?.join(', ') || 'Cimentaciones, Concreto I, Acueducto y Alcantarillado'}. Plan 2027-1 activo (${snapshot.academic?.planned2027Credits ?? 12} cr, $${(snapshot.academic?.planned2027NetTuition ?? 381000).toLocaleString('es-CO')} TBEA): ${snapshot.academic?.enrolled2027Courses?.join(' • ') || 'Suelos Solo Teoría, Estructuras, Hidrología, Transporte, Ética, Inglés Nivel 10'}.`;
   }
 

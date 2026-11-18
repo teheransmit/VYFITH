@@ -1998,10 +1998,10 @@
       "self": true
     },
     "end": {
-      "dateTime": "2026-11-18T15:45:00-05:00",
+      "dateTime": "2026-11-18T17:00:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590058733585214\"",
+    "etag": "\"3590065003484894\"",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/iwb-vymc-vxa",
     "htmlLink": "https://www.google.com/calendar/event?eid=MHEzM3U0aXIwbnF0NGp1b3A1ZWlpZXVvMHZfMjAyNjExMThUMjAxNTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
@@ -2021,14 +2021,14 @@
     "reminders": {
       "useDefault": true
     },
-    "sequence": 4,
+    "sequence": 5,
     "start": {
-      "dateTime": "2026-11-18T15:15:00-05:00",
+      "dateTime": "2026-11-18T16:30:00-05:00",
       "timeZone": "America/Bogota"
     },
     "status": "confirmed",
     "summary": " Paseo de Sienna",
-    "updated": "2026-11-18T19:16:06.792Z"
+    "updated": "2026-11-18T20:08:21.742Z"
   },
   {
     "attendees": [
@@ -2299,7 +2299,7 @@
       "dateTime": "2026-11-19T15:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590058733585214\"",
+    "etag": "\"3590065003484894\"",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/iwb-vymc-vxa",
     "htmlLink": "https://www.google.com/calendar/event?eid=MHEzM3U0aXIwbnF0NGp1b3A1ZWlpZXVvMHZfMjAyNjExMTlUMjAxNTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
@@ -2326,7 +2326,7 @@
     },
     "status": "confirmed",
     "summary": " Paseo de Sienna",
-    "updated": "2026-11-18T19:16:06.792Z"
+    "updated": "2026-11-18T20:08:21.742Z"
   },
   {
     "attendees": [
@@ -2665,7 +2665,7 @@
       "dateTime": "2026-11-20T15:45:00-05:00",
       "timeZone": "America/Bogota"
     },
-    "etag": "\"3590058733585214\"",
+    "etag": "\"3590065003484894\"",
     "eventType": "default",
     "hangoutLink": "https://meet.google.com/iwb-vymc-vxa",
     "htmlLink": "https://www.google.com/calendar/event?eid=MHEzM3U0aXIwbnF0NGp1b3A1ZWlpZXVvMHZfMjAyNjExMjBUMjAxNTAwWiBzYW50aWFnb3NtaXR0dHRAbQ",
@@ -2692,7 +2692,7 @@
     },
     "status": "confirmed",
     "summary": " Paseo de Sienna",
-    "updated": "2026-11-18T19:16:06.792Z"
+    "updated": "2026-11-18T20:08:21.742Z"
   },
   {
     "attendees": [

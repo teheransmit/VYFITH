@@ -5,7 +5,7 @@
     "targetProtein": 140,
     "targetCarbs": 380,
     "targetFat": 80,
-    "targetWaterMl": 2900
+    "targetWaterMl": 2300
   },
   "current": {
     "calories": 580,
@@ -120,5 +120,5 @@
       "notes": "por ejemplo esta mañana Yo desayuné dos pancakes un bolillo y una taza de café"
     }
   ],
-  "lastUpdated": "2026-11-12T20:25:10.689Z"
+  "lastUpdated": "2026-11-12T21:21:17.932Z"
 }
