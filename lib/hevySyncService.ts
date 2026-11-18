@@ -545,42 +545,102 @@ export function scanDropFoldersAndSync(): {
   };
 }
 
-let activeBridgePromise: Promise<any> | null = null;
+export function sanitizeHevyBridgeError(raw: unknown): string {
+  const str = String(raw || '')
+    .replace(/\x1b\[[0-9;]*m/g, '')
+    .replace(/\[\d+m/g, '')
+    .trim();
+  if (!str) return 'Error ejecutando puente Chrome Hevy Web.';
+  if (
+    /Abriendo en una sesi/i.test(str) ||
+    /existing browser session/i.test(str) ||
+    /Target page, context or browser has been closed/i.test(str)
+  ) {
+    return 'La ventana de Chrome de Hevy Web se cerró o ya había otra sesión abierta. Pulsa «Conectar Hevy Web» o «Sync en Vivo» nuevamente.';
+  }
+  const cleanLine = str.split(/Browser logs:|Call log:|\r?\n/)[0].trim();
+  return cleanLine.slice(0, 220) || 'Error ejecutando puente Chrome Hevy Web.';
+}
+
+type BridgeGlobalState = {
+  promise: Promise<any> | null;
+  cmd: string | null;
+};
+
+function getGlobalBridgeState(): BridgeGlobalState {
+  const g = globalThis as unknown as { __vyfithHevyBridge?: BridgeGlobalState };
+  if (!g.__vyfithHevyBridge) {
+    g.__vyfithHevyBridge = { promise: null, cmd: null };
+  }
+  return g.__vyfithHevyBridge;
+}
 
 export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000): Promise<any> {
   if (!fs.existsSync(BRIDGE_SCRIPT)) {
     return { ok: false, error: 'Falta scripts/hevy_web_bridge.mjs' };
   }
+
+  const cmd = args[0] || 'status';
+  const gState = getGlobalBridgeState();
+
+  // Si hay una sesión de login interactivo abierta y entra un export-csv o status concurrente, no lanzar un 2do Chrome sobre el mismo perfil
+  if (gState.promise) {
+    if (gState.cmd === 'login' && cmd !== 'login') {
+      return {
+        ok: false,
+        requiresLogin: true,
+        error: 'La ventana de Google Chrome para iniciar sesión en Hevy Web ya está abierta. Completa el login allí primero.',
+      };
+    }
+    if (gState.cmd === cmd) {
+      return gState.promise;
+    }
+    // Esperar a que termine la operación previa antes de abrir el perfil .hevy-chrome-profile
+    await gState.promise.catch(() => {});
+  }
+
   const execPromise = execFileAsync(process.execPath, [BRIDGE_SCRIPT, ...args], {
     cwd: process.cwd(),
     timeout: timeoutMs,
-    windowsHide: args[0] !== 'login',
+    windowsHide: cmd !== 'login',
   })
     .then(({ stdout }) => {
       const lines = stdout.trim().split(/\r?\n/);
       const lastLine = lines[lines.length - 1] || '{}';
-      return JSON.parse(lastLine);
+      const parsed = JSON.parse(lastLine);
+      if (parsed && parsed.error) {
+        parsed.error = sanitizeHevyBridgeError(parsed.error);
+      }
+      return parsed;
     })
     .catch((err) => {
       const out = err?.stdout?.trim()?.split(/\r?\n/)?.pop();
       if (out) {
         try {
-          return JSON.parse(out);
+          const parsed = JSON.parse(out);
+          if (parsed && parsed.error) {
+            parsed.error = sanitizeHevyBridgeError(parsed.error);
+          }
+          return parsed;
         } catch {
           // ignore
         }
       }
-      return { ok: false, error: err?.message || 'Error ejecutando puente Chrome Hevy Web' };
+      return {
+        ok: false,
+        error: sanitizeHevyBridgeError(err?.message || 'Error ejecutando puente Chrome Hevy Web'),
+      };
     });
 
-  if (args[0] === 'export-csv' || args[0] === 'status') {
-    if (activeBridgePromise) return activeBridgePromise;
-    activeBridgePromise = execPromise.finally(() => {
-      activeBridgePromise = null;
-    });
-    return activeBridgePromise;
-  }
-  return execPromise;
+  gState.cmd = cmd;
+  gState.promise = execPromise.finally(() => {
+    if (gState.promise === execPromise) {
+      gState.promise = null;
+      gState.cmd = null;
+    }
+  });
+
+  return gState.promise;
 }
 
 export async function syncAllWorkoutsReal(options?: {

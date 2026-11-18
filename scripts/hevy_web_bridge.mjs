@@ -2,6 +2,7 @@
 import { chromium } from 'playwright-core';
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -9,12 +10,102 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PROFILE_DIR = path.join(ROOT_DIR, '.hevy-chrome-profile');
 const SESSION_STATE_FILE = path.join(PROFILE_DIR, 'session_state.json');
+const BRIDGE_LOCK_FILE = path.join(PROFILE_DIR, 'bridge.lock');
 const IMPORTS_DIR = path.join(ROOT_DIR, 'data', 'imports');
 const DEFAULT_EXPORT_CSV = path.join(IMPORTS_DIR, 'workouts_live_export.csv');
 const DRIVE_BACKUP_CSV = 'G:\\Mi unidad\\Panel_de_Vida\\Hevy\\hevy_workouts_latest.csv';
 
 fs.mkdirSync(PROFILE_DIR, { recursive: true });
 fs.mkdirSync(IMPORTS_DIR, { recursive: true });
+
+function isPidAlive(pid) {
+  if (!pid || typeof pid !== 'number') return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readBridgeLock() {
+  try {
+    if (!fs.existsSync(BRIDGE_LOCK_FILE)) return null;
+    const data = JSON.parse(fs.readFileSync(BRIDGE_LOCK_FILE, 'utf8'));
+    if (data && isPidAlive(Number(data.pid)) && Number(data.pid) !== process.pid) {
+      return data;
+    }
+    fs.unlinkSync(BRIDGE_LOCK_FILE);
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+function writeBridgeLock(cmd) {
+  try {
+    fs.writeFileSync(
+      BRIDGE_LOCK_FILE,
+      JSON.stringify({ pid: process.pid, cmd, startedAt: new Date().toISOString() }),
+      'utf8'
+    );
+  } catch {
+    // ignore
+  }
+}
+
+function releaseBridgeLock() {
+  try {
+    if (fs.existsSync(BRIDGE_LOCK_FILE)) {
+      const data = JSON.parse(fs.readFileSync(BRIDGE_LOCK_FILE, 'utf8'));
+      if (!data || Number(data.pid) === process.pid) {
+        fs.unlinkSync(BRIDGE_LOCK_FILE);
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function cleanupOrphanProfileChrome() {
+  try {
+    if (process.platform === 'win32') {
+      execSync(
+        'powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name=\'chrome.exe\'\\" | Where-Object { $_.CommandLine -like \'*hevy-chrome-profile*\' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"',
+        { stdio: 'ignore', timeout: 8000 }
+      );
+    }
+  } catch {
+    // ignore
+  }
+
+  for (const lockName of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
+    const p = path.join(PROFILE_DIR, lockName);
+    try {
+      if (fs.existsSync(p)) fs.unlinkSync(p);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function formatCleanBridgeError(err) {
+  const raw = String(err?.message || err || 'Error en navegador Chrome Hevy Web');
+  const noAnsi = raw
+    .replace(/\x1b\[[0-9;]*m/g, '')
+    .replace(/\[\d+m/g, '');
+
+  if (
+    /Abriendo en una sesi/i.test(noAnsi) ||
+    /existing browser session/i.test(noAnsi) ||
+    /Target page, context or browser has been closed/i.test(noAnsi)
+  ) {
+    return 'La ventana de Chrome de Hevy Web se cerró o ya había otra sesión abierta en segundo plano. Vuelve a pulsar «Conectar Hevy Web» o «Sync en Vivo».';
+  }
+
+  const firstLine = noAnsi.split(/Browser logs:|Call log:|\r?\n/)[0].trim();
+  return firstLine.slice(0, 220) || 'Error ejecutando puente Chrome Hevy Web.';
+}
 
 function parseArgs(argv) {
   const args = { cmd: argv[2] || 'status' };
@@ -29,14 +120,56 @@ function parseArgs(argv) {
   return args;
 }
 
-async function openContext(headless = true) {
-  return chromium.launchPersistentContext(PROFILE_DIR, {
+async function openContext(headless = true, cmd = 'status') {
+  // 1. Verificar si ya hay otro proceso de hevy_web_bridge.mjs activo
+  let activeLock = readBridgeLock();
+  if (activeLock) {
+    if (activeLock.cmd === 'login' && cmd !== 'login') {
+      throw new Error(
+        'Ya tienes abierta la ventana de Google Chrome para iniciar sesión en Hevy Web. Completa el login en esa ventana primero.'
+      );
+    }
+    // Esperar brevemente si es una operación corta (status / export-csv)
+    const waitDeadline = Date.now() + 8000;
+    while (activeLock && Date.now() < waitDeadline) {
+      await new Promise((r) => setTimeout(r, 600));
+      activeLock = readBridgeLock();
+    }
+    if (activeLock && activeLock.cmd === 'login') {
+      throw new Error(
+        'La ventana de login de Hevy Web sigue abierta. Inicia sesión allí o ciérrala antes de sincronizar.'
+      );
+    }
+  }
+
+  // Si no hay ningún proceso de bridge vivo, limpiar cualquier proceso huérfano de Chrome que haya retenido .hevy-chrome-profile
+  if (!readBridgeLock()) {
+    cleanupOrphanProfileChrome();
+  }
+
+  writeBridgeLock(cmd);
+
+  const launchOpts = {
     channel: 'chrome',
     headless,
     acceptDownloads: true,
     viewport: { width: 1366, height: 860 },
-    args: ['--disable-blink-features=AutomationControlled'],
-  });
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--no-first-run',
+      '--no-default-browser-check',
+      '--disable-background-mode',
+    ],
+  };
+
+  try {
+    return await chromium.launchPersistentContext(PROFILE_DIR, launchOpts);
+  } catch (firstErr) {
+    // Reintento automático tras limpiar procesos huérfanos de Chrome sobre .hevy-chrome-profile
+    cleanupOrphanProfileChrome();
+    await new Promise((r) => setTimeout(r, 700));
+    return await chromium.launchPersistentContext(PROFILE_DIR, launchOpts);
+  }
 }
 
 async function isLoggedIn(page) {
@@ -75,27 +208,39 @@ async function isLoggedIn(page) {
 async function handleStatus() {
   let ctx;
   try {
-    ctx = await openContext(true);
+    ctx = await openContext(true, 'status');
     const page = ctx.pages()[0] || (await ctx.newPage());
     const res = await isLoggedIn(page);
     console.log(JSON.stringify({ ok: true, ...res }));
   } catch (err) {
-    console.log(JSON.stringify({ ok: false, authenticated: false, error: err.message }));
+    console.log(JSON.stringify({ ok: false, authenticated: false, error: formatCleanBridgeError(err) }));
     process.exitCode = 1;
   } finally {
     if (ctx) await ctx.close().catch(() => {});
+    releaseBridgeLock();
   }
 }
 
 async function handleLogin() {
   let ctx;
   try {
-    ctx = await openContext(false);
+    ctx = await openContext(false, 'login');
     const page = ctx.pages()[0] || (await ctx.newPage());
     await page.goto('https://hevy.com/login', { waitUntil: 'domcontentloaded', timeout: 30000 });
     const deadline = Date.now() + 180000;
     let logged = false;
     while (Date.now() < deadline) {
+      if (page.isClosed() || ctx.pages().length === 0) {
+        console.log(
+          JSON.stringify({
+            ok: false,
+            authenticated: false,
+            error: 'La ventana de inicio de sesión se cerró antes de completar el login en Hevy Web.',
+          })
+        );
+        process.exitCode = 1;
+        return;
+      }
       const current = page.url();
       if (!current.includes('/login') && !current.includes('/signup') && current.includes('hevy.com')) {
         await page.waitForTimeout(1500);
@@ -113,17 +258,18 @@ async function handleLogin() {
       process.exitCode = 1;
     }
   } catch (err) {
-    console.log(JSON.stringify({ ok: false, authenticated: false, error: err.message }));
+    console.log(JSON.stringify({ ok: false, authenticated: false, error: formatCleanBridgeError(err) }));
     process.exitCode = 1;
   } finally {
     if (ctx) await ctx.close().catch(() => {});
+    releaseBridgeLock();
   }
 }
 
 async function handleExportCsv(outPath = DEFAULT_EXPORT_CSV) {
   let ctx;
   try {
-    ctx = await openContext(true);
+    ctx = await openContext(true, 'export-csv');
     const page = ctx.pages()[0] || (await ctx.newPage());
     const auth = await isLoggedIn(page);
     if (!auth.authenticated) {
@@ -162,10 +308,11 @@ async function handleExportCsv(outPath = DEFAULT_EXPORT_CSV) {
       })
     );
   } catch (err) {
-    console.log(JSON.stringify({ ok: false, error: err.message }));
+    console.log(JSON.stringify({ ok: false, error: formatCleanBridgeError(err) }));
     process.exitCode = 1;
   } finally {
     if (ctx) await ctx.close().catch(() => {});
+    releaseBridgeLock();
   }
 }
 
@@ -189,7 +336,7 @@ async function handleUpdateRoutine(args) {
 
   let ctx;
   try {
-    ctx = await openContext(true);
+    ctx = await openContext(true, 'update-routine');
     const page = ctx.pages()[0] || (await ctx.newPage());
     const auth = await isLoggedIn(page);
     if (!auth.authenticated) {
@@ -338,10 +485,11 @@ async function handleUpdateRoutine(args) {
       })
     );
   } catch (err) {
-    console.log(JSON.stringify({ ok: false, error: err.message }));
+    console.log(JSON.stringify({ ok: false, error: formatCleanBridgeError(err) }));
     process.exitCode = 1;
   } finally {
     if (ctx) await ctx.close().catch(() => {});
+    releaseBridgeLock();
   }
 }
 

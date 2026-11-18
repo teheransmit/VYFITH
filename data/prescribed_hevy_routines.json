@@ -57,16 +57,116 @@
   },
   "Full Legs": {
     "routineTitle": "Full Legs",
-    "updatedAt": "2026-11-14T20:42:31.472Z",
+    "updatedAt": "2026-11-18T22:50:14.336Z",
     "source": "VYFITH-AI-Coach-JeffNippard",
-    "exercisesCount": 1,
+    "exercisesCount": 4,
     "hevySyncPayload": [
       {
         "exerciseName": "Seated Calf Raise",
-        "suggestedWeightKg": 25,
-        "targetReps": "3x12-15"
+        "esTitle": "Elevación de Gemelos Sentado",
+        "suggestedWeightKg": 22.68,
+        "suggestedWeightLbs": 50,
+        "targetReps": "3x8",
+        "note": "VYFITH AI Coach: 22.68 kg (3x8) • RIR 2"
+      },
+      {
+        "exerciseName": "Romanian Deadlift (Barbell)",
+        "esTitle": "Peso Muerto Rumano (Barra)",
+        "suggestedWeightKg": 78.47,
+        "suggestedWeightLbs": 173,
+        "targetReps": "3x6",
+        "note": "VYFITH AI Coach: 78.47 kg (3x6) • RIR 2"
+      },
+      {
+        "exerciseName": "Leg Extension (Machine)",
+        "esTitle": "Extensión de Pierna",
+        "suggestedWeightKg": 69,
+        "suggestedWeightLbs": 152.1,
+        "targetReps": "2x8",
+        "note": "VYFITH AI Coach: 69 kg (2x8) • RIR 2"
+      },
+      {
+        "exerciseName": "Lying Leg Curl (Machine)",
+        "esTitle": "Curl de Piernas Acostado (Máquina)",
+        "suggestedWeightKg": 34,
+        "suggestedWeightLbs": 75,
+        "targetReps": "2x8",
+        "note": "VYFITH AI Coach: 34 kg (2x8) • RIR 2"
       }
     ],
-    "prescriptions": []
+    "prescriptions": [
+      {
+        "exerciseName": "Seated Calf Raise",
+        "muscleGroup": "Piernas",
+        "lastWeightKg": 22.68,
+        "lastRepsSummary": "16, 16, 18",
+        "lastEstimated1RmKg": 40.9,
+        "prescribedWeightKg": 22.68,
+        "prescribedRepsSummary": "3x8",
+        "targetRir": 2,
+        "action": "CONSOLIDAR_CARGA",
+        "plateauStatus": "SOBRECARGA_FATIGA",
+        "reasoning": "Nivel de recuperación bajo (Readiness 57/100). Mantener peso sin ir al fallo para disipar fatiga neuromuscular acumulada.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Romanian Deadlift (Barbell)",
+        "muscleGroup": "Piernas",
+        "lastWeightKg": 78.47,
+        "lastRepsSummary": "6, 5, 4",
+        "lastEstimated1RmKg": 88.3,
+        "prescribedWeightKg": 78.47,
+        "prescribedRepsSummary": "3x6",
+        "targetRir": 2,
+        "action": "CONSOLIDAR_CARGA",
+        "plateauStatus": "SOBRECARGA_FATIGA",
+        "reasoning": "Nivel de recuperación bajo (Readiness 57/100). Mantener peso sin ir al fallo para disipar fatiga neuromuscular acumulada.",
+        "scientificCitation": "Jeff Nippard: Romanian Deadlift for Hamstring & Glute Growth • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Bisagra de cadera pura: llevar los glúteos hacia atrás hasta sentir tensión máxima en isquiotibiales",
+          "Barra pegada a las espinillas/muslos en todo el recorrido"
+        ]
+      },
+      {
+        "exerciseName": "Leg Extension (Machine)",
+        "muscleGroup": "Piernas",
+        "lastWeightKg": 69,
+        "lastRepsSummary": "10, 7",
+        "lastEstimated1RmKg": 88.7,
+        "prescribedWeightKg": 69,
+        "prescribedRepsSummary": "2x8",
+        "targetRir": 2,
+        "action": "CONSOLIDAR_CARGA",
+        "plateauStatus": "SOBRECARGA_FATIGA",
+        "reasoning": "Nivel de recuperación bajo (Readiness 57/100). Mantener peso sin ir al fallo para disipar fatiga neuromuscular acumulada.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Lying Leg Curl (Machine)",
+        "muscleGroup": "Piernas",
+        "lastWeightKg": 34,
+        "lastRepsSummary": "8, 5",
+        "lastEstimated1RmKg": 40.8,
+        "prescribedWeightKg": 34,
+        "prescribedRepsSummary": "2x8",
+        "targetRir": 2,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "ALERTA_ESTANCAMIENTO",
+        "reasoning": "Estancamiento detectado (1RM sin variación en las últimas sesiones). Mantén 34 kg pero fuerza 1 repetición adicional en las 2 primeras series.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      }
+    ]
   }
 }

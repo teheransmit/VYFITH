@@ -72,8 +72,26 @@ export default function HevyWorkoutsSection() {
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const cleanHevyWarning = (raw?: string): string | undefined => {
+    if (!raw) return undefined;
+    const stripped = raw
+      .replace(/\x1b\[[0-9;]*m/g, '')
+      .replace(/\[\d+m/g, '')
+      .trim();
+    if (
+      /Abriendo en una sesi/i.test(stripped) ||
+      /existing browser session/i.test(stripped) ||
+      /Target page, context or browser has been closed/i.test(stripped) ||
+      /launchPersistentContext/i.test(stripped)
+    ) {
+      return 'La ventana de Chrome de Hevy Web se cerró o ya estaba abierta en segundo plano. Pulsa «Conectar Hevy Web» una sola vez e inicia sesión.';
+    }
+    return stripped.split(/Browser logs:|Call log:|\r?\n/)[0].trim().slice(0, 240);
+  };
+
   // Cargar entrenamientos desde API real (/api/sync/hevy). Si live=true, extrae desde Hevy Web/API.
   const refreshWorkouts = async (live = false) => {
+    if (isConnectingBrowser && live) return;
     setIsLoadingWorkouts(true);
     try {
       const res = await fetch(`/api/sync/hevy${live ? '?live=1' : ''}`, { cache: 'no-store' });
@@ -96,7 +114,7 @@ export default function HevyWorkoutsSection() {
           hasProApiKey: Boolean(data.hasProApiKey),
           browserBridgeAuthenticated: Boolean(data.browserBridgeAuthenticated),
           lastSyncAt: data.syncMeta?.lastSyncAt || null,
-          warning: data.warning,
+          warning: cleanHevyWarning(data.warning),
         });
       }
     } catch (e) {
@@ -109,13 +127,13 @@ export default function HevyWorkoutsSection() {
   useEffect(() => {
     refreshWorkouts(false);
     const onVisible = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && !isConnectingBrowser) {
         refreshWorkouts(false);
       }
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, []);
+  }, [isConnectingBrowser]);
 
   const selectedSession =
     sessions.find((s) => s.id === selectedSessionId) || sessions[0] || initialHevySessions[0];
@@ -130,6 +148,7 @@ export default function HevyWorkoutsSection() {
   }, [selectedSession.name, sessions]);
 
   const handleConnectHevyBrowser = async () => {
+    if (isConnectingBrowser || isLoadingWorkouts) return;
     setIsConnectingBrowser(true);
     setSyncStatusInfo((prev) => ({
       sourceUsed: prev?.sourceUsed || 'local_cache',
@@ -151,7 +170,12 @@ export default function HevyWorkoutsSection() {
         await refreshWorkouts(true);
       } else {
         setSyncStatusInfo((prev) =>
-          prev ? { ...prev, warning: data.error || 'No se completó el inicio de sesión en Hevy Web.' } : prev
+          prev
+            ? {
+                ...prev,
+                warning: cleanHevyWarning(data.error) || 'No se completó el inicio de sesión en Hevy Web.',
+              }
+            : prev
         );
       }
     } catch (err: any) {
@@ -351,7 +375,7 @@ export default function HevyWorkoutsSection() {
             {/* Sincronizar en Vivo desde Hevy Web / API PRO */}
             <button
               onClick={() => refreshWorkouts(true)}
-              disabled={isLoadingWorkouts}
+              disabled={isLoadingWorkouts || isConnectingBrowser}
               className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/30 transition-all shadow-xs disabled:opacity-50"
               title="Extrae y sincroniza en vivo todos los entrenamientos recientes desde Hevy Web o Hevy API PRO"
             >
@@ -362,7 +386,7 @@ export default function HevyWorkoutsSection() {
             {!syncStatusInfo?.hasProApiKey && !syncStatusInfo?.browserBridgeAuthenticated && (
               <button
                 onClick={handleConnectHevyBrowser}
-                disabled={isConnectingBrowser}
+                disabled={isConnectingBrowser || isLoadingWorkouts}
                 className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30 transition-all shadow-xs disabled:opacity-50"
                 title="Inicia sesión 1 vez en Google Chrome para activar exportación/edición automática en Hevy Web (Cuenta Free)"
               >
@@ -417,15 +441,15 @@ export default function HevyWorkoutsSection() {
                 : 'bg-[#09090b]/80 border-[#27272a] text-slate-300'
             }`}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {syncStatusInfo.requiresBrowserAuth || syncStatusInfo.warning ? (
                 <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
               ) : (
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               )}
-              <span>
+              <span className="break-words">
                 {syncStatusInfo.warning ? (
-                  syncStatusInfo.warning
+                  cleanHevyWarning(syncStatusInfo.warning)
                 ) : (
                   <>
                     Fuente activa: <strong className="text-white">{syncStatusInfo.sourceUsed}</strong>
@@ -446,10 +470,23 @@ export default function HevyWorkoutsSection() {
               {syncStatusInfo.requiresBrowserAuth && (
                 <button
                   onClick={handleConnectHevyBrowser}
-                  disabled={isConnectingBrowser}
-                  className="cursor-pointer px-2.5 py-1 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors"
+                  disabled={isConnectingBrowser || isLoadingWorkouts}
+                  className="cursor-pointer px-2.5 py-1 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors disabled:opacity-50"
                 >
-                  {isConnectingBrowser ? 'Abre Chrome...' : 'Iniciar Sesión 1 Vez'}
+                  {isConnectingBrowser ? 'Esperando Login...' : 'Iniciar Sesión 1 Vez'}
+                </button>
+              )}
+              {syncStatusInfo.warning && (
+                <button
+                  onClick={() =>
+                    setSyncStatusInfo((prev) =>
+                      prev ? { ...prev, warning: undefined, requiresBrowserAuth: false } : prev
+                    )
+                  }
+                  className="cursor-pointer px-2 py-0.5 rounded bg-amber-900/50 hover:bg-amber-800/70 text-amber-200 font-bold"
+                  title="Cerrar aviso"
+                >
+                  ✕
                 </button>
               )}
             </div>
