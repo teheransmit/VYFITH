@@ -17,6 +17,8 @@ import {
   Bot,
   Zap,
 } from 'lucide-react';
+import { useNvidiaModelsCatalog } from '@/components/useNvidiaModelsCatalog';
+import NvidiaModelSelectGroups from '@/components/NvidiaModelSelectGroups';
 
 interface ChatMessage {
   id: string;
@@ -167,9 +169,10 @@ export default function PersonalBioAssistant() {
   const [showGroqText, setShowGroqText] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isTestingKey, setIsTestingKey] = useState(false);
-  const [activeModel, setActiveModel] = useState('Google AI Studio (Gemini 2.5)');
+  const [activeModel, setActiveModel] = useState('Google AI Studio (Gemini 3.5 Flash Lite)');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const nvidiaCatalog = useNvidiaModelsCatalog(nvidiaApiKey);
 
   // Cargar API Keys y modelo personalizado desde localStorage si existen (el servidor ya provee .env.local por defecto)
   useEffect(() => {
@@ -516,21 +519,35 @@ export default function PersonalBioAssistant() {
 
               {/* Selector de Modelo y Motor */}
               <div className="mb-3">
-                <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Motor de Inferencia
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                    Motor de Inferencia ({nvidiaCatalog.chatCount} modelos NVIDIA NIM en vivo)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => nvidiaCatalog.refreshCatalog(true)}
+                    disabled={nvidiaCatalog.isLoading}
+                    className="cursor-pointer text-[10px] font-mono text-emerald-600 dark:text-emerald-400 hover:underline disabled:opacity-50"
+                  >
+                    {nvidiaCatalog.isLoading ? 'Actualizando...' : 'Refrescar NVIDIA'}
+                  </button>
+                </div>
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 cursor-pointer"
                 >
-                  <option value="auto">⚡ Multi-Modelo Automático (NVIDIA / Groq / Gemini)</option>
-                  <option value="gemini-2.5-flash">🌟 Gemini 2.5 Flash (Google AI Studio)</option>
-                  <option value="gemini-3.5-flash-lite">🌟 Gemini 3.5 Flash Lite</option>
-                  <option value="nvidia-llama">🟢 NVIDIA NIM — Llama 3.3 70B Instruct</option>
-                  <option value="nvidia-deepseek">🧠 NVIDIA NIM — DeepSeek R1</option>
-                  <option value="groq-llama">⚡ Groq Cloud — Llama 3.3 70B Versatile</option>
-                  <option value="gemma">🧠 Gemma 4 26B (Alta Disponibilidad)</option>
+                  <optgroup label="⚡ Automático & Google AI Studio">
+                    <option value="auto">⚡ Multi-Modelo Automático (NVIDIA NIM / Groq / Gemini)</option>
+                    <option value="gemini-3.5-flash-lite">🌟 Gemini 3.5 Flash Lite (Verificado 200 OK)</option>
+                    <option value="gemini-flash-lite-latest">⚡ Gemini Flash Lite Latest</option>
+                    <option value="gemini-2.5-flash">🌟 Gemini 2.5 Flash (Google AI Studio)</option>
+                    <option value="gemma">🧠 Gemma 4 26B (Alta Disponibilidad)</option>
+                  </optgroup>
+                  <NvidiaModelSelectGroups chatModels={nvidiaCatalog.chatModels} />
+                  <optgroup label="⚡ Groq Cloud (Gratis)">
+                    <option value="groq-llama">⚡ Groq Cloud — Llama 3.3 70B Versatile</option>
+                  </optgroup>
                 </select>
               </div>
 

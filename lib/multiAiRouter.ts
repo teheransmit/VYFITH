@@ -1,3 +1,8 @@
+import {
+  classifyDynamicNvidiaModel,
+  NVIDIA_AUTO_CASCADE_MODELS,
+} from '@/lib/nvidiaCatalog';
+
 /**
  * Router Multi-IA para VYFITH (Google AI Studio Gemini, NVIDIA NIM & Groq Cloud)
  * Regla estricta: Timeout mínimo de 32s y transparencia total en códigos HTTP reales.
@@ -306,13 +311,15 @@ export async function dispatchMultiAiChat(params: {
   const attemptErrors: string[] = [];
   let lastFailedResult: MultiAiResponse | null = null;
 
-  const tryNvidia = async (modelId: string, label: string) => {
+  const tryNvidia = async (modelId: string, label?: string) => {
     if (!nvidiaKey) return null;
+    const displayLabel =
+      label || `${classifyDynamicNvidiaModel(modelId).label} (NVIDIA NIM)`;
     const res = await callOpenAICompatible({
       endpoint: 'https://integrate.api.nvidia.com/v1/chat/completions',
       apiKey: nvidiaKey,
       model: modelId,
-      displayLabel: label,
+      displayLabel,
       sourceTag: 'nvidia-nim',
       systemInstruction: params.systemInstruction,
       messages: params.messages,
@@ -320,8 +327,20 @@ export async function dispatchMultiAiChat(params: {
       maxTokens,
     });
     if (res.success) return res;
-    attemptErrors.push(res.error || label);
+    attemptErrors.push(res.error || displayLabel);
     lastFailedResult = res;
+    return null;
+  };
+
+  const tryNvidiaCascade = async () => {
+    if (!nvidiaKey) return null;
+    for (const modelId of NVIDIA_AUTO_CASCADE_MODELS) {
+      const r = await tryNvidia(modelId);
+      if (r) return r;
+      if (lastFailedResult && (lastFailedResult.status === 401 || lastFailedResult.status === 403)) {
+        break;
+      }
+    }
     return null;
   };
 
@@ -345,32 +364,45 @@ export async function dispatchMultiAiChat(params: {
   };
 
   // 1. Prioridad explícita según selección del usuario
-  if (requestedModel === 'nvidia-deepseek') {
-    if (!nvidiaKey) {
-      return {
-        success: false,
-        source: 'google-ai-studio-error',
-        model: 'deepseek-ai/deepseek-r1 (NVIDIA NIM)',
-        status: 401,
-        error: 'No hay NVIDIA_API_KEY configurada. Obtén 1.000 créditos gratis en build.nvidia.com.',
-      };
-    }
-    const r = await tryNvidia('deepseek-ai/deepseek-r1', 'DeepSeek-R1 (NVIDIA NIM)');
-    if (r) return r;
+  // Soporte dinámico para CUALQUIER modelo de NVIDIA NIM (`nvidia:<provider/model>`) + alias heredados
+  let explicitNvidiaModelId: string | null = null;
+  if (requestedModel.startsWith('nvidia:')) {
+    explicitNvidiaModelId = requestedModel.slice('nvidia:'.length).trim();
+  } else if (requestedModel === 'nvidia-deepseek') {
+    explicitNvidiaModelId = 'deepseek-ai/deepseek-v4.1-flash';
+  } else if (requestedModel === 'nvidia-llama') {
+    explicitNvidiaModelId = 'nvidia/nemotron-3.5-lightning-30b-a3b';
+  } else if (requestedModel === 'nvidia-auto') {
+    explicitNvidiaModelId = '__CASCADE__';
   }
 
-  if (requestedModel === 'nvidia-llama') {
+  if (explicitNvidiaModelId) {
     if (!nvidiaKey) {
       return {
         success: false,
         source: 'google-ai-studio-error',
-        model: 'meta/llama-3.3-70b-instruct (NVIDIA NIM)',
+        model: `${explicitNvidiaModelId} (NVIDIA NIM)`,
         status: 401,
-        error: 'No hay NVIDIA_API_KEY configurada. Obtén 1.000 créditos gratis en build.nvidia.com.',
+        error: 'No hay NVIDIA_API_KEY configurada. Obtén tu clave gratuita en build.nvidia.com (nvapi-...).',
       };
     }
-    const r = await tryNvidia('meta/llama-3.3-70b-instruct', 'Llama 3.3 70B (NVIDIA NIM)');
-    if (r) return r;
+    if (explicitNvidiaModelId === '__CASCADE__') {
+      const r = await tryNvidiaCascade();
+      if (r) return r;
+    } else {
+      const r = await tryNvidia(explicitNvidiaModelId);
+      if (r) return r;
+      // Si el modelo explícito de NVIDIA falló por no-auth (ej. 404/503), no saltar silenciosamente sin reportar si no hay otros, o caer al cascade si se prefiere
+      return (
+        lastFailedResult || {
+          success: false,
+          source: 'google-ai-studio-error',
+          model: `${explicitNvidiaModelId} (NVIDIA NIM)`,
+          status: 500,
+          error: attemptErrors.join(' | '),
+        }
+      );
+    }
   }
 
   if (requestedModel === 'groq-llama') {
@@ -387,9 +419,9 @@ export async function dispatchMultiAiChat(params: {
     if (r) return r;
   }
 
-  // 2. Cascada automática (si hay Groq/NVIDIA en modo auto, probar NVIDIA/Groq o Gemini según corresponda)
+  // 2. Cascada automática (si hay NVIDIA o Groq en modo auto, probar NVIDIA NIM 2026 / Groq / Gemini)
   if (requestedModel === 'auto' && nvidiaKey) {
-    const r = await tryNvidia('meta/llama-3.3-70b-instruct', 'Llama 3.3 70B (NVIDIA NIM)');
+    const r = await tryNvidiaCascade();
     if (r) return r;
   }
 
@@ -414,8 +446,8 @@ export async function dispatchMultiAiChat(params: {
   }
 
   // 4. Fallback cruzado a NVIDIA NIM o Groq si Gemini falló y el usuario no había intentado esos proveedores aún
-  if (requestedModel !== 'auto' && nvidiaKey) {
-    const r = await tryNvidia('meta/llama-3.3-70b-instruct', 'Llama 3.3 70B (NVIDIA NIM)');
+  if (requestedModel !== 'auto' && !explicitNvidiaModelId && nvidiaKey) {
+    const r = await tryNvidiaCascade();
     if (r) return r;
   }
   if (requestedModel !== 'auto' && groqKey) {

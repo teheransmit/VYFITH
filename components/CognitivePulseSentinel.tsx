@@ -26,6 +26,8 @@ import type {
   CognitivePulseCachePayload,
 } from '@/app/api/cognitive-pulse/route';
 import type { DashboardTab } from '@/lib/navigation';
+import { useNvidiaModelsCatalog } from '@/components/useNvidiaModelsCatalog';
+import NvidiaModelSelectGroups from '@/components/NvidiaModelSelectGroups';
 
 interface CognitivePulseSentinelProps {
   onNavigate?: (tab: DashboardTab) => void;
@@ -89,6 +91,7 @@ export default function CognitivePulseSentinel({
   const [groqKey, setGroqKey] = useState<string>('');
   const [preferredModel, setPreferredModel] = useState<string>('auto');
   const [keysSavedNotice, setKeysSavedNotice] = useState<string | null>(null);
+  const nvidiaCatalog = useNvidiaModelsCatalog(nvidiaKey);
 
   // Controles de Auto-Reparación & Git
   const [healPrompt, setHealPrompt] = useState<string>('');
@@ -438,18 +441,24 @@ export default function CognitivePulseSentinel({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             <div>
               <label className="block text-[10px] font-mono uppercase text-zinc-500 mb-1">
-                Motor Preferido
+                Motor Preferido ({nvidiaCatalog.chatCount} NVIDIA + Gemini + Groq)
               </label>
               <select
                 value={preferredModel}
                 onChange={(e) => setPreferredModel(e.target.value)}
                 className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-[#14171d] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100"
               >
-                <option value="auto">Automático (Cascada Inteligente)</option>
-                <option value="gemini-2.5-flash">Google Gemini 2.5 Flash</option>
-                <option value="nvidia-llama">NVIDIA NIM • Llama 3.3 70B</option>
-                <option value="nvidia-deepseek">NVIDIA NIM • DeepSeek R1</option>
-                <option value="groq-llama">Groq Cloud • Llama 3.3 70B</option>
+                <optgroup label="⚡ Automático & Google AI Studio">
+                  <option value="auto">Automático (NVIDIA NIM / Groq / Gemini)</option>
+                  <option value="gemini-3.5-flash-lite">Google Gemini 3.5 Flash Lite (Verificado 200 OK)</option>
+                  <option value="gemini-flash-lite-latest">Google Gemini Flash Lite Latest</option>
+                  <option value="gemma-4-26b-a4b-it">Google Gemma 4 26B</option>
+                  <option value="gemini-2.5-flash">Google Gemini 2.5 Flash</option>
+                </optgroup>
+                <NvidiaModelSelectGroups chatModels={nvidiaCatalog.chatModels} />
+                <optgroup label="⚡ Groq Cloud (Gratis 500 tok/s)">
+                  <option value="groq-llama">Groq Cloud • Llama 3.3 70B Versatile</option>
+                </optgroup>
               </select>
             </div>
 
@@ -493,10 +502,24 @@ export default function CognitivePulseSentinel({
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
-              {keysSavedNotice || ''}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+              <span>
+                Catálogo NVIDIA en vivo: <strong className="text-emerald-600 dark:text-emerald-400">{nvidiaCatalog.liveApiCount || 32}</strong> endpoints API /{' '}
+                <strong className="text-zinc-800 dark:text-zinc-200">{nvidiaCatalog.chatCount}</strong> LLMs de chat y código
+              </span>
+              <button
+                type="button"
+                onClick={() => nvidiaCatalog.refreshCatalog(true)}
+                disabled={nvidiaCatalog.isLoading}
+                className="cursor-pointer underline text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 disabled:opacity-50"
+              >
+                {nvidiaCatalog.isLoading ? 'Actualizando...' : 'Refrescar catálogo'}
+              </button>
+              {keysSavedNotice && (
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">• {keysSavedNotice}</span>
+              )}
+            </div>
             <button
               onClick={handleSaveApiKeys}
               className="cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
