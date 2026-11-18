@@ -32,7 +32,6 @@ import {
 } from '@/lib/academicStore';
 import {
   TrackedCourseId,
-  CourseOverrideMode,
 } from '@/lib/academicReactiveEngine';
 import { useAcademicReactiveState } from '@/lib/useAcademicReactiveState';
 import { DashboardTab } from '@/lib/navigation';
@@ -52,7 +51,6 @@ export default function AcademicGradesSection({
   const {
     overrides,
     projection,
-    setCourseResolution,
     toggleHomologateSuelosLab,
     resetAcademicOverrides,
   } = useAcademicReactiveState();
@@ -112,7 +110,7 @@ export default function AcademicGradesSection({
             Suite Académica SIGAA, Auditoría CAPP, Cárdex & Proyección 2027-1
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-3xl mt-1">
-            Sincronización oficial con SIGAA UPB (13 nov 2026): <strong>Programación y Presupuesto (4.40)</strong>, <strong>Hidrología (4.30)</strong>, <strong>Vías II (4.13)</strong>, <strong>Estructuras (4.10)</strong> y <strong>Mecánica de Suelos (2.50)</strong>; libro docente de asistencia (`BZPGLAAC`) y avance CAPP (80/142 cr aprobados, PGA 3.93).
+            Sincronización oficial con SIGAA UPB (17 nov 2026 — 100% componentes): <strong>Vías II (4.03)</strong>, <strong>Programación y Presupuesto (3.63)</strong>, <strong>Hidrología (2.896)</strong>, <strong>Estructuras (2.71)</strong> y <strong>Mecánica de Suelos (2.50)</strong>; libro docente de asistencia (`BZPGLAAC`) y avance CAPP (80/142 cr aprobados, PGA 3.93).
           </p>
         </div>
 
@@ -269,8 +267,6 @@ export default function AcademicGradesSection({
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     {projection.homologationApplied
                       ? `Homologación ACTIVA: Solo cursas Teoría Mar/Jue 14:00 (B3). Se liberan Mié/Vie 14:00 (Lab 119) y encaja Ética NRC 22674 (${projection.schedule2027Real.totalCredits} cr totales).`
-                      : projection.projectedCourseMap['c-suelos'].isPassingForPrereqs
-                      ? 'Mecánica de Suelos simulada aprobada: habilita Cimentaciones (NRC 22225).'
                       : `Homologación DESACTIVADA: Agenda incluye Lab 119 Mié/Vie 14:00 (${projection.schedule2027Real.totalCredits} cr totales).`}
                   </p>
                 </div>
@@ -313,7 +309,6 @@ export default function AcademicGradesSection({
               const isFailed = proj ? !proj.isPassingForPrereqs : c.status === 'failed';
               const isSafePassed = !isFailed && (proj?.effectiveOutcome === 'passed' || c.accumulatedPoints >= 3.0);
               const isCritical = c.id === 'c-estructuras' && !isFailed;
-              const currentMode: CourseOverrideMode = overrides.courseStatuses[c.id as TrackedCourseId] ?? 'sigaa_auto';
 
               return (
                 <div
@@ -523,9 +518,14 @@ export default function AcademicGradesSection({
                             )}
                           </div>
                           <div className="shrink-0 flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                            <span>Para 3.50: <strong>{c.neededFor35.toFixed(2)}</strong></span>
+                            <span>Evaluación: <strong>100% en SIGAA</strong></span>
                             <span>•</span>
-                            <span>Máxima posible: <strong>{c.maxPossible.toFixed(2)}</strong></span>
+                            <span>
+                              Definitiva:{' '}
+                              <strong className={isFailed ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}>
+                                {c.accumulatedPoints.toFixed(2)} / 5.00
+                              </strong>
+                            </span>
                           </div>
                         </div>
 
@@ -552,33 +552,18 @@ export default function AcademicGradesSection({
                               )}
                             </div>
 
-                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg self-start sm:self-center">
-                              {(['sigaa_auto', 'passed', 'failed'] as CourseOverrideMode[]).map((modeOpt) => (
-                                <button
-                                  key={modeOpt}
-                                  type="button"
-                                  data-testid={`course-res-${c.id}-${modeOpt}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCourseResolution(c.id as TrackedCourseId, modeOpt);
-                                  }}
-                                  className={`cursor-pointer px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
-                                    currentMode === modeOpt
-                                      ? modeOpt === 'failed'
-                                        ? 'bg-rose-600 text-white'
-                                        : modeOpt === 'passed'
-                                        ? 'bg-emerald-600 text-white'
-                                        : 'bg-slate-900 dark:bg-indigo-600 text-white'
-                                      : 'text-slate-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700'
-                                  }`}
-                                >
-                                  {modeOpt === 'sigaa_auto'
-                                    ? 'SIGAA Real'
-                                    : modeOpt === 'passed'
-                                    ? 'Simular ≥ 3.0'
-                                    : 'Simular < 3.0'}
-                                </button>
-                              ))}
+                            <div className="flex items-center gap-1.5 self-start sm:self-center">
+                              {isFailed ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+                                  <XCircle className="w-3 h-3" />
+                                  Estado Real: Definitiva {c.accumulatedPoints.toFixed(2)} (Reprobada en SIGAA)
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Estado Real: Definitiva {c.accumulatedPoints.toFixed(2)} (Aprobada en SIGAA)
+                                </span>
+                              )}
                             </div>
                           </div>
                         )}

@@ -22,7 +22,6 @@ import {
   ScheduleBlock,
   DayName,
   TrackedCourseId,
-  CourseOverrideMode,
   generateScheduleIcs,
   toMinutes,
 } from '@/lib/academicReactiveEngine';
@@ -54,7 +53,6 @@ export default function ScheduleManagerSection({
     saving,
     lastSyncError,
     updateOverrides,
-    setCourseResolution,
     toggleHomologateSuelosLab,
     resetAcademicOverrides,
   } = useAcademicReactiveState();
@@ -88,33 +86,15 @@ export default function ScheduleManagerSection({
   };
 
   const suelosProj = projection.projectedCourseMap['c-suelos'];
-  const estProj = projection.projectedCourseMap['c-estructuras'];
-  const hidroProj = projection.projectedCourseMap['c-hidrologia'];
 
-  const renderResolutionControl = (
+  const renderPrereqStatusCard = (
     courseId: TrackedCourseId,
     label: string,
-    scoreText: string,
-    defaultModeLabel: string
+    blockedCourse: string
   ) => {
-    const mode = overrides.courseStatuses[courseId];
-    const buttons: Array<{ val: CourseOverrideMode; text: string; tone: string }> = [
-      {
-        val: 'sigaa_auto',
-        text: defaultModeLabel,
-        tone: 'bg-slate-900 dark:bg-indigo-600 text-white',
-      },
-      {
-        val: 'passed',
-        text: 'Aprobada ≥3.0',
-        tone: 'bg-emerald-600 text-white',
-      },
-      {
-        val: 'failed',
-        text: 'Reprobada <3.0',
-        tone: 'bg-rose-600 text-white',
-      },
-    ];
+    const proj = projection.projectedCourseMap[courseId];
+    const score = proj?.accumulatedPoints ?? 0;
+    const isPassing = proj?.isPassingForPrereqs;
 
     return (
       <div
@@ -126,24 +106,21 @@ export default function ScheduleManagerSection({
             {label}
           </span>
           <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-            {scoreText}
+            SIGAA Real: {score.toFixed(2)} / 5.00 (100% evaluado)
           </span>
         </div>
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
-          {buttons.map((b) => (
-            <button
-              key={b.val}
-              type="button"
-              onClick={() => setCourseResolution(courseId, b.val)}
-              className={`cursor-pointer px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
-                mode === b.val
-                  ? b.tone
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700'
-              }`}
-            >
-              {b.text}
-            </button>
-          ))}
+        <div>
+          {isPassing ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <CheckCircle2 className="w-3 h-3" />
+              Aprobada en SIGAA
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+              <XCircle className="w-3 h-3" />
+              Reprobada ❌ (Bloquea {blockedCourse})
+            </span>
+          )}
         </div>
       </div>
     );
@@ -415,29 +392,26 @@ export default function ScheduleManagerSection({
             </div>
           </div>
 
-          {/* Fila 2: Simulación rápida de materias SIGAA + Optativas 2027-1 */}
+          {/* Fila 2: Estado real materias llave SIGAA + Optativas 2027-1 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div className="space-y-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 block">
-                Resolución de Materias Llave 2026-2 (Sincroniza con Estudio)
+                Estado Real SIGAA Materias Llave 2026-2 (Impacto en Prerrequisitos 2027-1)
               </span>
-              {renderResolutionControl(
+              {renderPrereqStatusCard(
                 'c-suelos',
-                'Mecánica de Suelos (llave Cimentaciones)',
-                `SIGAA: ${suelosProj.accumulatedPoints.toFixed(2)} / 5.00 (100%)`,
-                'SIGAA ❌ 2.50'
+                'Mecánica de Suelos',
+                'Cimentaciones'
               )}
-              {renderResolutionControl(
+              {renderPrereqStatusCard(
                 'c-estructuras',
-                'Análisis de Estructuras (llave Concreto I)',
-                `SIGAA: ${estProj.accumulatedPoints.toFixed(2)} (${estProj.evaluatedPercent}% eval.)`,
-                'Proyección Pasa'
+                'Análisis de Estructuras',
+                'Concreto I'
               )}
-              {renderResolutionControl(
+              {renderPrereqStatusCard(
                 'c-hidrologia',
-                'Fund. Hidrología (llave Acueducto/Alcant.)',
-                `SIGAA: ${hidroProj.accumulatedPoints.toFixed(2)} (${hidroProj.evaluatedPercent}% eval.)`,
-                'Proyección Pasa'
+                'Fundamentos de Hidrología',
+                'Acueducto y Alcantarillado'
               )}
             </div>
 
