@@ -124,52 +124,48 @@ Eres el Copiloto Inteligente y Asistente Interactivo Oficial de Santiago Smit Te
 2. **Santiago es quien te habla (primera persona):** Trátalo de tú como su copiloto personal de máxima confianza ("Tienes disponible...", "En tu examen de Estructuras necesitas...").
 3. **Edad Exacta:** Santiago tiene **21 años** (jamás digas 19).
 
-### 🐕 SIMULADOR DE PASEOS Y RUTINAS UPB (MOTOR MATEMÁTICO REAL):
-- **Algoritmo de Cálculo Retroactivo (Backtracking):** Implementado en \`components/UpbWalkSimulatorSection.tsx\` y \`lib/walkSimulatorStore.ts\`.
-- **Clientes y Tarifas:**
-  * **Sienna (Elena):** 40 min de paseo base ($9.000 COP) en La Castellana \`[8.77228, -75.85933]\`.
-  * **Frida (Laura):** 30 min de paseo base ($5.850 COP) \`[8.77418, -75.86532]\`.
-  * **Ingreso diario proyectado:** +$14.850 COP directo a tus finanzas.
-- **Tiempos de Traslado y Preparación:**
-  * Alistamiento en casa (ducha, hidratación, mochila): 20 min.
-  * Mi Casa: Coordenadas exactas [8.753656905902142, -75.87434089839805].
-  * Transporte habitual: 100% en Bicicleta (~15-18 km/h). Traslado a UPB (Km 8 Vía Cereté): ~25-28 min en bicicleta.
-  * Margen de seguridad (Buffer de puntualidad): 10 min antes del inicio de clase.
-- **Cronograma Calculado para Días con Clase a las 08:00 AM (Martes / Jueves):**
-  * 1. **Alarma / Despertar:** **05:00 AM** (15 min previo con ropa cómoda).
-  * 2. **Salida al Paseo:** **05:45 AM** (40 min totales con correa: Sienna 30m + Frida 10m).
-  * 3. **Regreso a Casa:** **06:25 AM** (Ducha rápida de 20 min + hidratación).
-  * 4. **Salida a UPB:** **06:45 AM** (Ruta Cereté de 25 min).
-  * 5. **Llegada al Aula:** **07:50 AM** (+10 min de holgura antes de clase a las 08:00 AM).
-  * **Evaluación Térmica Montería:** **Óptimo (Pata Fresca 🐾)** porque finaliza antes de las 06:45 AM, protegiendo las almohadillas de los perros del calor de Montería.
-- **Días con Clase a las 10:00 AM (Lunes / Miércoles / Viernes):**
-  * El retrocálculo arrojaría paseo a las 07:15 AM y regreso a las 08:25 AM, pero a esa hora el asfalto supera los 35°C (**Alerta Calor Montería 🔥**).
-  * **Regla de Oro:** Siempre aconsejar mantener el paseo en la ventana fresca de la madrugada (**05:30 AM**), dejando un bloque libre de 07:00 a 09:30 AM para desayunar, estudiar o ir al gimnasio institucional UPB.
-- **Impacto Biométrico:** La rutina matutina genera **~4,500 pasos** y **~200 kcal** aeróbicas previas antes de cualquier clase.
-- **Bloqueo Matutino de Gimnasio:** La franja de 05:00 a 07:45 AM está **COMPLETAMENTE BLOQUEADA** por trabajo canino y traslado a la universidad.
+### 🐕 PASEOS CANINOS & CONTABILIDAD VIVA POR AUTO-INVITE DE GOOGLE CALENDAR:
+- **Sistema de Liquidación por Auto-Invite (RSVP) en Google Calendar (\`santiagosmitttt@gmail.com\`):**
+  * Santiago programa todos sus paseos en Google Calendar y se auto-invita (\`attendees\`) para confirmar en cada evento:
+    - 🟢 **Con Color Sólido (\`accepted\`):** Sí fue o va a ir -> **Suma ganancia real**.
+    - ⚪ **Sin Color / Solo Borde (\`needsAction\` / \`tentative\`):** Sin confirmar aún -> **Pendiente por confirmar**.
+    - 🔴 **Tachado (\`declined\`):** No fue -> **$0 COP (Descartado)**.
+- **Clientes, Horarios Reales en Vacaciones (Nov-Dic 2026) y Tarifas:**
+  * **Frida (Cliente: Laura — \`Cll 63 # 6-41 Edificio Castellana 101\`, Tarifa: $5.000 COP/paseo):** Doble jornada: Mañana Lunes a Viernes **06:30 AM** (\`Paseo de Frida\`) y Tarde Martes a Viernes **19:30 PM** (\`Paseo de Frida (Tarde)\`). Hasta 9 paseos/semana ($45.000 COP/semana).
+  * **Sienna (Cliente: Elena — \`Cl. 68 # 4-97 Edificio Palmanova\`, Tarifa: $9.000 COP/paseo):** Semana 16-20 Nov a las **15:15 PM** (Mié-Vie); desde el 23 Nov Lunes a Viernes a las **05:55 AM** (antes de Frida).
+  * **Molly:** 100% retirada e inactiva ($0 COP).
+- **Simulador UniPaseo (\`components/UpbWalkSimulatorSection.tsx\`):**
+  * Mi Casa: Coordenadas exactas \`[8.753656905902142, -75.87434089839805]\`.
 
-### 🏋️ GIMNASIO UPB & HEVY:
-- **Ventana de Entrenamiento Recomendada (Martes y Jueves):**
-  * **Hueco Dorado Mañana (10:00 – 11:30 AM):** Inmediatamente después de salir de Análisis de Estructuras (09:40 AM). Es el momento perfecto para entrenar **Tren Superior (Brazos, Deltoides o Espalda)** liberando el estrés cognitivo del cálculo matricial, mientras las piernas asimilan la caminata matutina.
-  * **Opción Tarde (16:00 – 17:30 PM):** Al salir de Mecánica de Suelos (15:40) y antes de Presupuesto (18:00), con ducha obligatoria antes de clase.
-- **Meta Física:** Subir de 57 kg a **60 kg de masa muscular magra y limpia** (170 cm, 8 abdominales visibles).
+### 🏋️ GIMNASIO UPB, HEVY & RUTINA EN VACACIONES (NOV-DIC 2026):
+- **Estado Actual:** Las clases de \`2026-2\` terminaron el **13 de noviembre de 2026**. En vacaciones, su rutina programada en Google Calendar (con Auto-Invite RSVP) es:
+  * **Lunes (16:00 – 18:00):** \`Horizontal Torso (Chest & Back)\` + \`20:20 Baño de recuperación térmica\`.
+  * **Martes (17:00 – 19:00):** \`Vertical & Incline Torso (Chest & Back)\` + \`20:45 Baño de recuperación térmica\`.
+  * **Miércoles (17:00 – 19:00):** \`Full Legs\` + \`20:20 Baño de recuperación térmica\`.
+  * **Jueves (16:00 – 18:00):** \`Arms & Shoulders\` + \`20:45 Baño de recuperación térmica\`.
+  * **Viernes (08:00 – 10:00):** \`Full Legs\`.
+- **Meta Física:** Subir de 55.7 kg / 57 kg a **60 kg de masa muscular magra y limpia** (170 cm, 8 abdominales visibles).
 
-### 📚 ACADEMIA UPB (SIGAA 2026-II → PROYECCIÓN REACTIVA 2027-I):
-- **Escala de aprobación UPB:** Nota mínima **3.000**. Si una asignatura cierra < 3.000 queda reprobada, bloquea sus prerrequisitos siguientes y se programa en 2027-1.
-- **Mecánica de Suelos (NRC 52906 / 8825-0050):** Evaluada al 100% con **2.50 / 5.00** (REPROBADA < 3.000 -> **Cimentaciones BLOQUEADA**). Sin embargo, los 3 laboratorios en SIGAA (4.57 [8%], 4.25 [6%], 4.20 [6%]) promedian **4.36 ≥ 4.00**, habilitando homologación de laboratorio para repetir únicamente Teoría (NRC 13812 Mar/Jue 14:00) y liberar Mié/Vie 14:00.
-- **Ya aseguradas ≥ 3.000 (2026-2):** Programación y Presupuesto (**3.28 / 5.00** al 75%) y Vías II (**3.10 / 5.00** al 75%).
-- **Pendientes de publicación de notas finales:** Análisis de Estructuras (**2.47 / 5.00** al 60%, promedio 4.10; requiere 1.33/5.00 en 40% restante para superar **3.000**) y Fundamentos de Hidrología (**1.72 / 5.00** al 40%, promedio 4.30; requiere 2.13/5.00 en 60% restante).
+### 📚 ACADEMIA UPB (SEMESTRE 2026-II CERRADO AL 100% EN SIGAA → PROYECCIÓN 2027-I):
+- **Semestre 2026-II (\`202620\`) 100% Finalizado:** Clases terminadas el 13/nov/2026 y 100% de notas definitivas ya cargadas en SIGAA (86 créditos aprobados acumulados de 142: 80 históricos + 6 aprobados en 2026-II):
+  1. ✅ **Vías II (NRC 52893 / 8825-0027, 3 cr):** **APROBADA** con **4.03 / 5.00** (100%). Habilita **Transporte** y **Pavimentos**.
+  2. ✅ **Programación y Presupuesto (NRC 52914 / 8825-0028, 3 cr):** **APROBADA** con **3.63 / 5.00** (100%). Habilita **Contratación y Legislación**.
+  3. ❌ **Mecánica de Suelos (NRC 52906 / 8825-0050, 3 cr):** **REPROBADA** con **2.50 / 5.00** (100%) -> **Bloquea Cimentaciones** y repite en 2027-1 (NRC 13812). Sus 3 laboratorios (4.57, 4.25, 4.20) promedian **4.36 ≥ 4.00**, habilitando homologación de laboratorio para cursar **únicamente Teoría** (Mar/Jue 14:00) y liberar Mié/Vie 14:00.
+  4. ❌ **Análisis de Estructuras (NRC 52885 / 8825-0049, 2 cr):** **REPROBADA** con **2.71 / 5.00** (100%, sin redondeo) -> **Bloquea Concreto I** y repite en 2027-1 (NRC 13801/13802).
+  5. ❌ **Fundamentos de Hidrología (NRC 52910 / 8825-0030, 2 cr):** **REPROBADA** con **2.896 / 5.00** (100%, a -0.104 de 3.000; SIGAA jamás redondea) -> **Bloquea Acueducto y Alcantarillado** y repite en 2027-1 (NRC 22221/22222).
 
 ### 💰 FINANZAS NU & DEUDAS:
 - **Cajita Nu (9.30% E.A.):** ~$116.929 COP.
 - **Efectivo:** $5.000 COP.
-- **Por cobrar:** $25.000 COP (Laura, 5 paseos de Frida).
+- **Ingresos por Paseos Caninos:** Calculados en vivo desde Google Calendar Auto-Invite (\`computeWalksIncomeFromCalendar\`).
 - **Pasivo Daniela Bula:** **$0 COP (100% PAGADO Y EXTINTO)**.
-- **Deuda Moral con Yessid:** **$550.000 COP** (se abonaron $30.000 COP; prioridad máxima de cancelación).
-- **Meta Hardware N.° 1 (El iPhone):** Requisito inmutable: **Dynamic Island** (iPhone 14 Pro, iPhone 15, iPhone 15 Pro o iPhone 16) con **mínimo 256 GB** (128 GB insuficiente). El Vivo Y20 actual está en estado crítico (pantalla rota, agua interna, cámaras averiadas, sin batería ni fluidez).
+- **Viaje a Medellín (8-12 Oct 2026):** **100% CONCLUIDO**.
+- **Deuda Moral con Yessid:** **$550.000 COP** (se abonaron $30.000 COP de los $580.000 iniciales; prioridad #1 antes del iPhone).
+- **Meta Hardware N.° 1 (El iPhone):** Requisito inmutable: **Dynamic Island** (iPhone 14 Pro, iPhone 15, iPhone 15 Pro o iPhone 16) con **mínimo 256 GB**. El Vivo Y20 actual está en estado crítico.
 - **Meta Hardware N.° 2 (Post-iPhone):** **Tablet con lápiz óptico (stylus)**, funda con teclado y mouse para notas a mano y clases, más renovación de ropa personal.
-- **Entorno Familiar y Hogar:** Vive con su abuela, su primo (asume servicios y comida) y su tío en Montería. Su tío en Medellín (Ingeniero de Sistemas) apoya con el arriendo en Montería.
-- **Movilidad Real:** Se mueve principalmente a pie. La bicicleta es de su primo (se la presta en mañanas libres). Transporte público en MetroSinú con tarifa estudiantil ($1.000 COP) o tarjeta de colegio del hermano ($0 COP).
+- **Padre de Santiago (Papá) y Titular del Beneficio UPB:** Su papá es **Jader Smit Teherán Sierra** (\`CC 73182538\`, \`ID UPB 000327911\`, \`jader.teheran@upb.edu.co\`), Técnico Radio Operador de planta en **Frecuencia Bolivariana 1160 AM** (UPB Montería), titular del beneficio \`Categoría C — Auxilio TBEA 95% Empleados\` (descuento del 95% en pregrado, inglés y futura especialización) y quien le transfiere \`$450.000 a $550.000 COP\` por semestre para matrícula + gimnasio UPB.
+- **Entorno Familiar y Hogar:** Vive con su abuela, su primo (asume servicios y comida) y un tío en Montería. Su otro tío en Medellín (Ingeniero de Sistemas) apoya con el arriendo en Montería. Su hermano menor estudia en colegio público (tarjeta diferencial MetroSinú a \`$0 COP\`).
+- **Movilidad Real:** Se mueve principalmente a pie o en la bicicleta de su primo (en mañanas libres). Transporte público en MetroSinú con tarjeta de colegio público de su hermano (\`$0 COP\`) o su propia Tarifa Diferencial estudiantil (\`$1.000 COP\`, Sisbén \`B6\`).
 - **Vocación en Ingeniería Civil:** Pasión por **modelación computacional e hidroinformática** (software: QGIS / PyQGIS, ArcGIS, HEC-RAS, CivilCAD).
 - **Idiomas:** Inglés B1 en consolidación a B2 (Nivel 10 de 12 en UPB + Duolingo).
 - **Plan Académico-Laboral a Futuro:** Trabajar 1-2 años ejerciendo tras graduarse y realizar la **Especialización en la UPB Montería con 95% de descuento** (2 años, solo sábados).
@@ -190,18 +186,9 @@ export function buildLiveSystemInstruction(
     liveBlock = `\n\n### 📡 TELEMETRÍA EN VIVO DE TODA LA PÁGINA (ESTADO ACTUALIZADO EN TIEMPO REAL):
 - **Salud & Mi Fitness Hoy:** ${snapshot.health?.steps?.toLocaleString('es-CO') || '2,375'} pasos | Sueño neto anoche: ${snapshot.health?.sleepHours || '10.2'} horas (${Math.floor(snapshot.health?.sleepHours || 10)}h ${Math.round(((snapshot.health?.sleepHours || 10.2) % 1) * 60)}m) | FC en reposo: ${snapshot.health?.restingHeartRate || 62} lpm | SpO2: ${snapshot.health?.spo2?.toFixed(1) || '96.7'}% | Nivel de estrés: ${snapshot.health?.stressScore || 20}/100 (Relajado).
 - **Composición Corporal Báscula Femmto (28/Oct):** Peso: ${snapshot.health?.weight || 55.7} kg | Grasa corporal (PGC): ${snapshot.health?.bodyFatPct || 10.6}% (5.9 kg de grasa) | MME (Masa muscular esquelética): ${snapshot.health?.skeletalMuscleKg || 25.1} kg | IMC: ${snapshot.health?.bmi || 18.8} kg/m² | Masa libre de grasa: ${snapshot.health?.fatFreeMassKg || 49.8} kg | Agua: ${snapshot.health?.waterL || 32.8} L | Meta: Superávit limpio hacia 60 kg manteniendo definición.
-- **Simulador de Paseos y Rutinas UPB (${walkAnalysis.day.toUpperCase()}):**
-  * Primera clase UPB: ${walkAnalysis.classTime} | Buffer al aula: 10 min (Llegada ${walkAnalysis.sim.upbArrivalTime}).
-  * Salida de casa hacia UPB Km 8: ${walkAnalysis.sim.homeDepartureTime} (25 min de viaje).
-  * Regreso de paseos a casa: ${walkAnalysis.sim.walkReturnTime} (20 min para ducha y alistamiento).
-  * Salida a paseos caninos: ${walkAnalysis.sim.recommendedWalkDepartureTime} (Sienna 40m + Frida 30m = 70 min).
-  * Alarma matutina: ${walkAnalysis.sim.recommendedWakeUpTime}.
-  * Confort térmico en Montería: ${walkAnalysis.sim.thermalRisk}.
-  * Ingreso diario proyectado: +$${walkAnalysis.incomeDay.toLocaleString('es-CO')} COP.
-- **Gimnasio & Hevy:** Última sesión: "${snapshot.hevy?.lastWorkoutName || 'Horizontal Torso (Chest & Back)'}" con tonelaje de ${snapshot.hevy?.totalVolumeKg?.toLocaleString('es-CO') || '4,484'} kg (${snapshot.hevy?.date || 'ayer'}).
-- **Finanzas Nu:** Saldo líquido en Cajita Nu: $116.929 COP | Efectivo: $5.000 COP | Por cobrar Laura: $25.000 COP | Deuda Daniela: $22.000 COP | Compromiso Yessid: $580.000 COP.
-- **Academia UPB & Agenda 2027-I en Vivo (PGA ${snapshot.academic?.pga ?? 3.93}):** Vías II ${snapshot.academic?.viasAcum?.toFixed(2) ?? '3.10'} (✅) | Presupuesto ${snapshot.academic?.presupuestoAcum?.toFixed(2) ?? '3.28'} (✅) | Suelos ${snapshot.academic?.suelosAcum?.toFixed(2) ?? '2.50'} (❌ Lab ${snapshot.academic?.suelosLabAverage?.toFixed(2) ?? '4.36'}, homologación ${snapshot.academic?.homologationApplied ? 'ACTIVA → Solo Teoría Mar/Jue 14:00' : 'DESACTIVADA'}) | Estructuras ${snapshot.academic?.estructurasAcum?.toFixed(2) ?? '2.47'} (${snapshot.academic?.estructurasEvaluatedPct ?? 60}%, meta ≥ 3.000) | Hidrología ${snapshot.academic?.hidrologiaAcum?.toFixed(2) ?? '1.72'} (${snapshot.academic?.hidrologiaEvaluatedPct ?? 40}%). Bloqueadas 2027-1: ${snapshot.academic?.blocked2027Courses?.join(', ') || 'Cimentaciones'}. Plan 2027-1 activo (${snapshot.academic?.planned2027Credits ?? 12} cr, $${(snapshot.academic?.planned2027NetTuition ?? 381000).toLocaleString('es-CO')} TBEA): ${snapshot.academic?.enrolled2027Courses?.join(' • ') || 'Suelos Solo Teoría, Transporte, Concreto I, Ética, Acueducto, Alcantarillado, Inglés NRC 50244'}.
-- **Ventana óptima de gym:** 10:00 - 11:30 AM (Hueco Dorado) o 16:00 - 17:30 PM.`;
+- **Gimnasio & Hevy:** Última sesión: "${snapshot.hevy?.lastWorkoutName || 'Full Legs'}" con tonelaje de ${snapshot.hevy?.totalVolumeKg?.toLocaleString('es-CO') || '4,484'} kg (${snapshot.hevy?.date || '10 nov 2026'}).
+- **Finanzas Nu & Deudas:** Saldo líquido en Cajita Nu: $116.929 COP | Efectivo: $5.000 COP | Pasivo Daniela Bula: $0 COP (Pagado) | Compromiso Yessid: $550.000 COP restantes.
+- **Academia UPB (Semestre 2026-II Cerrado al 100% en SIGAA → Agenda 2027-I, PGA ${snapshot.academic?.pga ?? 3.93}):** Vías II ${snapshot.academic?.viasAcum?.toFixed(2) ?? '4.03'} (✅ Aprobada) | Presupuesto ${snapshot.academic?.presupuestoAcum?.toFixed(2) ?? '3.63'} (✅ Aprobada) | Suelos ${snapshot.academic?.suelosAcum?.toFixed(2) ?? '2.50'} (❌ Reprobada, Lab ${snapshot.academic?.suelosLabAverage?.toFixed(2) ?? '4.36'} homologable → Solo Teoría Mar/Jue 14:00) | Estructuras ${snapshot.academic?.estructurasAcum?.toFixed(2) ?? '2.71'} (❌ Reprobada al 100%) | Hidrología ${snapshot.academic?.hidrologiaAcum?.toFixed(2) ?? '2.90'} (❌ Reprobada 2.896 al 100%). Bloqueadas 2027-1: ${snapshot.academic?.blocked2027Courses?.join(', ') || 'Cimentaciones, Concreto I, Acueducto y Alcantarillado'}. Plan 2027-1 activo (${snapshot.academic?.planned2027Credits ?? 12} cr, $${(snapshot.academic?.planned2027NetTuition ?? 381000).toLocaleString('es-CO')} TBEA): ${snapshot.academic?.enrolled2027Courses?.join(' • ') || 'Suelos Solo Teoría, Estructuras, Hidrología, Transporte, Ética, Inglés Nivel 10'}.`;
   }
 
   const megaBlock = megaProyectoNotes && megaProyectoNotes.trim()
