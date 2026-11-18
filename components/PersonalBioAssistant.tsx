@@ -23,7 +23,7 @@ interface ChatMessage {
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
-  source?: 'gemini-ai' | 'groq-llama-70b' | 'google-ai-studio-error' | 'initial';
+  source?: 'gemini-ai' | 'nvidia-nim' | 'groq-llama-70b' | 'google-ai-studio-error' | 'initial';
   model?: string;
 }
 
@@ -31,20 +31,20 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'assistant',
-    text: '¡Hola, Santiago! Soy tu copiloto interactivo de bio y telemetría total de VYFITH, conectado en tiempo real con **Google AI Studio** y tus notas del cerebro de **MegaProyecto**. Estoy enlazado a todos tus módulos en vivo: tu sueño y salud de Mi Fitness, tus 237 entrenamientos de Hevy, tus finanzas en Nu y tu agenda universitaria en la UPB Montería. ¿Qué deseas consultar hoy?',
+    text: '¡Hola, Santiago! Soy tu copiloto interactivo de bio y telemetría total de VYFITH, conectado en tiempo real con **Google AI Studio (Gemini)**, **NVIDIA NIM** y **Groq Cloud**, además de tu cerebro de **MegaProyecto**. Estoy enlazado a tus módulos reales al 18 de noviembre de 2026: sueño de 10h 12m (94%), **202 entrenamientos** en Hevy, tu único saldo líquido de **$45.724,27 COP en Nequi** (con $25k de Frida para pasar a Nu), **$295.000 COP por cobrar** (Richard David + Maba), deuda Yessid en **$519.000 COP** y tu agenda en vacaciones universitarias. ¿Qué analizamos hoy?',
     timestamp: 'Ahora',
     source: 'initial',
-    model: 'Google AI Studio Live',
+    model: 'Multi-IA VYFITH Live',
   },
 ];
 
 const PREDEFINED_QUESTIONS = [
-  '¿Cómo amaneció mi sueño en Mi Fitness y qué animal soy?',
-  '¿Cómo está mi agenda de mañana (Sienna 5:30, Frida 6:10, UPB y gimnasio)?',
-  '¿Cómo están mis finanzas en Nu y la deuda de Yessid?',
-  '¿Cuánto necesito en el examen final de Estructuras (30%)?',
-  '¿Cuál fue mi último entrenamiento en Hevy y mi meta física?',
-  '¿Quién es Santiago Smit Teherán Mogollón y cuántos años tiene?',
+  '¿Cómo correlacionas mis 10h 12m de sueño con mi último Full Legs (4,484 kg) y qué entreno hoy?',
+  '¿Qué paseos tengo confirmados esta semana en Google Calendar (Frida/Sienna) y cuánto suman?',
+  '¿Cómo optimizo mis $45.724,27 en Nequi, el traspaso de $25k a Nu y los cobros a Richard ($180k) y Maba ($115k)?',
+  '¿Cómo queda mi matrícula 2027-I ahora que 2026-II ya cerró al 100% en SIGAA?',
+  '¿Cuánto me falta para saldar los $519.000 de Yessid y llegar a mi meta de 60 kg en Femmto (actual 55.7 kg)?',
+  '¿Quién es Santiago Smit Teherán Mogollón y cuál es su perfil técnico actual?',
 ];
 
 /**
@@ -158,30 +158,32 @@ export default function PersonalBioAssistant() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [customApiKey, setCustomApiKey] = useState('');
+  const [nvidiaApiKey, setNvidiaApiKey] = useState('');
   const [groqApiKey, setGroqApiKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('auto');
   const [showSettings, setShowSettings] = useState(false);
   const [showKeyText, setShowKeyText] = useState(false);
+  const [showNvidiaText, setShowNvidiaText] = useState(false);
   const [showGroqText, setShowGroqText] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isTestingKey, setIsTestingKey] = useState(false);
-  const [activeModel, setActiveModel] = useState('Google AI Studio (Gemini 3.5)');
+  const [activeModel, setActiveModel] = useState('Google AI Studio (Gemini 2.5)');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // Cargar API Keys y modelo personalizado desde localStorage si existen
+  // Cargar API Keys y modelo personalizado desde localStorage si existen (el servidor ya provee .env.local por defecto)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const defaultKey = 'AQ.Ab8RN6I9RHi1kNU9HeHn-_4JkgQQQ-qVWiguCDwH0VjsjFaYkQ';
       const storedKey = localStorage.getItem('vyfith_gemini_api_key');
+      const storedNvidia = localStorage.getItem('vyfith_nvidia_api_key');
       const storedGroq = localStorage.getItem('vyfith_groq_api_key');
       const storedModel = localStorage.getItem('vyfith_selected_model');
-      if (storedKey) {
+      if (storedKey && !storedKey.startsWith('AQ.Ab8RN6I9R')) {
         setCustomApiKey(storedKey);
-      } else {
-        setCustomApiKey(defaultKey);
-        localStorage.setItem('vyfith_gemini_api_key', defaultKey);
+      } else if (storedKey) {
+        localStorage.removeItem('vyfith_gemini_api_key');
       }
+      if (storedNvidia) setNvidiaApiKey(storedNvidia);
       if (storedGroq) setGroqApiKey(storedGroq);
       if (storedModel) setSelectedModel(storedModel);
     }
@@ -200,6 +202,12 @@ export default function PersonalBioAssistant() {
         localStorage.removeItem('vyfith_gemini_api_key');
       }
 
+      if (nvidiaApiKey.trim()) {
+        localStorage.setItem('vyfith_nvidia_api_key', nvidiaApiKey.trim());
+      } else {
+        localStorage.removeItem('vyfith_nvidia_api_key');
+      }
+
       if (groqApiKey.trim()) {
         localStorage.setItem('vyfith_groq_api_key', groqApiKey.trim());
       } else {
@@ -214,25 +222,27 @@ export default function PersonalBioAssistant() {
 
   const handleTestKey = async () => {
     setIsTestingKey(true);
-    setSaveStatus('Probando conexión con Google AI Studio...');
+    setSaveStatus('Probando conexión Multi-IA...');
     try {
       const res = await fetch('/api/bio-assistant', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(customApiKey.trim() ? { 'x-gemini-api-key': customApiKey.trim() } : {}),
+          ...(nvidiaApiKey.trim() ? { 'x-nvidia-api-key': nvidiaApiKey.trim() } : {}),
           ...(groqApiKey.trim() ? { 'x-groq-api-key': groqApiKey.trim() } : {}),
         },
         body: JSON.stringify({
-          messages: [{ role: 'user', text: 'Ping de prueba. Responde brevemente: Conexión exitosa con Google AI Studio.' }],
+          messages: [{ role: 'user', text: 'Ping de prueba. Responde brevemente: Conexión exitosa con VYFITH Live.' }],
           apiKey: customApiKey.trim() || undefined,
+          nvidiaApiKey: nvidiaApiKey.trim() || undefined,
           groqApiKey: groqApiKey.trim() || undefined,
           model: selectedModel,
         }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        setSaveStatus(`Conexión exitosa con ${data.model || 'Google AI Studio'} 🟢`);
+        setSaveStatus(`Conexión exitosa con ${data.model || 'IA Live'} 🟢`);
         setActiveModel(data.model || 'Google AI Studio');
       } else {
         setSaveStatus(`Error [HTTP ${res.status}]: ${data.error || data.reply || 'Falla de autenticación'} 🔴`);
@@ -285,11 +295,13 @@ export default function PersonalBioAssistant() {
         headers: {
           'Content-Type': 'application/json',
           ...(customApiKey.trim() ? { 'x-gemini-api-key': customApiKey.trim() } : {}),
+          ...(nvidiaApiKey.trim() ? { 'x-nvidia-api-key': nvidiaApiKey.trim() } : {}),
           ...(groqApiKey.trim() ? { 'x-groq-api-key': groqApiKey.trim() } : {}),
         },
         body: JSON.stringify({
           messages: payloadMessages,
           apiKey: customApiKey.trim() || undefined,
+          nvidiaApiKey: nvidiaApiKey.trim() || undefined,
           groqApiKey: groqApiKey.trim() || undefined,
           model: selectedModel,
         }),
@@ -428,7 +440,7 @@ export default function PersonalBioAssistant() {
               </div>
 
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
-                VYFITH conecta en tiempo real con <strong>Google AI Studio (Gemini 3.5 Flash Lite, Gemma 4, Gemini 3.8 Flash)</strong> y <strong>Groq Cloud (Llama 3.3 70B)</strong>.
+                VYFITH conecta en tiempo real con <strong>Google AI Studio (Gemini)</strong>, <strong>NVIDIA NIM (1.000 créditos gratis)</strong> y <strong>Groq Cloud (Llama 3.3 70B)</strong>.
               </p>
 
               <div className="grid grid-cols-1 gap-2.5 mb-3">
@@ -451,6 +463,29 @@ export default function PersonalBioAssistant() {
                       className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                     >
                       {showKeyText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Clave NVIDIA NIM */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    NVIDIA NIM API Key (build.nvidia.com — 1.000 créditos gratis)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNvidiaText ? 'text' : 'password'}
+                      value={nvidiaApiKey}
+                      onChange={(e) => setNvidiaApiKey(e.target.value)}
+                      placeholder="Clave de NVIDIA NIM (nvapi-...)"
+                      className="w-full px-3 py-1.5 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNvidiaText(!showNvidiaText)}
+                      className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                    >
+                      {showNvidiaText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
@@ -489,13 +524,13 @@ export default function PersonalBioAssistant() {
                   onChange={(e) => setSelectedModel(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 cursor-pointer"
                 >
-                  <option value="auto">⚡ Multi-Modelo Automático (Gemini 3.5 Flash Lite + Gemma 4)</option>
-                  <option value="gemini-3.5-flash-lite">🌟 Gemini 3.5 Flash Lite (Verificado & Rápido)</option>
-                  <option value="gemini-flash-lite-latest">⚡ Gemini Flash Lite Latest</option>
-                  <option value="gemini-3.8-flash">🚀 Gemini 3.8 Flash (Recomendado 2026)</option>
-                  <option value="gemini-3.5-flash">💎 Gemini 3.5 Flash</option>
-                  <option value="gemma">🧠 Gemma 4 26B (Alta Disponibilidad)</option>
+                  <option value="auto">⚡ Multi-Modelo Automático (NVIDIA / Groq / Gemini)</option>
+                  <option value="gemini-2.5-flash">🌟 Gemini 2.5 Flash (Google AI Studio)</option>
+                  <option value="gemini-3.5-flash-lite">🌟 Gemini 3.5 Flash Lite</option>
+                  <option value="nvidia-llama">🟢 NVIDIA NIM — Llama 3.3 70B Instruct</option>
+                  <option value="nvidia-deepseek">🧠 NVIDIA NIM — DeepSeek R1</option>
                   <option value="groq-llama">⚡ Groq Cloud — Llama 3.3 70B Versatile</option>
+                  <option value="gemma">🧠 Gemma 4 26B (Alta Disponibilidad)</option>
                 </select>
               </div>
 

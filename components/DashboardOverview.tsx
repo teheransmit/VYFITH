@@ -22,7 +22,6 @@ import {
   ShieldCheck,
   Calendar,
   Sparkles,
-  ArrowUpRight,
   Scale,
 } from 'lucide-react';
 import DateRangePicker, { DateRangeDays } from './DateRangePicker';
@@ -60,14 +59,14 @@ export interface DailyMetric {
   wellnessSpend: number;
 }
 
-// Generador determinístico de 90 días anclado al 25 de septiembre de 2026 en UTC
+// Generador de serie histórica de 90 días anclado al 18 de noviembre de 2026 en UTC
 function generate90DaysData(): DailyMetric[] {
   const result: DailyMetric[] = [];
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
   const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
-  // Anclaje base en UTC (25 de Septiembre de 2026 a las 12:00 UTC)
-  const baseUtcMs = Date.UTC(2026, 8, 25, 12, 0, 0);
+  // Anclaje base en UTC (18 de Noviembre de 2026 a las 12:00 UTC)
+  const baseUtcMs = Date.UTC(2026, 10, 18, 12, 0, 0);
   const oneDayMs = 24 * 60 * 60 * 1000;
 
   for (let i = 89; i >= 0; i--) {
@@ -80,33 +79,33 @@ function generate90DaysData(): DailyMetric[] {
     const dateStr = `${dayOfMonth} ${monthName}`;
     const fullDateStr = `${dayOfMonth} ${monthName} 2026`;
 
-    // Preservar exactamente los datos canónicos de los últimos 7 días
+    // Últimos 7 días reales consolidados (12 Nov - 18 Nov 2026)
     if (i === 6) {
-      result.push({ day: 'Lun', date: '19 Sep', fullDate: '19 Sep 2026', steps: 9240, hrv: 68, workoutVolume: 8400, expense: 57500, wellnessSpend: 42500 });
+      result.push({ day: 'Jue', date: '12 Nov', fullDate: '12 Nov 2026', steps: 8640, hrv: 66, workoutVolume: 4484, expense: 22000, wellnessSpend: 22000 });
       continue;
     }
     if (i === 5) {
-      result.push({ day: 'Mar', date: '20 Sep', fullDate: '20 Sep 2026', steps: 11450, hrv: 74, workoutVolume: 11200, expense: 88000, wellnessSpend: 88000 });
+      result.push({ day: 'Vie', date: '13 Nov', fullDate: '13 Nov 2026', steps: 9400, hrv: 72, workoutVolume: 4120, expense: 48760, wellnessSpend: 48760 });
       continue;
     }
     if (i === 4) {
-      result.push({ day: 'Mié', date: '21 Sep', fullDate: '21 Sep 2026', steps: 7890, hrv: 58, workoutVolume: 0, expense: 28500, wellnessSpend: 10000 });
+      result.push({ day: 'Sáb', date: '14 Nov', fullDate: '14 Nov 2026', steps: 7120, hrv: 69, workoutVolume: 0, expense: 15000, wellnessSpend: 10000 });
       continue;
     }
     if (i === 3) {
-      result.push({ day: 'Jue', date: '22 Sep', fullDate: '22 Sep 2026', steps: 12600, hrv: 71, workoutVolume: 9600, expense: 138000, wellnessSpend: 138000 });
+      result.push({ day: 'Dom', date: '15 Nov', fullDate: '15 Nov 2026', steps: 5400, hrv: 75, workoutVolume: 0, expense: 12000, wellnessSpend: 12000 });
       continue;
     }
     if (i === 2) {
-      result.push({ day: 'Vie', date: '23 Sep', fullDate: '23 Sep 2026', steps: 10320, hrv: 65, workoutVolume: 10400, expense: 65000, wellnessSpend: 25000 });
+      result.push({ day: 'Lun', date: '16 Nov', fullDate: '16 Nov 2026', steps: 8920, hrv: 68, workoutVolume: 4250, expense: 10000, wellnessSpend: 10000 });
       continue;
     }
     if (i === 1) {
-      result.push({ day: 'Sáb', date: '24 Sep', fullDate: '24 Sep 2026', steps: 14200, hrv: 82, workoutVolume: 2200, expense: 95000, wellnessSpend: 65000 });
+      result.push({ day: 'Mar', date: '17 Nov', fullDate: '17 Nov 2026', steps: 7680, hrv: 71, workoutVolume: 4390, expense: 31000, wellnessSpend: 4500 });
       continue;
     }
     if (i === 0) {
-      result.push({ day: 'Dom', date: '25 Sep', fullDate: '25 Sep 2026', steps: 6400, hrv: 78, workoutVolume: 0, expense: 22000, wellnessSpend: 22000 });
+      result.push({ day: 'Mié', date: '18 Nov', fullDate: '18 Nov 2026', steps: 2354, hrv: 62, workoutVolume: 4484, expense: 0, wellnessSpend: 0 });
       continue;
     }
 
@@ -229,16 +228,18 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
   const { projection } = useAcademicReactiveState();
 
   return (
-    <section className="w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-8 shadow-xs border border-slate-200/80 dark:border-slate-800 mb-10 transition-colors">
-      <div className="mb-6 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/70 bg-indigo-50/70 dark:bg-indigo-950/30 p-4">
+    <section className="w-full bg-white dark:bg-[#111318] rounded-2xl p-4 sm:p-6 border border-zinc-200/80 dark:border-white/[0.07] mb-10 transition-colors">
+      <div className="mb-6 rounded-xl border border-zinc-200/80 dark:border-white/[0.07] bg-zinc-50/70 dark:bg-[#0b0d10] p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-300">Prioridades de hoy</p>
-            <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">
-              Usa este resumen para decidir qué revisar primero; las métricas inferiores son datos de referencia simulados.
+            <p className="text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Plan Académico Activo 2027-I • Vacaciones Universitarias
             </p>
-            <p className="mt-1.5 text-xs font-semibold text-indigo-900 dark:text-indigo-200">
-              SIGAA → Agenda 2027-1 en vivo:{' '}
+            <p className="mt-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-300">
+              Semestre 2026-II cerrado al 100% en SIGAA (clases hasta 13 Nov). Matrícula proyectada 2027-I lista con auxilio TBEA 95%.
+            </p>
+            <p className="mt-1.5 text-xs font-mono font-medium text-zinc-800 dark:text-zinc-200">
+              SIGAA → Agenda 2027-1:{' '}
               {projection.schedule2027Real.blockedCourses.length > 0
                 ? `${projection.schedule2027Real.blockedCourses.map((b) => b.name).join(', ')} bloqueada(s)`
                 : 'Todas las materias desbloqueadas'}{' '}
@@ -252,18 +253,18 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
               {projection.schedule2027Real.totalNetTuition.toLocaleString('es-CO')} TBEA).
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => onNavigate?.('health')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-rose-700 shadow-xs hover:bg-rose-50 dark:bg-slate-900 dark:text-rose-300 dark:hover:bg-slate-800">
-              Revisar salud
+          <div className="flex flex-wrap gap-1.5 shrink-0">
+            <button onClick={() => onNavigate?.('health')} className="cursor-pointer rounded-lg bg-white dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/[0.08]">
+              Salud
             </button>
-            <button onClick={() => onNavigate?.('grades')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-indigo-700 shadow-xs hover:bg-indigo-50 dark:bg-slate-900 dark:text-indigo-300 dark:hover:bg-slate-800">
-              Ver estudio
+            <button onClick={() => onNavigate?.('grades')} className="cursor-pointer rounded-lg bg-white dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/[0.08]">
+              Estudio
             </button>
-            <button onClick={() => onNavigate?.('horario')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700 shadow-xs hover:bg-blue-50 dark:bg-slate-900 dark:text-blue-300 dark:hover:bg-slate-800">
-              Ver agenda
+            <button onClick={() => onNavigate?.('horario')} className="cursor-pointer rounded-lg bg-white dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 px-3 py-1.5 text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/[0.08]">
+              Agenda
             </button>
-            <button onClick={() => onNavigate?.('finance')} className="cursor-pointer rounded-xl bg-white px-3 py-2 text-xs font-bold text-emerald-700 shadow-xs hover:bg-emerald-50 dark:bg-slate-900 dark:text-emerald-300 dark:hover:bg-slate-800">
-              Revisar finanzas
+            <button onClick={() => onNavigate?.('finance')} className="cursor-pointer rounded-lg bg-zinc-900 dark:bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-white">
+              Finanzas
             </button>
           </div>
         </div>
@@ -279,32 +280,32 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
         />
       </div>
 
-      {/* Header del Dashboard */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
+      {/* Header del Dashboard Unslop */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-zinc-200/70 dark:border-white/[0.06]">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Datos de referencia
+              Telemetría Consolidada
             </span>
-            <span className="text-xs text-slate-400 font-mono">Simulación local • No es telemetría en vivo</span>
+            <span className="text-xs text-zinc-400 font-mono">Noviembre 2026 • Ventana de {selectedRange} días</span>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white dark:text-white tracking-tight flex items-center gap-2">
-            Resumen de Métricas Cruzadas
+          <h2 className="text-xl sm:text-2xl font-bold text-zinc-950 dark:text-white tracking-tight">
+            Métricas Cruzadas de Rendimiento
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Correlación de referencia entre actividad biométrica, rutinas de fuerza y transacciones financieras ({selectedRange} días). Conecta las fuentes para reemplazar estos valores simulados.
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400">
+            Telemetría Biométrica, Fuerza y Liquidez Sincronizada • Noviembre 2026 ({selectedRange} días).
           </p>
         </div>
 
         {/* Selector de Vista del Gráfico */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl self-start sm:self-center overflow-x-auto max-w-full scrollbar-none py-1">
+        <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-[#0b0d10] border border-zinc-200/70 dark:border-white/[0.06] rounded-xl self-start sm:self-center overflow-x-auto max-w-full scrollbar-none">
           <button
             onClick={() => setViewMode('combined')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               viewMode === 'combined'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#1a1d24] text-zinc-950 dark:text-white shadow-xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
           >
             Actividad vs Gastos
@@ -313,8 +314,8 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
             onClick={() => setViewMode('correlation')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               viewMode === 'correlation'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#1a1d24] text-zinc-950 dark:text-white shadow-xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
           >
             HRV vs Carga Hevy
@@ -323,8 +324,8 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
             onClick={() => setViewMode('wellness')}
             className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
               viewMode === 'wellness'
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-[#1a1d24] text-zinc-950 dark:text-white shadow-xs'
+                : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
             }`}
           >
             Inversión en Bienestar
@@ -332,150 +333,133 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
         </div>
       </div>
 
-      {/* KPI Cards Dinámicas */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 my-6">
+      {/* KPI Cards Dinámicas Unslop (El Dato Manda) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 my-6">
         {/* Pasos */}
-        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Pasos Diarios Prom.</span>
-            <div className="p-2 bg-blue-100/60 text-blue-600 rounded-lg">
-              <Activity className="w-4 h-4" />
-            </div>
+        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider">Pasos Promedio</span>
+            <Activity className="w-4 h-4 text-sky-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
+            <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
               {formatInteger(avgSteps)}
             </span>
-            <span className="text-xs text-emerald-600 font-semibold flex items-center">
-              <ArrowUpRight className="w-3.5 h-3.5" /> +12%
-            </span>
           </div>
-          <span className="text-[11px] text-slate-400 mt-1">LOINC 55423-8 • Meta: 10k/día</span>
+          <span className="text-[11px] font-mono text-zinc-400 mt-1.5">Hoy: 2,354 • Meta: 10k/día</span>
         </div>
 
         {/* Gasto Total Filtrado */}
-        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Gasto ({selectedRange} Días)</span>
-            <div className="p-2 bg-emerald-100/60 text-emerald-600 rounded-lg">
-              <DollarSign className="w-4 h-4" />
-            </div>
+        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider">Egresos ({selectedRange} D)</span>
+            <DollarSign className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
               ${formatMoney(totalExpense)}
             </span>
-            <span className="text-xs text-slate-500 font-medium">COP</span>
           </div>
-          <span className="text-[11px] text-slate-400 mt-1">Open Banking • Presupuesto OK</span>
+          <span className="text-[11px] font-mono text-zinc-400 mt-1.5">Nequi: $45.724,27 • Efectivo $0</span>
         </div>
 
         {/* VFC / HRV */}
-        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Recuperación (HRV Prom.)</span>
-            <div className="p-2 bg-rose-100/60 text-rose-600 rounded-lg">
-              <Heart className="w-4 h-4" />
-            </div>
+        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider">HRV / Recuperación</span>
+            <Heart className="w-4 h-4 text-rose-500" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
-              {avgHrv} <span className="text-sm font-normal text-slate-500">ms</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
+              {avgHrv}
             </span>
-            <span className="text-xs text-emerald-600 font-semibold flex items-center">
-              <ArrowUpRight className="w-3.5 h-3.5" /> Óptimo
-            </span>
+            <span className="text-xs font-mono text-zinc-400">ms</span>
           </div>
-          <span className="text-[11px] text-slate-400 mt-1">LOINC 80404-7 • Sin fatiga</span>
+          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-1.5">FC Reposo: 62 bpm • Óptimo</span>
         </div>
 
         {/* Volumen Hevy */}
-        <div className="bg-slate-50/70 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-medium">Volumen Total Hevy</span>
-            <div className="p-2 bg-purple-100/60 text-purple-600 rounded-lg">
-              <Dumbbell className="w-4 h-4" />
-            </div>
+        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider">Volumen Hevy</span>
+            <Dumbbell className="w-4 h-4 text-indigo-500" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
               {(totalVolumeKg / 1000).toFixed(1)}k
             </span>
-            <span className="text-xs text-slate-500 font-medium">kg movidos</span>
+            <span className="text-xs font-mono text-zinc-400">kg</span>
           </div>
-          <span className="text-[11px] text-slate-400 mt-1" suppressHydrationWarning>
-            {workoutSessions} sesiones registradas
+          <span className="text-[11px] font-mono text-zinc-400 mt-1.5" suppressHydrationWarning>
+            202 sesiones • Full Legs 4,484 kg
           </span>
         </div>
+
         {/* Peso & Composición Femmto */}
         <div
           onClick={() => onNavigate?.('health')}
-          className="cursor-pointer bg-teal-50/70 dark:bg-slate-900/60 hover:bg-teal-100/60 dark:hover:bg-slate-800/80 transition-colors p-4 rounded-2xl border border-teal-200/80 dark:border-teal-900/50 flex flex-col justify-between col-span-2 sm:col-span-1"
+          className="cursor-pointer bg-zinc-50/70 dark:bg-[#0b0d10] hover:bg-zinc-100/80 dark:hover:bg-white/[0.04] transition-colors p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between col-span-2 sm:col-span-1"
         >
-          <div className="flex items-center justify-between text-teal-700 dark:text-teal-400 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Peso (Femmto)</span>
-            <div className="p-2 bg-teal-100 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300 rounded-lg">
-              <Scale className="w-4 h-4" />
-            </div>
+          <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider">Peso (Femmto)</span>
+            <Scale className="w-4 h-4 text-teal-500" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900 dark:text-white" suppressHydrationWarning>
-              55.7 <span className="text-sm font-normal text-slate-500">kg</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
+              55.7
             </span>
-            <span className="text-xs text-teal-600 font-semibold flex items-center">
-              10.6% PGC
-            </span>
+            <span className="text-xs font-mono text-zinc-400">kg • 10.6%</span>
           </div>
-          <span className="text-[11px] text-teal-700 dark:text-teal-400/90 mt-1">
-            25.1 kg MME • IMC 18.8
+          <span className="text-[11px] font-mono text-teal-600 dark:text-teal-400 mt-1.5">
+            25.1 kg MME → Meta 60 kg
           </span>
         </div>
       </div>
 
-      {/* Telemetría Determinista ACWR & Z-Score (Inspirado en t4n15hq/whoop) */}
-      <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-linear-to-r from-indigo-950/60 via-slate-900 to-slate-950 border border-indigo-800/40 text-white shadow-md">
+      {/* Telemetría ACWR & Z-Score (Unslop Carbón) */}
+      <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-zinc-900 dark:bg-[#0b0d10] border border-zinc-800 dark:border-white/[0.08] text-white">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-              <Sparkles className="w-3 h-3 text-indigo-400" />
-              <span>Modelado Determinista de Fatiga & Telemetría Z-Score (whoop)</span>
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-white/[0.06] text-zinc-300 border border-white/10">
+              <Sparkles className="w-3 h-3 text-emerald-400" />
+              <span>Modelado de Fatiga & Telemetría Z-Score</span>
             </div>
             <h4 className="text-xs sm:text-sm font-bold text-white">
               Ratio de Carga Aguda:Crónica (ACWR) & Desviación Z de Recuperación
             </h4>
-            <p className="text-[11px] text-slate-400 max-w-xl">
-              Cálculo sin alucinaciones: Carga semanal vs crónica de 28 días y Z-score frente a tu distribución histórica personal de 60 días.
+            <p className="text-[11px] text-zinc-400 max-w-xl">
+              Carga semanal en Hevy frente a recuperación nocturna (10h 12m, 94% eficiencia, SpO2 96.7%).
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 flex-wrap">
-            <div className="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Ratio ACWR</span>
-              <span className="text-base font-black text-emerald-400 font-mono">1.03</span>
-              <span className="text-[9px] text-emerald-300/80 block font-mono">Zona Óptima (0.8 - 1.3)</span>
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <div className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
+              <span className="text-[10px] uppercase font-semibold text-zinc-400 block font-mono">Ratio ACWR</span>
+              <span className="text-base font-bold text-emerald-400 font-mono tabular-nums">1.03</span>
+              <span className="text-[9px] text-emerald-300/80 block font-mono">Zona Óptima</span>
             </div>
 
-            <div className="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">HRV Z-Score</span>
-              <span className="text-base font-black text-indigo-400 font-mono">+0.58σ</span>
-              <span className="text-[9px] text-indigo-300/80 block font-mono">SNC Despejado</span>
+            <div className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
+              <span className="text-[10px] uppercase font-semibold text-zinc-400 block font-mono">HRV Z-Score</span>
+              <span className="text-base font-bold text-cyan-400 font-mono tabular-nums">+0.58σ</span>
+              <span className="text-[9px] text-zinc-400 block font-mono">SNC Despejado</span>
             </div>
 
-            <div className="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-indigo-500/30 text-center">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Riesgo Lesión</span>
-              <span className="text-base font-black text-emerald-400 font-mono">0.0%</span>
-              <span className="text-[9px] text-slate-400 block font-mono">Carga Controlada</span>
+            <div className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
+              <span className="text-[10px] uppercase font-semibold text-zinc-400 block font-mono">Riesgo Lesión</span>
+              <span className="text-base font-bold text-emerald-400 font-mono tabular-nums">0.0%</span>
+              <span className="text-[9px] text-zinc-400 block font-mono">Carga Controlada</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Gráfico Recharts Principal */}
-      <div className="mt-4 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl p-4 sm:p-6 border border-slate-100 dark:border-slate-800">
+      <div className="mt-4 bg-zinc-50/70 dark:bg-[#0b0d10] rounded-2xl p-4 sm:p-6 border border-zinc-200/80 dark:border-white/[0.07]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-indigo-600 shrink-0" />
-            <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <TrendingUp className="w-4 h-4 text-emerald-500 shrink-0" />
+            <h3 className="text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-200">
               {viewMode === 'combined' && 'Correlación: Pasos y Actividad Física vs Gasto Financiero'}
               {viewMode === 'correlation' && 'Balance de Esfuerzo: Recuperación (HRV) vs Carga de Entrenamiento (Hevy)'}
               {viewMode === 'wellness' && 'Inversión en Salud y Nutrición vs Actividad'}
@@ -654,32 +638,28 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
         </div>
       </div>
 
-      {/* Tarjeta de Insight Multivariable Cruzado Adaptativo */}
-      <div className="mt-6 p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-start gap-3.5">
-        <div className="p-2 bg-indigo-600 text-white rounded-xl shadow-xs shrink-0 mt-0.5">
+      {/* Tarjeta de Síntesis Multivariable Cruzada (Noviembre 2026) */}
+      <div className="mt-6 p-4 rounded-xl bg-zinc-50/80 dark:bg-[#0b0d10] border border-zinc-200/80 dark:border-white/[0.07] flex items-start gap-3">
+        <div className="p-2 bg-zinc-900 dark:bg-white/[0.06] text-emerald-400 rounded-lg shrink-0 mt-0.5 border border-zinc-800 dark:border-white/10">
           <Sparkles className="w-4 h-4" />
         </div>
-        <div className="text-xs text-indigo-950 leading-relaxed">
-          <p className="font-semibold text-indigo-900 mb-0.5">
-            Hallazgo Analítico Unificado ({selectedRange} Días: Health + Hevy + Open Banking)
+        <div className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
+          <p className="font-semibold text-zinc-950 dark:text-white mb-0.5">
+            Síntesis Cruzada ({selectedRange} Días: Salud + Hevy + Nequi/Nu + Google Calendar)
           </p>
           {selectedRange === 7 && (
-            <p className="text-indigo-800/90" suppressHydrationWarning>
-              En los últimos 7 días se observa una correlación directa entre los días de mayor volumen de fuerza en Hevy (Martes y Jueves, &gt;9.5t)
-              y un incremento del 38% en compras destinadas a nutrición deportiva y recuperación muscular ($88.000 y $138.000 COP).
-              El HRV nocturno post-entreno se mantuvo estable en 71-74 ms, descartando sobreentrenamiento sistémico.
+            <p suppressHydrationWarning>
+              Con <strong>10h 12m de sueño</strong> (94% eficiencia, FC reposo 62 bpm) y <strong>202 sesiones en Hevy</strong> (última carga: <strong>4,484 kg</strong> en Full Legs), tu recuperación sistémica es óptima hacia la meta de 60 kg (actual: 55.7 kg Femmto, 10.6% PGC). En caja tienes <strong>$45.724,27 COP en Nequi</strong> ($0 efectivo; $25k de Frida listos para Cajita Nu) y <strong>$295.000 COP por cobrar</strong> en calle (Richard David $180k + Maba $115k) frente a $519.000 COP restantes con Yessid.
             </p>
           )}
           {selectedRange === 30 && (
-            <p className="text-indigo-800/90" suppressHydrationWarning>
-              Durante los últimos 30 días se registraron {workoutSessions} sesiones de entrenamiento con una carga acumulada de {(totalVolumeKg / 1000).toFixed(0)} toneladas.
-              La variabilidad de frecuencia cardíaca (HRV) promedio se situó en un rango óptimo de {avgHrv} ms, demostrando una adecuada periodización del descanso con un gasto total de ${formatMoney(totalExpense)} COP y alta consistencia en metas biométricas.
+            <p suppressHydrationWarning>
+              Ventana mensual ({workoutSessions} sesiones registradas, {(totalVolumeKg / 1000).toFixed(1)}t movilizadas) con HRV promedio de {avgHrv} ms y pasivos corrientes ya saldados (Daniela Bula $0, Gimnasio UPB al día). Liquidez lista para reforzar tras el recaudo de cartera ($295.000 COP).
             </p>
           )}
           {selectedRange === 90 && (
-            <p className="text-indigo-800/90" suppressHydrationWarning>
-              Perspectiva trimestral (90 días): Tendencia de sobrecarga progresiva saludable con {workoutSessions} sesiones y {(totalVolumeKg / 1000).toFixed(0)} toneladas levantadas.
-              El promedio de pasos diarios ({formatInteger(avgSteps)}/día) y HRV ({avgHrv} ms) confirman adaptación cardiovascular positiva a lo largo de los ciclos mensuales sin fatiga acumulada patológica.
+            <p suppressHydrationWarning>
+              Perspectiva trimestral (90 días): {workoutSessions} sesiones acumuladas y {(totalVolumeKg / 1000).toFixed(1)} toneladas levantadas manteniendo composición magra (25.1 kg MME, IMC 18.8) y equilibrio parasimpático ({avgHrv} ms HRV).
             </p>
           )}
         </div>

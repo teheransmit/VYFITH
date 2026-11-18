@@ -32,6 +32,7 @@ export interface LiveTelemetrySnapshot {
   };
   finance?: {
     cajitaNu: number;
+    nequi?: number;
     cash: number;
     receivables: number;
     debtDaniela: number;

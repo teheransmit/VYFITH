@@ -22,19 +22,23 @@ import UnifiedHealthFitnessSection from '@/components/UnifiedHealthFitnessSectio
 import UnifiedScheduleCalendarSection from '@/components/UnifiedScheduleCalendarSection';
 import UnifiedAcademicSection from '@/components/UnifiedAcademicSection';
 import PersonalBioAssistant from '@/components/PersonalBioAssistant';
+import CognitivePulseSentinel from '@/components/CognitivePulseSentinel';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
 import CommandPaletteModal from '@/components/CommandPaletteModal';
 import SessionThemeControls from '@/components/SessionThemeControls';
 import { DASHBOARD_NAV_ITEMS, DashboardTab } from '@/lib/navigation';
 
+const UNIFIED_ACTIVE_NAV =
+  'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950 shadow-xs ring-1 ring-zinc-900/10 dark:ring-white/20';
+
 const NAV_COLOR_CLASSES = {
-  slate: ['bg-slate-900 dark:bg-indigo-600 text-white shadow-md ring-2 ring-slate-900/20 dark:ring-indigo-600/30', 'text-slate-500 dark:text-slate-400'],
-  indigo: ['bg-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20', 'text-indigo-500'],
-  rose: ['bg-rose-600 text-white shadow-md ring-2 ring-rose-600/20', 'text-rose-500'],
-  blue: ['bg-blue-600 text-white shadow-md ring-2 ring-blue-600/20', 'text-blue-500'],
-  amber: ['bg-amber-600 text-white shadow-md ring-2 ring-amber-600/20', 'text-amber-500'],
-  emerald: ['bg-emerald-600 text-white shadow-md ring-2 ring-emerald-600/20', 'text-emerald-500'],
+  slate: [UNIFIED_ACTIVE_NAV, 'text-zinc-500 dark:text-zinc-400'],
+  indigo: [UNIFIED_ACTIVE_NAV, 'text-indigo-500 dark:text-indigo-400'],
+  rose: [UNIFIED_ACTIVE_NAV, 'text-rose-500 dark:text-rose-400'],
+  blue: [UNIFIED_ACTIVE_NAV, 'text-sky-500 dark:text-sky-400'],
+  amber: [UNIFIED_ACTIVE_NAV, 'text-amber-500 dark:text-amber-400'],
+  emerald: [UNIFIED_ACTIVE_NAV, 'text-emerald-500 dark:text-emerald-400'],
 } as const;
 
 const NAV_ICONS = {
@@ -133,15 +137,15 @@ function HomeDashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50/70 dark:bg-slate-950 py-6 px-3 sm:px-6 lg:px-8 font-sans selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+    <main className="min-h-screen bg-[#f6f7f9] dark:bg-[#090a0d] text-zinc-900 dark:text-zinc-100 py-6 px-3 sm:px-6 lg:px-8 font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-200">
       <div className={`app-shell mx-auto w-full min-w-0 ${layoutMode === 'puzzle' ? 'puzzle-mode' : 'expanded-mode'}`}>
         {/* Banner discreto de modo rompecabezas en monitores grandes */}
         {/* VISTA 1: MODO VIAJE MÓVIL (Preservado para móvil / desplazamientos futuros) */}
         {viewMode === 'travel' && (
           <div className="animate-fadeIn">
             {/* Barra superior de retorno al Centro de Mando PC */}
-            <div className="mb-6 flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xs flex-wrap gap-2">
-              <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 font-semibold">
+            <div className="mb-6 flex items-center justify-between p-3 rounded-2xl bg-white dark:bg-[#111318] border border-zinc-200/80 dark:border-white/[0.07] shadow-xs flex-wrap gap-2">
+              <div className="flex items-center gap-2 text-xs text-zinc-700 dark:text-zinc-300 font-semibold">
                 <Plane className="w-4 h-4 text-emerald-500" />
                 <span>Modo Viaje (Móvil) Activo — Optimizado para smartphone</span>
               </div>
@@ -156,7 +160,7 @@ function HomeDashboard() {
                 />
                 <button
                   onClick={() => setViewMode('full')}
-                  className="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-black bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 transition-all flex items-center gap-1.5 shadow-xs"
+                  className="cursor-pointer px-3.5 py-2 rounded-xl text-xs font-semibold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-950 hover:bg-zinc-800 dark:hover:bg-white transition-all flex items-center gap-1.5 shadow-xs"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>← Volver al Centro de Mando (PC)</span>
@@ -170,18 +174,18 @@ function HomeDashboard() {
         {/* VISTA 2: CENTRO DE MANDO COMPLETO (Desktop Ejecutivo de 8 Pilares) */}
         {viewMode === 'full' && (
           <div className="animate-fadeIn">
-            {/* Header Superior Ejecutivo con Botón de Modo Oscuro, Sesión y Accesos */}
-            <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200/80 dark:border-slate-800">
+            {/* Header Superior Ejecutivo Unslop */}
+            <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-zinc-200/80 dark:border-white/[0.07]">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                  <span>MegaProyecto • Sistema Integral de Vida, Ciencia y Rendimiento</span>
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium bg-white dark:bg-[#111318] text-zinc-700 dark:text-zinc-300 border border-zinc-200/80 dark:border-white/[0.08] mb-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>VYFITH OS • Santiago Teherán (21 años)</span>
                 </div>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-950 dark:text-white tracking-tight">
                   Centro de Mando Personal
                 </h1>
-                <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-                  Plataforma ejecutiva unificada que correlaciona tus <strong>7 dimensiones vitales</strong>: Salud Biométrica & Fitness, Agenda UPB, Academia & Literatura Científica, Paseos Caninos y Finanzas Personales.
+                <p className="mt-1 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
+                  Ecosistema vivo conectado a tu salud biométrica, Hevy, Google Calendar Auto-Invite, finanzas en Nequi/Nu y agenda UPB Montería.
                 </p>
               </div>
 
@@ -197,21 +201,30 @@ function HomeDashboard() {
                   onToggleLayoutMode={toggleLayoutMode}
                 />
 
-                {/* Badge de Ecosistema (Oculto en móviles para evitar saturación de pantalla) */}
-                <div className="hidden md:flex px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                {/* Badge de Ecosistema */}
+                <div className="hidden md:flex px-3.5 py-2 rounded-xl bg-white dark:bg-[#111318] border border-zinc-200/80 dark:border-white/[0.07] items-center gap-2.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <div className="text-xs">
-                    <span className="font-bold text-slate-900 dark:text-white block">Ecosistema Completo</span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">HL7 FHIR • OpenAlex • Room • Nu</span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100 block">Ecosistema Sincronizado</span>
+                    <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">FHIR • Google • Nequi/Nu</span>
                   </div>
                 </div>
               </div>
             </header>
 
-            {/* Navegación dinámica: se distribuye en escritorio y se desplaza en móvil. */}
+            {/* Pulso Cognitivo Vivo & Sentinel Auto-Reparador */}
+            <CognitivePulseSentinel
+              onNavigate={(tab) => {
+                if (DASHBOARD_NAV_ITEMS.some((item) => item.id === tab)) {
+                  setActiveTab(tab);
+                }
+              }}
+            />
+
+            {/* Navegación dinámica unificada Unslop */}
             <nav
               aria-label="Secciones principales"
-              className="mb-8 flex items-center gap-2 overflow-x-auto pb-4 custom-nav-scrollbar lg:overflow-visible lg:flex-wrap"
+              className="mb-6 flex items-center gap-1.5 overflow-x-auto pb-3 custom-nav-scrollbar lg:overflow-visible lg:flex-wrap"
               onWheel={(e) => {
                 if (e.deltaY !== 0) {
                   e.currentTarget.scrollLeft += e.deltaY;
@@ -228,13 +241,17 @@ function HomeDashboard() {
                     onClick={() => setActiveTab(item.id)}
                     aria-current={isActive ? 'page' : undefined}
                     title={item.commandTitle}
-                    className={`cursor-pointer min-h-10 px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1.5 lg:flex-1 ${
+                    className={`cursor-pointer min-h-9.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shrink-0 flex items-center justify-center gap-1.5 lg:flex-1 ${
                       isActive
                         ? activeClasses
-                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        : 'bg-white dark:bg-[#111318] text-zinc-600 dark:text-zinc-300 border border-zinc-200/80 dark:border-white/[0.07] hover:bg-zinc-50 dark:hover:bg-white/[0.05]'
                     }`}
                   >
-                    <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : inactiveIconClasses}`} />
+                    <Icon
+                      className={`w-3.5 h-3.5 ${
+                        isActive ? 'text-white dark:text-zinc-950' : inactiveIconClasses
+                      }`}
+                    />
                     <span>{item.shortLabel}</span>
                   </button>
                 );

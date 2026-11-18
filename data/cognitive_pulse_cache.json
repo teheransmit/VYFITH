@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-11-18T22:15:31.048Z",
+  "model": "gemini-3.5-flash-lite (Google AI Studio)",
+  "source": "gemini-ai",
+  "executivePulse": "Santiago, mantienes tus 55.7 kg magros y cuentas con $45.724,27 COP líquidos en Nequi listos para mover $25.000 COP a Cajita Nu; hoy programaste Full Legs y tienes $58.000 COP confirmados en paseos.",
+  "insights": [
+    {
+      "category": "TRAINING",
+      "title": "Entrenamiento & Biometría",
+      "advice": "Con 10h 12m de sueño reparador (60 bpm, 2h 12m profundo) y tras los 3.926 kg de la última sesión de Full Legs, tienes la supercompensación ideal para tu rutina de hoy enfocada en seguir sumando hacia los 60 kg.",
+      "actionLabel": "Ver Hevy & Salud",
+      "targetTab": "health"
+    },
+    {
+      "category": "FINANCE",
+      "title": "Liquidez, Cobros & Deuda Yessid",
+      "advice": "Tu saldo neto en Nequi es $45.724,27 COP ($0 efectivo); transfiere ya los $25.000 COP del pago de Frida a la Cajita Nu (9.30% E.A.). Tienes $295.000 COP en la calle ($180.000 Richard + $115.000 Maba) y tu deuda con Yessid va en $519.000 COP restantes.",
+      "actionLabel": "Ir a Finanzas",
+      "targetTab": "finance"
+    },
+    {
+      "category": "CALENDAR",
+      "title": "Google Calendar & Paseos Caninos",
+      "advice": "Tus paseos de Frida (06:30 y 19:30) están confirmados (accepted), sumando con Sienna $20.000 COP asegurados y $38.000 COP pendientes por confirmar en tu agenda.",
+      "actionLabel": "Abrir Calendario",
+      "targetTab": "horario"
+    },
+    {
+      "category": "SYSTEM",
+      "title": "Sentinel de Integridad Web",
+      "advice": "Sistema operando al 100%: 0 errores en almacenamiento local, telemetría conectada sin fallos y modelos de IA en cascada listos.",
+      "actionLabel": "Ver Detalle",
+      "targetTab": "bio"
+    }
+  ]
+}
