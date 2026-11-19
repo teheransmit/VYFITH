@@ -1,36 +1,83 @@
 {
-  "generatedAt": "2026-11-18T22:15:31.048Z",
-  "model": "gemini-3.5-flash-lite (Google AI Studio)",
-  "source": "gemini-ai",
-  "executivePulse": "Santiago, mantienes tus 55.7 kg magros y cuentas con $45.724,27 COP líquidos en Nequi listos para mover $25.000 COP a Cajita Nu; hoy programaste Full Legs y tienes $58.000 COP confirmados en paseos.",
+  "generatedAt": "2026-11-19T20:37:12.502Z",
+  "model": "Consejo Paralelo (4/4: Gemini 3.5 Flash Lite + Nemotron 3 Ultra 550B (NVIDIA NIM) + Nemotron 3.5 Super 120B (NVIDIA NIM) + Nemotron 3.5 Bolt (NVIDIA NIM))",
+  "source": "multi-ai-parallel",
+  "executivePulse": "Duermes 7.4h con 56 bpm y 94% de eficiencia respaldando tus 55.7 kg; hoy ejecutas Arms & Shoulders a las 16:00 manteniendo $45.724,27 COP en Nequi mientras liquidas paseos en Google Calendar. [Nemotron 3.5 Bolt (NVIDIA NIM): Tienes 21 años, con 55.7 kg y PGA 3.93. Hoy tienes Arms & Shoulders a las 16:00 y paseos programados (Frida 06:30, Sienna 15:15, Frida 19:30]",
   "insights": [
     {
       "category": "TRAINING",
       "title": "Entrenamiento & Biometría",
-      "advice": "Con 10h 12m de sueño reparador (60 bpm, 2h 12m profundo) y tras los 3.926 kg de la última sesión de Full Legs, tienes la supercompensación ideal para tu rutina de hoy enfocada en seguir sumando hacia los 60 kg.",
+      "advice": "Tus 7.4h de sueño y excelente recuperación (56 bpm) sostienen la progresión tras los 5.940 kg de tonelaje en Horizontal Torso; hoy te toca Arms & Shoulders a las 16:00 para acercarte a los 60 kg de masa magra.",
       "actionLabel": "Ver Hevy & Salud",
       "targetTab": "health"
     },
     {
       "category": "FINANCE",
       "title": "Liquidez, Cobros & Deuda Yessid",
-      "advice": "Tu saldo neto en Nequi es $45.724,27 COP ($0 efectivo); transfiere ya los $25.000 COP del pago de Frida a la Cajita Nu (9.30% E.A.). Tienes $295.000 COP en la calle ($180.000 Richard + $115.000 Maba) y tu deuda con Yessid va en $519.000 COP restantes.",
+      "advice": "Tienes $45.724,27 COP líquidos en Nequi ($0 efectivo); transfiere ya los $25.000 COP de Frida a la Cajita Nu al 9.30% E.A. y presiona el cobro de los $295.000 COP en la calle ($180.000 Richard + $115.000 Maba) para acelerar tu abono al saldo de Yessid ($519.000 COP).",
       "actionLabel": "Ir a Finanzas",
       "targetTab": "finance"
     },
     {
       "category": "CALENDAR",
       "title": "Google Calendar & Paseos Caninos",
-      "advice": "Tus paseos de Frida (06:30 y 19:30) están confirmados (accepted), sumando con Sienna $20.000 COP asegurados y $38.000 COP pendientes por confirmar en tu agenda.",
+      "advice": "Hoy tienes agendados Frida 06:30 y 19:30, Sienna 15:15, entrenamiento Arms & Shoulders a las 16:00 y baño térmico a las 20:45; confirma tus RSVPs para consolidar $20.000 COP confirmados frente a $38.000 COP pendientes por aceptar.",
       "actionLabel": "Abrir Calendario",
       "targetTab": "horario"
     },
     {
       "category": "SYSTEM",
       "title": "Sentinel de Integridad Web",
-      "advice": "Sistema operando al 100%: 0 errores en almacenamiento local, telemetría conectada sin fallos y modelos de IA en cascada listos.",
+      "advice": "El sistema está estable: 0 errores de lectura JSON, 116 eventos sincronizados y la estructura de datos (VYFITH) es coherente con la telemetría real. Tu enfoque en Hidroinformática y modelación computacional es sólido.",
       "actionLabel": "Ver Detalle",
       "targetTab": "bio"
     }
-  ]
+  ],
+  "parallelAgents": [
+    {
+      "id": "gemini-biometric",
+      "role": "Síntesis Biométrica & Correlación",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "displayName": "Gemini 3.5 Flash Lite",
+      "success": true,
+      "status": 200,
+      "latencyMs": 2721,
+      "reply": "```json\n{\n  \"executivePulse\": \"Duermes 7.4h con 56 bpm y 94% de eficiencia respaldando tus 55.7 kg; hoy ejecutas Arms & Shoulders a las 16:00 manteniendo $45.724,27 COP en Nequi mientras liquidas paseos en Google Calendar.\",\n  \"insights\": [\n    {\n      \"category\": \"TRAINING\",\n      \"title\": \"Entrenamiento & Biometría\",\n      \"advice\": \"Tus 7.4h de sueño y excelente recuperación (56 bpm) sostienen la progresión tras los 5.940 kg de tonelaje en Horizontal Torso; hoy te toca Arms & Shoulders a las 16:00 para acercarte a los 60 kg de masa magra.\",\n      \"actionLabel\": \"Ver Hevy & Salud\",\n      \"targetTab\": \"health\"\n    },\n    {\n      \"category\": \"FINANCE\",\n      \"title\": \"Liquidez, Cobros & Deuda Yessid\",\n      \"advice\": \"Tienes $45.724,27 COP líquidos en Nequi ($0 efectivo); transfiere ya los $25.000 COP de Frida a la Cajita Nu al 9.30% E.A. y presiona el cobro de los $295.000 COP en la calle ($180.000 Richard + $115.000 Maba) para acelerar tu abono al saldo de Yessid ($519.000 COP).\",\n      \"actionLabel\": \"Ir a Finanzas\",\n      \"targetTab\": \"finance\"\n    },\n    {\n      \"category\": \"CALENDAR\",\n      \"title\": \"Google Calendar & Paseos Caninos\",\n      \"advice\": \"Hoy tienes agendados Frida 06:30 y 19:30, Sienna 15:15, entrenamiento Arms & Shoulders a las 16:00 y baño térmico a las 20:45; confirma tus RSVPs para consolidar $20.000 COP confirmados frente a $38.000 COP pendientes por aceptar.\",\n      \"actionLabel\": \"Abrir Calendario\",\n      \"targetTab\": \"horario\"\n    },\n    {\n      \"category\": \"SYSTEM\",\n      \"title\": \"Sentinel de Integridad Web\",\n      \"advice\": \"Sincronización completa: 0 errores de lectura en archivos JSON, 116 eventos de telemetría procesados y motores API Gemini operativos en localhost:3000.\",\n      \"actionLabel\": \"Ver Detalle\",\n      \"targetTab\": \"bio\"\n    }\n  ]\n}\n```"
+    },
+    {
+      "id": "nvidia-ultra",
+      "role": "Razonamiento Profundo 550B (NVIDIA NIM)",
+      "provider": "nvidia",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "displayName": "Nemotron 3 Ultra 550B (NVIDIA NIM)",
+      "success": true,
+      "status": 200,
+      "latencyMs": 15012,
+      "reply": "```json\n{\n  \"executivePulse\": \"Dormiste 7.4h (94% ef., 56 lpm) y pesas 55.7 kg; hoy toca Arms & Shoulders a las 16:00 y triple paseo (Frida 06:30/19:30, Sienna 15:15) con solo $45.724 en Nequi ($0 efectivo) y $295k por cobrar en la calle.\",\n  \"insights\": [\n    {\n      \"category\": \"TRAINING\",\n      \"title\": \"Entrenamiento & Biometría\",\n      \"advice\": \"Tu HRV nocturna (56 lpm) y sueño profundo (22%) indican SNC listo para hipertrofia. La sesión de ayer (Horizontal Torso, 5.940 kg) dejó fatiga residual en pectoral/dorsal; hoy en Arms & Shoulders prioriza series técnicas (RPE 8) sobre carga máxima para proteger codos y avanzar hacia los 60 kg limpios sin lesionar el manguito rotador.\",\n      \"actionLabel\": \"Ver Hevy & Salud\",\n      \"targetTab\": \"health\"\n    },\n    {\n      \"category\": \"FINANCE\",\n      \"title\": \"Liquidez, Cobros & Deuda Yessid\",\n      \"advice\": \"Tienes $45.724,27 COP en Nequi (única liquidez). Transfiere YA los $25.000 COP de Frida (Laura) a la Cajita Nu (9.30% E.A.) para que renten. Paralelo: activa cobro duro a Richard David ($180k: $150k base + $30k fantasmas) y Maba ($115k inglés) = $295k en calle. Yessid espera $519k (llevas $61k abonados); prioridad #1 inquebrantable antes del iPhone 15 Pro.\",\n      \"actionLabel\": \"Ir a Finanzas\",\n      \"targetTab\":"
+    },
+    {
+      "id": "nvidia-super",
+      "role": "Estrategia & Verificación 120B (NVIDIA NIM)",
+      "provider": "nvidia",
+      "model": "nvidia/nemotron-3.5-super-vl-120b-a12b",
+      "displayName": "Nemotron 3.5 Super 120B (NVIDIA NIM)",
+      "success": true,
+      "status": 200,
+      "latencyMs": 10738,
+      "reply": "The user wants me to act as the \"Motor de Pulso Cognitivo Proactivo de VYFITH\" for Santiago Smit Teherán Mogollón.\nI need to respond with a valid JSON object only, no markdown around if possible, or inside ```json.\nThe structure is specified exactly.\n\nKey data points from the prompt and system instructions:\n- Date/Time: 19/11/2026, 3:36 p.m.\n- Santiago's age: 21 years old (born May 30, 2005). Do NOT say 19.\n- Sleep: 7.4 hours net (7h 24m). Wait, system prompt says \"Sueño neto anoche: 7.4 horas (7h 24m)\" but also in Obsidian node says \"Sueño: 10 horas 12 minutos netas. Eficiencia 94%\". The user prompt explicitly says \"cruzando sueño (7.4h)\". I should use 7.4h as per user instruction for executivePulse, but maybe mention 94% ef. and 56 bpm in insights. Actually user says \"sueño (7.4h, 94% ef., 56 bpm)\" in TRAINING insight. So use those values.\n- Weight Femmto: 55.7 kg (28/Oct).\n- Training: Last session \"Horizontal Torso (Chest & Back)\" with 5940 kg tonnage (17 nov 2026, 17:11). Today's session scheduled: \"Arms & Shoulders (16:00)\".\n- Agenda today: Need to infer from system prompt.\n  - Today is Thursday 19/11/2026? Wait, 19/11/2026 is a Thursday? Let's check. Nov 16 2026 is Monday. So Nov 19 is Thursday.\n  - Thursday routine: 16:00 – 18:00: Arms & Shoulders + 20:45 Baño de recuperación térmica.\n  - Walks today (Thursday):\n    - 06:30 AM Paseo de Frida (Mañana Lunes a Viernes). Status: needsAction (per user prompt example).\n    - 19:30 PM Paseo de Frida (Tarde) (Martes a Viernes). Status: needsAction.\n    - Sienna: Since 23 Nov is Monday, today is 19 Nov (Thursday), which is in the week 16-20 Nov. Sienna schedule: Mié-Vie a las 15:15 PM. So today Thursday 19 Nov at 15:15 PM Paseo de Sienna. Status: needsAction.\n  - So events today: 06:30 Paseo de Frida [needsAction], 15:15 Paseo de Sienna [needsAction], 16:00 Arms & Shoulders [needsAction], 19:30 Paseo de Frida (Tarde) [needsAction], 20:45 Baño de recuperación térmica [solid/accepted].\n- Liquidity: $45,724.27 COP in Nequi. $0 cash.\n- Finance insight: Nequi $45724.27, $0 cash, transfer $25000 Frida to Cajita Nu (9.30% E.A.), street collections $295000 (Richard $180000 + Maba $115000), Yessid remaining $519000.\n- Calendar insight: balance semanal de paseos confirmados ($20000 COP) vs por confirmar ($38000 COP). Let's verify if this matches. The user explicitly states this balance in the advice field, so I should use it.\n- System insight: 0 errores de lectura JSON, 116 eventos sincronizados, estado de proveedores IA.\n\nStructure:\n{\n  \"executivePulse\": \"string\",\n  \"insights\": [\n    { TRAINING object },\n    { FINANCE object },\n    { CALENDAR object },\n    { SYSTEM object }\n  ]\n}\n\nConstraints:\n- Valid JSON only.\n- No markdown around if possible, or inside ```json. I'll output raw JSON or inside ```json block. The user said \"sin markdown alrededor si es posible, o dentro de ```json\". I'll provide raw JSON to be safe, but usually code block is fine. I'll do raw JSON text without markdown fences to strictly follow \"sin markdown alrededor si es posible\". Actually, to be safe and clear, I'll output just the JSON object.\n\nLet's draft the content.\n\nexecutivePulse: \"Síntesis ejecutiva directa de 2 líneas cruzando sueño (7.4h), peso Femmto (55.7 kg), entrenamiento (Horizontal Torso (Chest & Back)), agenda hoy y liquidez real ($45724.27 COP en Nequi).\"\nNeed to write it in Spanish, direct, 2 lines.\nExample: \"Santiago, 21 años: dormiste 7.4h (94% ef., 56 bpm) y pesas 55.7 kg tras tu sesión de Horizontal Torso (5.940 kg). Hoy tienes Arms & Shoulders a las 16:00, 4 eventos pendientes en Calendar y solo $45.724,27 COP líquidos en Nequi.\"\n\ninsights[0] TRAINING:\ncategory: \"TRAINING\"\ntitle: \"Entrenamiento & Biometría\"\nadvice: \"Consejo específico comparando sueño (7.4h, 94% ef., 56 bpm), última sesión (Horizontal Torso (Chest & Back), 5940 kg) y la sesión programada hoy (Arms & Shoulders (16:00)) hacia la meta de 60 kg.\"\nactionLabel: \"Ver Hevy & Salud\"\ntargetTab: \"health\"\n\ninsights[1] FINANCE:\ncategory: \"FINANCE\"\ntitle: \"Liquidez, Cobros & Deuda Yessid\"\nadvice: \"Consejo exacto usando Nequi ($45724.27 COP, $0 efectivo), traslado de $25000 COP de Frida a Cajita Nu (9.30% E.A.), cobro en calle de $295000 COP (Richard $180000 + Maba $115000) y saldo restante Yessid ($5190"
+    },
+    {
+      "id": "nvidia-bolt",
+      "role": "Síntesis Rápida (NVIDIA NIM)",
+      "provider": "nvidia",
+      "model": "nvidia/nemotron-3.5-bolt-e4b",
+      "displayName": "Nemotron 3.5 Bolt (NVIDIA NIM)",
+      "success": true,
+      "status": 200,
+      "latencyMs": 9929,
+      "reply": "{\n  \"executivePulse\": \"Tienes 21 años, con 55.7 kg y PGA 3.93. Hoy tienes Arms & Shoulders a las 16:00 y paseos programados (Frida 06:30, Sienna 15:15, Frida 19:30), y tu liquidez es de $45.724,27 COP en Nequi.\",\n  \"insights\": [\n    {\n      \"category\": \"TRAINING\",\n      \"title\": \"Entrenamiento & Biometría\",\n      \"advice\": \"Tu sueño (7.4h, 94% ef., 56 bpm) y la carga de 5.940 kg en Horizontal Torso son óptimos. Enfócate en la sobrecarga progresiva en Arms & Shoulders (16:00) para acercarte a la meta de 60 kg magros.\",\n      \"actionLabel\": \"Ver Hevy & Salud\",\n      \"targetTab\": \"health\"\n    },\n    {\n      \"category\": \"FINANCE\",\n      \"title\": \"Liquidez, Cobros & Deuda Yessid\",\n      \"advice\": \"Traslada inmediatamente los $25.000 COP de Frida a Cajita Nu (9.30% E.A.). Prioriza cobrar los $295.000 COP en calle (Richard $180k + Maba $115k) para reducir el pasivo Yessid ($519.000 COP).\",\n      \"actionLabel\": \"Ir a Finanzas\",\n      \"targetTab\": \"finance\"\n    },\n    {\n      \"category\": \"CALENDAR\",\n      \"title\": \"Google Calendar & Paseos Caninos\",\n      \"advice\": \"Hoy tienes 4 eventos pendientes de confirmación (`needsAction`) (Frida 06:30, Sienna 15:15, Arms & Shoulders 16:00, Frida 19:30). Confirma asistencia para asegurar la ganancia real, que está por encima de los $20.000 COP confirmados.\",\n      \"actionLabel\": \"Abrir Calendario\",\n      \"targetTab\": \"horario\"\n    },\n    {\n      \"category\": \"SYSTEM\",\n      \"title\": \"Sentinel de Integridad Web\",\n      \"advice\": \"El sistema está estable: 0 errores de lectura JSON, 116 eventos sincronizados y la estructura de datos (VYFITH) es coherente con la telemetría real. Tu enfoque en Hidroinformática y modelación computacional es sólido.\",\n      \"actionLabel\": \"Ver Detalle\",\n      \"targetTab\": \"bio\"\n    }\n  ]\n}"
+    }
+  ],
+  "totalLatencyMs": 15016
 }

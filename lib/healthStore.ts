@@ -35,16 +35,75 @@ export interface VyfithAppIntegration {
   roomMetrics: {
     steps: number;
     deepSleepHours: number;
-    totalSleepHours: number;
+    lightSleepHours?: number;
+    remSleepHours?: number;
+    awakeMinutes?: number;
+    awakeningsCount?: number;
+    sleepEfficiency?: number;
+    sleepStartTime?: string | null;
+    sleepEndTime?: string | null;
+    isFallbackRecentSleep?: boolean;
+    sleepDate?: string | null;
     restingHeartRate: number;
+    avgHeartRate?: number;
+    minHeartRate?: number;
+    maxHeartRate?: number;
+    hrv?: number;
     spo2: number;
     caloriesBurned: number;
+    activeCaloriesBurned?: number;
+    totalCaloriesBurned?: number;
+    basalMetabolicRateKcal?: number;
+    distanceMeters?: number;
+    activityMinutes?: number;
+    elevationGainedMeters?: number;
+    avgSpeedMps?: number;
+    powerWatts?: number;
+    respiratoryRateBpm?: number;
+    bloodPressureSystolic?: number;
+    bloodPressureDiastolic?: number;
+    bloodGlucoseMgDl?: number;
+    boneMassKg?: number;
+    leanBodyMassKg?: number;
+    heightCm?: number;
+    hydrationLiters?: number;
+    nutritionCaloriesKcal?: number;
+    nutritionProteinGrams?: number;
+    totalSleepHours: number;
   };
   hevySummary: {
     lastWorkoutName: string;
     totalVolumeKg: number;
     setsCompleted: number;
     date: string;
+  };
+}
+
+export interface SuperAppSyncSummary {
+  lastSyncedAt?: string;
+  hydrationState?: any;
+  nutritionState?: any;
+  latestMeasurement?: any;
+  financeSummary?: {
+    totalLiquidityCop?: number;
+    accountsCount?: number;
+    dailyLogsCount?: number;
+    medellinBudgetRemainingCop?: number;
+    lastUpdated?: string;
+    accounts?: any[];
+    recentLogs?: any[];
+  };
+  closetSummary?: {
+    totalItems?: number;
+    favoriteItems?: number;
+    outfitsSaved?: number;
+    categoriesCount?: Record<string, number>;
+    recentItems?: any[];
+  };
+  notesSummary?: {
+    totalNotes?: number;
+    referencesCount?: number;
+    recentNotes?: any[];
   };
 }
 
@@ -73,7 +132,32 @@ export interface SyncSessionState {
     steps: number;
     hrv: number;
     heartRate: number;
+    avgHeartRate?: number;
+    minHeartRate?: number;
+    maxHeartRate?: number;
     sleepHours: number;
+    deepSleepHours?: number;
+    lightSleepHours?: number;
+    remSleepHours?: number;
+    awakeMinutes?: number;
+    awakeningsCount?: number;
+    sleepEfficiency?: number;
+    sleepStartTime?: string | null;
+    sleepEndTime?: string | null;
+    spo2?: number;
+    distanceMeters?: number;
+    activeCaloriesBurned?: number;
+    totalCaloriesBurned?: number;
+    basalMetabolicRateKcal?: number;
+    activityMinutes?: number;
+    respiratoryRateBpm?: number;
+    bloodPressureSystolic?: number;
+    bloodPressureDiastolic?: number;
+    bloodGlucoseMgDl?: number;
+    elevationGainedMeters?: number;
+    avgSpeedMps?: number;
+    powerWatts?: number;
+    hydrationLiters?: number;
     weightKg?: number;
     bodyFatPct?: number;
     skeletalMuscleKg?: number;
@@ -84,10 +168,13 @@ export interface SyncSessionState {
     fatMassKg?: number;
     leanBodyMassKg?: number;
     fatFreeMassKg?: number;
+    boneMassKg?: number;
+    heightCm?: number;
   };
   recentObservations: HealthObservation[];
   vyfithData: VyfithAppIntegration;
   femmtoData?: FemmtoDataState;
+  superAppSync?: SuperAppSyncSummary;
   syncEvents: SyncEventLog[];
 }
 

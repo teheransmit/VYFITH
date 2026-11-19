@@ -20,6 +20,8 @@ const IMPORTS_DIR = path.join(process.cwd(), 'data', 'imports');
 const BRIDGE_SCRIPT = path.join(process.cwd(), 'scripts', 'hevy_web_bridge.mjs');
 
 const KNOWN_WORKOUT_SHORT_IDS: Record<string, string> = {
+  'horizontal torso (chest & back)|2026-11-17t17:11': '3iXBJa30JS6',
+  'arms & shoulders|2026-11-12t17:29': 'b4t9vnN1e9g',
   'full legs|2026-11-10t17:15': 'fveLGVNMjSv',
   'horizontal torso (chest & back)|2026-11-09t10:04': 'BbD4VM1I5fI',
   'arms & shoulders|2026-10-30t16:30': '0P12cOsoyIM',
@@ -29,6 +31,41 @@ const KNOWN_WORKOUT_SHORT_IDS: Record<string, string> = {
   'horizontal torso (chest & back)|2026-09-28t16:09': 'OR7HX5ZjKSB',
   'horizontal torso (chest & back)|2026-09-21t16:19': 'hIJt0wq1uvW',
 };
+
+let publicCountCache: { fetchedAt: number; username: string; count: number } | null = null;
+
+export async function fetchHevyPublicWorkoutCount(username = 'teheransmit'): Promise<number | null> {
+  const now = Date.now();
+  if (publicCountCache && publicCountCache.username === username && now - publicCountCache.fetchedAt < 5 * 60 * 1000) {
+    return publicCountCache.count;
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 6000);
+  try {
+    const res = await fetch(`https://hevy.com/user/${encodeURIComponent(username)}`, {
+      cache: 'no-store',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+    });
+    clearTimeout(timer);
+    if (!res.ok) return publicCountCache?.count ?? null;
+    const html = await res.text();
+    const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+    if (!match) return publicCountCache?.count ?? null;
+    const data = JSON.parse(match[1]);
+    const countVal = Number(data?.props?.pageProps?.metadata?.workout_count);
+    if (Number.isFinite(countVal) && countVal > 0) {
+      publicCountCache = { fetchedAt: now, username, count: countVal };
+      return countVal;
+    }
+    return publicCountCache?.count ?? null;
+  } catch {
+    clearTimeout(timer);
+    return publicCountCache?.count ?? null;
+  }
+}
 
 export interface HevySyncMeta {
   lastSyncAt: string | null;
@@ -643,6 +680,26 @@ export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000)
   return gState.promise;
 }
 
+let lastAutoLiveExportAttemptMs = 0;
+const AUTO_LIVE_EXPORT_COOLDOWN_MS = 5 * 60 * 1000;
+
+async function ingestExportedCsvFromBridge(csvPath: string) {
+  const csvText = fs.readFileSync(csvPath, 'utf8');
+  const parsed = parseHevyCsvToSessions(csvText);
+  const hash = crypto.createHash('sha256').update(csvText).digest('hex');
+  const stat = fs.statSync(csvPath);
+  const meta = readSyncMeta();
+  const updatedFiles = {
+    ...meta.processedFiles,
+    [csvPath]: { mtimeMs: stat.mtimeMs, hash, processedAt: new Date().toISOString() },
+  };
+  return mergeAndPersistWorkouts(parsed, 'hevy_web_live_export', {
+    lastLivePullAt: new Date().toISOString(),
+    hevyPlanDetected: 'free',
+    processedFiles: updatedFiles,
+  });
+}
+
 export async function syncAllWorkoutsReal(options?: {
   apiKey?: string;
   liveBrowser?: boolean;
@@ -654,6 +711,8 @@ export async function syncAllWorkoutsReal(options?: {
   requiresBrowserAuth: boolean;
   hasProApiKey: boolean;
   browserBridgeAuthenticated: boolean;
+  remoteWorkoutCount: number | null;
+  pendingRemoteDiff: number;
   warning?: string;
   syncMeta: HevySyncMeta;
 }> {
@@ -671,7 +730,8 @@ export async function syncAllWorkoutsReal(options?: {
   let browserBridgeAuthenticated = false;
   let warning: string | undefined;
 
-  // 2. Si hay API Key oficial de Hevy PRO -> consultar API v1 paginada y normalizar
+  const remoteWorkoutCount = await fetchHevyPublicWorkoutCount('teheransmit');
+
   if (hasProApiKey) {
     try {
       const res = await fetch('https://api.hevyapp.com/v1/workouts?page=1&pageSize=20', {
@@ -697,39 +757,8 @@ export async function syncAllWorkoutsReal(options?: {
     } catch (err: any) {
       warning = `Error conectando a api.hevyapp.com: ${err.message}`;
     }
-  } else if (options?.liveBrowser) {
-    // 3. Si es Sync en Vivo en cuenta Free -> usar puente Chrome Web (export oficial CSV)
-    const bridgeRes = await runHevyWebBridgeCommand(['export-csv'], 100000);
-    if (bridgeRes?.ok && bridgeRes.csvPath && fs.existsSync(bridgeRes.csvPath)) {
-      browserBridgeAuthenticated = true;
-      const csvText = fs.readFileSync(bridgeRes.csvPath, 'utf8');
-      const parsed = parseHevyCsvToSessions(csvText);
-      const hash = crypto.createHash('sha256').update(csvText).digest('hex');
-      const stat = fs.statSync(bridgeRes.csvPath);
-      const meta = readSyncMeta();
-      const updatedFiles = {
-        ...meta.processedFiles,
-        [bridgeRes.csvPath]: { mtimeMs: stat.mtimeMs, hash, processedAt: new Date().toISOString() },
-      };
-      const merged = mergeAndPersistWorkouts(parsed, 'hevy_web_live_export', {
-        lastLivePullAt: new Date().toISOString(),
-        hevyPlanDetected: 'free',
-        processedFiles: updatedFiles,
-      });
-      workouts = merged.allWorkouts;
-      addedCount += merged.addedCount;
-      updatedCount += merged.updatedCount;
-      sourceUsed = 'hevy_web_live_export';
-    } else if (bridgeRes?.requiresLogin) {
-      requiresBrowserAuth = true;
-      browserBridgeAuthenticated = false;
-      warning =
-        'Tu cuenta Hevy es Free (sin API Key PRO) y falta iniciar sesión 1 vez en el puente Chrome Hevy Web para descargar automáticamente tus últimos entrenamientos.';
-    } else if (bridgeRes?.error) {
-      warning = `Puente Chrome Hevy Web: ${bridgeRes.error}`;
-    }
   } else {
-    // Chequeo pasivo rápido: leer estado real guardado por hevy_web_bridge.mjs (nunca asumir por simple archivo Cookies)
+    // Leer estado guardado de sesión del puente Chromium dedicado
     const sessionStatePath = path.join(process.cwd(), '.hevy-chrome-profile', 'session_state.json');
     try {
       if (fs.existsSync(sessionStatePath)) {
@@ -739,7 +768,46 @@ export async function syncAllWorkoutsReal(options?: {
     } catch {
       browserBridgeAuthenticated = false;
     }
+
+    const detectedRemoteDiff =
+      typeof remoteWorkoutCount === 'number' && remoteWorkoutCount > workouts.length
+        ? remoteWorkoutCount - workouts.length
+        : 0;
+
+    const shouldAutoSync =
+      !options?.liveBrowser &&
+      browserBridgeAuthenticated &&
+      detectedRemoteDiff > 0 &&
+      Date.now() - lastAutoLiveExportAttemptMs > AUTO_LIVE_EXPORT_COOLDOWN_MS;
+
+    if (options?.liveBrowser || shouldAutoSync) {
+      if (shouldAutoSync) {
+        lastAutoLiveExportAttemptMs = Date.now();
+      }
+      // Puente Chromium aislado (export oficial CSV sin necesidad de Antigravity/tokens)
+      const bridgeRes = await runHevyWebBridgeCommand(['export-csv'], 100000);
+      if (bridgeRes?.ok && bridgeRes.csvPath && fs.existsSync(bridgeRes.csvPath)) {
+        browserBridgeAuthenticated = true;
+        const merged = await ingestExportedCsvFromBridge(bridgeRes.csvPath);
+        workouts = merged.allWorkouts;
+        addedCount += merged.addedCount;
+        updatedCount += merged.updatedCount;
+        sourceUsed = 'hevy_web_live_export';
+      } else if (bridgeRes?.requiresLogin) {
+        requiresBrowserAuth = true;
+        browserBridgeAuthenticated = false;
+        warning =
+          'Sesión Hevy Web expirada o pendiente. Pulsa «Conectar Hevy Web» una sola vez y VYFITH sincronizará solo cada nuevo entrenamiento.';
+      } else if (bridgeRes?.error) {
+        warning = `Puente Chromium Hevy Web: ${bridgeRes.error}`;
+      }
+    }
   }
+
+  const pendingRemoteDiff =
+    typeof remoteWorkoutCount === 'number' && remoteWorkoutCount > workouts.length
+      ? remoteWorkoutCount - workouts.length
+      : 0;
 
   return {
     workouts,
@@ -749,6 +817,8 @@ export async function syncAllWorkoutsReal(options?: {
     requiresBrowserAuth,
     hasProApiKey,
     browserBridgeAuthenticated,
+    remoteWorkoutCount,
+    pendingRemoteDiff,
     warning,
     syncMeta: readSyncMeta(),
   };

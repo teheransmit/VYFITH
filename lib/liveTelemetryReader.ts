@@ -43,8 +43,14 @@ export function readMegaProyectoNotes(): string {
     const fullPath = path.join(megaDir, file);
     if (fs.existsSync(fullPath)) {
       try {
-        const content = fs.readFileSync(fullPath, 'utf-8');
-        combined += `\n\n--- NODO OBSIDIAN MEGAPROYECTO: ${file} ---\n${content.trim()}\n`;
+        const content = fs.readFileSync(fullPath, 'utf-8').trim();
+        const sliced =
+          file === '02_Bitacora_Automejora_y_Enlace_Cognitivo.md'
+            ? content.slice(-4500)
+            : file === '00_Antigravity_Cerebro_Proyecto_Personal.md'
+            ? content.slice(0, 12000)
+            : content.slice(0, 6000);
+        combined += `\n\n--- NODO OBSIDIAN MEGAPROYECTO: ${file} ---\n${sliced}\n`;
       } catch (err) {
         console.warn(`[TelemetryReader] Error leyendo nodo ${file}:`, err);
       }
@@ -200,21 +206,25 @@ export function gatherFullEcosystemTelemetry(): FullEcosystemTelemetry {
   const lastWorkout = workoutsList[0] || {};
   const hevyDetailed = {
     totalWorkouts: Number(
-      hevyMetaRes.data?.totalWorkouts ?? (workoutsList.length || 202)
+      workoutsList.length || hevyMetaRes.data?.totalWorkouts || 204
     ),
     lastWorkoutName: String(
-      hevyMetaRes.data?.lastWorkoutName ??
-        lastWorkout.name ??
+      lastWorkout.name ??
         lastWorkout.title ??
-        'Full Legs'
+        hevyMetaRes.data?.latestWorkoutName ??
+        hevyMetaRes.data?.lastWorkoutName ??
+        'Horizontal Torso (Chest & Back)'
     ),
     totalVolumeKg: Number(
-      hevyMetaRes.data?.totalVolumeKg ?? lastWorkout.totalVolumeKg ?? 4484
+      lastWorkout.totalVolumeKg ?? hevyMetaRes.data?.totalVolumeKg ?? 5940
     ),
     date: String(
-      hevyMetaRes.data?.lastWorkoutDate ?? lastWorkout.date ?? '10 nov 2026'
+      lastWorkout.date ??
+        hevyMetaRes.data?.latestWorkoutDate ??
+        hevyMetaRes.data?.lastWorkoutDate ??
+        '17 nov 2026, 17:11'
     ),
-    setsCompleted: Number(lastWorkout.setsCompleted ?? 20),
+    setsCompleted: Number(lastWorkout.setsCompleted ?? 24),
   };
 
   // 3. Finanzas Reales (Nequi, Nu, Efectivo, Cobros, Yessid)

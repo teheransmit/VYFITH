@@ -20,13 +20,12 @@ export interface NvidiaModelCatalogItem {
 }
 
 export const NVIDIA_AUTO_CASCADE_MODELS = [
-  'nvidia/nemotron-3.5-lightning-30b-a3b',
-  'z-ai/glm-5.3-flash',
-  'moonshotai/kimi-k3.1-pro',
-  'mistralai/mistral-large-4-1t-a52b',
+  'nvidia/nemotron-3.5-bolt-e4b',
   'nvidia/nemotron-3-ultra-550b-a55b',
-  'minimaxai/minimax-m3.1-flash',
+  'nvidia/nemotron-3.5-super-vl-120b-a12b',
+  'nvidia/nemotron-3.5-lightning-30b-a3b',
   'google/gemma-4-31b-it',
+  'moonshotai/kimi-k3.1-pro',
 ] as const;
 
 export const NVIDIA_KNOWN_CATALOG: NvidiaModelCatalogItem[] = [

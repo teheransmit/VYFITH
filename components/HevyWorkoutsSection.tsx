@@ -66,6 +66,8 @@ export default function HevyWorkoutsSection() {
     requiresBrowserAuth: boolean;
     hasProApiKey: boolean;
     browserBridgeAuthenticated: boolean;
+    remoteWorkoutCount?: number | null;
+    pendingRemoteDiff?: number;
     lastSyncAt?: string | null;
     warning?: string;
   } | null>(null);
@@ -113,6 +115,8 @@ export default function HevyWorkoutsSection() {
           requiresBrowserAuth: Boolean(data.requiresBrowserAuth),
           hasProApiKey: Boolean(data.hasProApiKey),
           browserBridgeAuthenticated: Boolean(data.browserBridgeAuthenticated),
+          remoteWorkoutCount: typeof data.remoteWorkoutCount === 'number' ? data.remoteWorkoutCount : null,
+          pendingRemoteDiff: typeof data.pendingRemoteDiff === 'number' ? data.pendingRemoteDiff : 0,
           lastSyncAt: data.syncMeta?.lastSyncAt || null,
           warning: cleanHevyWarning(data.warning),
         });
@@ -150,14 +154,17 @@ export default function HevyWorkoutsSection() {
   const handleConnectHevyBrowser = async () => {
     if (isConnectingBrowser || isLoadingWorkouts) return;
     setIsConnectingBrowser(true);
+    setUploadSuccess(null);
     setSyncStatusInfo((prev) => ({
       sourceUsed: prev?.sourceUsed || 'local_cache',
       addedCount: prev?.addedCount || 0,
       requiresBrowserAuth: true,
       hasProApiKey: Boolean(prev?.hasProApiKey),
       browserBridgeAuthenticated: false,
+      remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
+      pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
       lastSyncAt: prev?.lastSyncAt || null,
-      warning: 'Se abrió una ventana de Google Chrome en hevy.com/login. Inicia sesión allí para habilitar la sincronización automática.',
+      warning: 'Se abrió la ventana independiente del navegador en hevy.com/login. Inicia sesión allí y el CSV se descargará e importará solo al terminar.',
     }));
     try {
       const res = await fetch('/api/sync/hevy/browser-auth', {
@@ -166,20 +173,56 @@ export default function HevyWorkoutsSection() {
         body: JSON.stringify({ action: 'login' }),
       });
       const data = await res.json();
-      if (data.authenticated) {
-        await refreshWorkouts(true);
+      if (res.ok && data.authenticated) {
+        if (Array.isArray(data.workouts) && data.workouts.length > 0) {
+          setSessions(data.workouts);
+          setSelectedSessionId(data.workouts[0].id);
+          window.dispatchEvent(new CustomEvent('vyfith-hevy-updated'));
+          setUploadSuccess(
+            `Conectado a Hevy Web (${data.accountName || '@teheransmit'}) • ${data.workouts.length} entrenamientos sincronizados (+${data.addedCount || 0} nuevos).`
+          );
+          setSyncStatusInfo((prev) => ({
+            sourceUsed: 'hevy_web_live_export',
+            addedCount: data.addedCount || 0,
+            requiresBrowserAuth: false,
+            hasProApiKey: Boolean(prev?.hasProApiKey),
+            browserBridgeAuthenticated: true,
+            remoteWorkoutCount: typeof data.remoteWorkoutCount === 'number' ? data.remoteWorkoutCount : data.workouts.length,
+            pendingRemoteDiff: typeof data.pendingRemoteDiff === 'number' ? data.pendingRemoteDiff : 0,
+            lastSyncAt: new Date().toISOString(),
+            warning: undefined,
+          }));
+        } else {
+          await refreshWorkouts(true);
+        }
       } else {
-        setSyncStatusInfo((prev) =>
-          prev
-            ? {
-                ...prev,
-                warning: cleanHevyWarning(data.error) || 'No se completó el inicio de sesión en Hevy Web.',
-              }
-            : prev
-        );
+        const errMsg =
+          cleanHevyWarning(data?.error) ||
+          `Error HTTP ${res.status} conectando el puente Chrome Hevy Web.`;
+        setSyncStatusInfo((prev) => ({
+          sourceUsed: prev?.sourceUsed || 'local_cache',
+          addedCount: prev?.addedCount || 0,
+          requiresBrowserAuth: true,
+          hasProApiKey: Boolean(prev?.hasProApiKey),
+          browserBridgeAuthenticated: false,
+          remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
+          pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
+          lastSyncAt: prev?.lastSyncAt || null,
+          warning: errMsg,
+        }));
       }
     } catch (err: any) {
-      console.error('Error conectando navegador Hevy:', err);
+      setSyncStatusInfo((prev) => ({
+        sourceUsed: prev?.sourceUsed || 'local_cache',
+        addedCount: prev?.addedCount || 0,
+        requiresBrowserAuth: true,
+        hasProApiKey: Boolean(prev?.hasProApiKey),
+        browserBridgeAuthenticated: false,
+        remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
+        pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
+        lastSyncAt: prev?.lastSyncAt || null,
+        warning: `Error de red al conectar con Hevy Web: ${err?.message || 'desconocido'}`,
+      }));
     } finally {
       setIsConnectingBrowser(false);
     }
@@ -347,7 +390,7 @@ export default function HevyWorkoutsSection() {
           </div>
 
           {/* Acciones & Toggle KG/LBS */}
-          <div className="flex items-center gap-3 self-start sm:self-center">
+          <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-center">
             {/* Toggle KG / LBS */}
             <div className="bg-[#09090b] p-1 rounded-xl border border-[#27272a] flex items-center text-xs font-mono shadow-inner">
               <button
@@ -388,11 +431,20 @@ export default function HevyWorkoutsSection() {
                 onClick={handleConnectHevyBrowser}
                 disabled={isConnectingBrowser || isLoadingWorkouts}
                 className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30 transition-all shadow-xs disabled:opacity-50"
-                title="Inicia sesión 1 vez en Google Chrome para activar exportación/edición automática en Hevy Web (Cuenta Free)"
+                title="Inicia sesión 1 sola vez en la ventana dedicada de Hevy; después VYFITH sincronizará solo automáticamente cada vez que detecte un entrenamiento nuevo (sin Antigravity ni tokens)."
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>{isConnectingBrowser ? 'Esperando Login...' : 'Conectar Hevy Web'}</span>
               </button>
+            )}
+            {!syncStatusInfo?.hasProApiKey && syncStatusInfo?.browserBridgeAuthenticated && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 text-emerald-300 text-xs font-bold rounded-xl border border-emerald-500/30"
+                title="VYFITH descargará automáticamente cada nuevo entrenamiento sin abrir ventanas ni usar Antigravity"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Auto-Sync Hevy Web Activo</span>
+              </span>
             )}
 
             {/* Subir workouts.csv */}
@@ -454,10 +506,21 @@ export default function HevyWorkoutsSection() {
                   <>
                     Fuente activa: <strong className="text-white">{syncStatusInfo.sourceUsed}</strong>
                     {syncStatusInfo.addedCount > 0 && ` (+${syncStatusInfo.addedCount} nuevos agregados)`}
+                    {typeof syncStatusInfo.remoteWorkoutCount === 'number' && (
+                      syncStatusInfo.pendingRemoteDiff && syncStatusInfo.pendingRemoteDiff > 0 ? (
+                        <span className="ml-1.5 text-amber-300 font-bold">
+                          • Hevy Web tiene {syncStatusInfo.remoteWorkoutCount} entrenamientos (faltan {syncStatusInfo.pendingRemoteDiff} nuevos)
+                        </span>
+                      ) : (
+                        <span className="ml-1.5 text-emerald-300 font-bold">
+                          • {sessions.length}/{syncStatusInfo.remoteWorkoutCount} al día con Hevy Web ✅
+                        </span>
+                      )
+                    )}
                     {syncStatusInfo.hasProApiKey
                       ? ' • API Hevy PRO activa'
                       : syncStatusInfo.browserBridgeAuthenticated
-                      ? ' • Puente Chrome Hevy Web conectado (Auto-Sync listo)'
+                      ? ' • Puente Chromium Hevy Web conectado'
                       : ' • Cuenta Hevy Free (vigilando Descargas/Drive y CSV)'}
                   </>
                 )}

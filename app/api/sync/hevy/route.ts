@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
       requiresBrowserAuth: syncResult.requiresBrowserAuth,
       hasProApiKey: syncResult.hasProApiKey,
       browserBridgeAuthenticated: syncResult.browserBridgeAuthenticated,
+      remoteWorkoutCount: syncResult.remoteWorkoutCount,
+      pendingRemoteDiff: syncResult.pendingRemoteDiff,
       warning: syncResult.warning,
       syncMeta: syncResult.syncMeta,
       count: syncResult.workouts.length,

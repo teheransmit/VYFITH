@@ -4,7 +4,10 @@ import {
   readLivePageSnapshot,
   readMegaProyectoNotes,
 } from '@/lib/liveTelemetryReader';
-import { dispatchMultiAiChat } from '@/lib/multiAiRouter';
+import {
+  dispatchMultiAiChat,
+  dispatchMultiAiParallel,
+} from '@/lib/multiAiRouter';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -21,7 +24,10 @@ export async function POST(req: NextRequest) {
     const geminiKey = body.apiKey || req.headers.get('x-gemini-api-key');
     const nvidiaKey = body.nvidiaApiKey || req.headers.get('x-nvidia-api-key');
     const groqKey = body.groqApiKey || req.headers.get('x-groq-api-key');
-    const requestedModel = body.model || 'auto';
+    const requestedModel = body.model || 'parallel';
+    const selectedParallelModels = Array.isArray(body.selectedParallelModels)
+      ? body.selectedParallelModels
+      : undefined;
 
     const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
     const userQuery = lastUserMsg ? lastUserMsg.text : '';
@@ -44,18 +50,37 @@ export async function POST(req: NextRequest) {
       megaNotes
     );
 
-    const result = await dispatchMultiAiChat({
-      systemInstruction: systemPromptWithLiveContext,
-      messages,
-      requestedModel,
-      keys: {
-        geminiKey,
-        nvidiaKey,
-        groqKey,
-      },
-      temperature: 0.65,
-      maxTokens: 2048,
-    });
+    const useParallel = requestedModel === 'parallel' || requestedModel === 'auto';
+    const parallelRes = useParallel
+      ? await dispatchMultiAiParallel({
+          systemInstruction: systemPromptWithLiveContext,
+          messages,
+          mode: 'chat-consensus',
+          keys: {
+            geminiKey,
+            nvidiaKey,
+            groqKey,
+          },
+          selectedParallelModels,
+          temperature: 0.6,
+          maxTokens: 2048,
+        })
+      : null;
+
+    const result = parallelRes
+      ? parallelRes
+      : await dispatchMultiAiChat({
+          systemInstruction: systemPromptWithLiveContext,
+          messages,
+          requestedModel,
+          keys: {
+            geminiKey,
+            nvidiaKey,
+            groqKey,
+          },
+          temperature: 0.65,
+          maxTokens: 2048,
+        });
 
     if (result.success && result.reply) {
       return NextResponse.json({
@@ -63,6 +88,13 @@ export async function POST(req: NextRequest) {
         reply: result.reply,
         source: result.source,
         model: result.model,
+        ...(parallelRes
+          ? {
+              parallelAgents: parallelRes.parallelAgents,
+              totalLatencyMs: parallelRes.totalLatencyMs,
+              activeCount: parallelRes.activeCount,
+            }
+          : {}),
         snapshot: liveSnapshot,
       });
     }
@@ -77,6 +109,11 @@ export async function POST(req: NextRequest) {
         error: result.error,
         status: statusCode,
         model: result.model,
+        ...(parallelRes
+          ? {
+              parallelAgents: parallelRes.parallelAgents,
+            }
+          : {}),
         source: 'google-ai-studio-error',
       },
       { status: statusCode }

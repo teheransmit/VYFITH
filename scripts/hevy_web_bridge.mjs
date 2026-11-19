@@ -71,7 +71,7 @@ function cleanupOrphanProfileChrome() {
   try {
     if (process.platform === 'win32') {
       execSync(
-        'powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"Name=\'chrome.exe\'\\" | Where-Object { $_.CommandLine -like \'*hevy-chrome-profile*\' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"',
+        'powershell -NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { ($_.Name -eq \'chrome.exe\' -or $_.Name -eq \'chromium.exe\' -or $_.Name -eq \'chrome-headless-shell.exe\') -and $_.CommandLine -like \'*hevy-chrome-profile*\' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"',
         { stdio: 'ignore', timeout: 8000 }
       );
     }
@@ -149,10 +149,19 @@ async function openContext(headless = true, cmd = 'status') {
 
   writeBridgeLock(cmd);
 
+  let bundledExe = '';
+  try {
+    bundledExe = chromium.executablePath();
+  } catch {
+    bundledExe = '';
+  }
+  const useBundled = Boolean(bundledExe && fs.existsSync(bundledExe));
+
   const launchOpts = {
-    channel: 'chrome',
+    ...(useBundled ? {} : { channel: 'chrome' }),
     headless,
     acceptDownloads: true,
+    ignoreDefaultArgs: ['--enable-automation'],
     viewport: { width: 1366, height: 860 },
     args: [
       '--disable-blink-features=AutomationControlled',
@@ -165,7 +174,7 @@ async function openContext(headless = true, cmd = 'status') {
   try {
     return await chromium.launchPersistentContext(PROFILE_DIR, launchOpts);
   } catch (firstErr) {
-    // Reintento automático tras limpiar procesos huérfanos de Chrome sobre .hevy-chrome-profile
+    // Reintento automático tras limpiar procesos huérfanos sobre .hevy-chrome-profile
     cleanupOrphanProfileChrome();
     await new Promise((r) => setTimeout(r, 700));
     return await chromium.launchPersistentContext(PROFILE_DIR, launchOpts);
@@ -174,19 +183,24 @@ async function openContext(headless = true, cmd = 'status') {
 
 async function isLoggedIn(page) {
   await page.goto('https://hevy.com/settings?export', { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await page.waitForTimeout(2500);
+  await Promise.race([
+    page.waitForSelector('button:has-text("Export"), button:has-text("Exportar")', { timeout: 8000 }).catch(() => null),
+    page.waitForURL(/\/(login|signup)/, { timeout: 8000 }).catch(() => null),
+    page.waitForTimeout(4500),
+  ]);
   const url = page.url();
   if (url.includes('/login') || url.includes('/signup')) {
     return { authenticated: false, url };
   }
   const hasExportBtn =
-    (await page.getByRole('button', { name: /Exportar datos de entrenamiento|Export workout data/i }).count()) > 0;
+    (await page.getByRole('button', { name: /Exportar datos de entrenamiento|Export workout data|Export/i }).count()) > 0;
+  const hasAuthNav = (await page.locator('a[href*="/user/"], a[href="/routines"]').count()) > 0;
   const userName = await page
     .locator('aside h5, nav h5, h5')
     .first()
     .textContent()
     .catch(() => null);
-  const authenticated = hasExportBtn && !url.includes('/login') && !url.includes('/signup');
+  const authenticated = (hasExportBtn || hasAuthNav) && !url.includes('/login') && !url.includes('/signup');
   const accountName = userName ? userName.trim() : undefined;
   try {
     fs.writeFileSync(
@@ -221,12 +235,44 @@ async function handleStatus() {
   }
 }
 
+async function exportCsvFromAuthenticatedPage(page, outPath = DEFAULT_EXPORT_CSV) {
+  await page.goto('https://hevy.com/settings?export', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  const exportBtn = page
+    .getByRole('button', { name: /Exportar datos de entrenamiento|Export workout data/i })
+    .or(page.locator('button:has-text("Exportar datos"), button:has-text("Export workout data")'))
+    .first();
+  await exportBtn.waitFor({ state: 'visible', timeout: 15000 });
+
+  const [download] = await Promise.all([
+    page.waitForEvent('download', { timeout: 90000 }),
+    exportBtn.click(),
+  ]);
+
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  await download.saveAs(outPath);
+  const bytes = fs.statSync(outPath).size;
+  try {
+    if (fs.existsSync(path.dirname(DRIVE_BACKUP_CSV))) {
+      fs.copyFileSync(outPath, DRIVE_BACKUP_CSV);
+    }
+  } catch {
+    // Respaldo opcional en Drive
+  }
+  return { outPath, bytes, suggestedFilename: download.suggestedFilename() };
+}
+
 async function handleLogin() {
   let ctx;
   try {
     ctx = await openContext(false, 'login');
     const page = ctx.pages()[0] || (await ctx.newPage());
-    await page.goto('https://hevy.com/login', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.bringToFront().catch(() => {});
+    // Si ya tiene sesión activa, irá directo; si no, Hevy redirige a login o abre login
+    const initialCheck = await isLoggedIn(page);
+    if (!initialCheck.authenticated) {
+      await page.goto('https://hevy.com/login', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.bringToFront().catch(() => {});
+    }
     const deadline = Date.now() + 180000;
     let logged = false;
     while (Date.now() < deadline) {
@@ -247,7 +293,21 @@ async function handleLogin() {
         const verify = await isLoggedIn(page);
         if (verify.authenticated) {
           logged = true;
-          console.log(JSON.stringify({ ok: true, authenticated: true, accountName: verify.accountName }));
+          let csvResult = null;
+          try {
+            csvResult = await exportCsvFromAuthenticatedPage(page, DEFAULT_EXPORT_CSV);
+          } catch {
+            csvResult = null;
+          }
+          console.log(
+            JSON.stringify({
+              ok: true,
+              authenticated: true,
+              accountName: verify.accountName,
+              csvPath: csvResult?.outPath || null,
+              bytes: csvResult?.bytes || 0,
+            })
+          );
           break;
         }
       }

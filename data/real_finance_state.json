@@ -50,11 +50,11 @@
     "dadPaidAmount": 450000,
     "dadPendingAmount": 0,
     "pendingWalksWeekly": 0,
-    "totalEstimatedCost": 0,
-    "balanceParaLujos": 45724.27,
-    "personalRemainingTarget": 0,
+    "totalEstimatedCost": 584549,
+    "balanceParaLujos": -538824.73,
+    "personalRemainingTarget": 134549,
     "projectedFundWithDad": 45724.27,
-    "projectedSurplusWithDad": 45724.27
+    "projectedSurplusWithDad": -538824.73
   },
   "pendingDebts": [
     {
@@ -104,5 +104,14 @@
       "note": "Pago recibido de Laura por Frida ($25.000 en Nequi para pasar a Nu) | Abonos a Yessid: $4.500 helado + $26.500 trago ($31.000 total abonados recientemente)"
     }
   ],
-  "lastSynced": "2026-11-18T15:26:00.000Z"
+  "lastSynced": "2026-11-19T18:15:34.879Z",
+  "androidFinanceSync": {
+    "totalLiquidityCop": 45724.27,
+    "accountsCount": 3,
+    "medellinEstimatedCostCop": 584549,
+    "medellinAvailableFundCop": 45724.27,
+    "dailyLogsCount": 1,
+    "pendingWalksWeeklyCop": 0,
+    "syncedAt": "2026-11-19T18:15:34.878Z"
+  }
 }

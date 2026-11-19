@@ -116,12 +116,49 @@ export default function GoogleHealthConnector({
         ? docData.updatedAt.toDate().toISOString()
         : docData.updatedAt || nowIso;
 
-      const stepsVal = Number(docData.roomMetrics?.steps ?? docData.steps ?? docData.stepCount ?? 0);
-      const hrVal = Number(docData.roomMetrics?.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
-      const sleepVal = Number(docData.roomMetrics?.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? docData.sleepTotalHours ?? 0);
-      const readinessVal = Number(docData.readinessScore ?? 88);
-      const spo2Val = Number(docData.roomMetrics?.spo2 ?? docData.spo2 ?? 97);
-      const calVal = Number(docData.roomMetrics?.caloriesBurned ?? docData.caloriesBurned ?? 0);
+      const rm = docData.roomMetrics || {};
+      const ext = docData.hydrationState?.extendedHealthConnect || {};
+      const stepsVal = Number(rm.steps ?? ext.steps ?? docData.steps ?? docData.stepCount ?? 0);
+      const hrVal = Number(rm.restingHeartRate ?? ext.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
+      const sleepVal = Number(rm.totalSleepHours ?? ext.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? docData.sleepTotalHours ?? 0);
+      const deepSleepVal = Number(rm.deepSleepHours ?? ext.deepSleepHours ?? docData.deepSleepHours ?? 0);
+      const lightSleepVal = (rm.lightSleepHours ?? ext.lightSleepHours) !== undefined ? Number(rm.lightSleepHours ?? ext.lightSleepHours) : undefined;
+      const remSleepVal = (rm.remSleepHours ?? ext.remSleepHours) !== undefined ? Number(rm.remSleepHours ?? ext.remSleepHours) : undefined;
+      const awakeMinVal = (rm.awakeMinutes ?? ext.awakeMinutes) !== undefined ? Number(rm.awakeMinutes ?? ext.awakeMinutes) : undefined;
+      const awakeningsVal = (rm.awakeningsCount ?? ext.awakeningsCount) !== undefined ? Number(rm.awakeningsCount ?? ext.awakeningsCount) : undefined;
+      const sleepEfficiencyVal = (rm.sleepEfficiency ?? ext.sleepEfficiency) !== undefined ? Number(rm.sleepEfficiency ?? ext.sleepEfficiency) : undefined;
+      const sleepStartStr = rm.sleepStartTime ?? ext.sleepStartTime ?? docData.sleepStartTime ?? null;
+      const sleepEndStr = rm.sleepEndTime ?? ext.sleepEndTime ?? docData.sleepEndTime ?? null;
+      const isFallbackRecentSleep = Boolean(rm.isFallbackRecentSleep ?? ext.isFallbackRecentSleep ?? docData.isFallbackRecentSleep);
+      const sleepDateStr = rm.sleepDate ?? ext.sleepDate ?? docData.sleepDate ?? null;
+
+      const readinessVal = Number(docData.readinessScore ?? 85);
+      const spo2Val = Number(rm.spo2 ?? ext.spo2 ?? docData.spo2 ?? 97);
+      const calVal = Number(rm.caloriesBurned ?? ext.caloriesBurned ?? docData.caloriesBurned ?? 0);
+      const avgHrVal = (rm.avgHeartRate ?? ext.avgHeartRate) !== undefined ? Number(rm.avgHeartRate ?? ext.avgHeartRate) : undefined;
+      const minHrVal = (rm.minHeartRate ?? ext.minHeartRate) !== undefined ? Number(rm.minHeartRate ?? ext.minHeartRate) : undefined;
+      const maxHrVal = (rm.maxHeartRate ?? ext.maxHeartRate) !== undefined ? Number(rm.maxHeartRate ?? ext.maxHeartRate) : undefined;
+      const hrvVal = Number(rm.hrv ?? ext.hrv ?? docData.hrv ?? 76);
+      const distanceVal = (rm.distanceMeters ?? ext.distanceMeters) !== undefined ? Number(rm.distanceMeters ?? ext.distanceMeters) : undefined;
+      const activeCalVal = (rm.activeCaloriesBurned ?? ext.activeCaloriesBurned) !== undefined ? Number(rm.activeCaloriesBurned ?? ext.activeCaloriesBurned) : undefined;
+      const totalCalVal = (rm.totalCaloriesBurned ?? ext.totalCaloriesBurned) !== undefined ? Number(rm.totalCaloriesBurned ?? ext.totalCaloriesBurned) : undefined;
+      const bmrVal = (rm.basalMetabolicRateKcal ?? ext.basalMetabolicRateKcal) !== undefined ? Number(rm.basalMetabolicRateKcal ?? ext.basalMetabolicRateKcal) : undefined;
+      const activityMinVal = (rm.activityMinutes ?? ext.activityMinutes) !== undefined ? Number(rm.activityMinutes ?? ext.activityMinutes) : undefined;
+      const respRateVal = (rm.respiratoryRateBpm ?? ext.respiratoryRateBpm) !== undefined ? Number(rm.respiratoryRateBpm ?? ext.respiratoryRateBpm) : undefined;
+      const bpSysVal = (rm.bloodPressureSystolic ?? ext.bloodPressureSystolic) !== undefined ? Number(rm.bloodPressureSystolic ?? ext.bloodPressureSystolic) : undefined;
+      const bpDiaVal = (rm.bloodPressureDiastolic ?? ext.bloodPressureDiastolic) !== undefined ? Number(rm.bloodPressureDiastolic ?? ext.bloodPressureDiastolic) : undefined;
+      const glucoseVal = (rm.bloodGlucoseMgDl ?? ext.bloodGlucoseMgDl) !== undefined ? Number(rm.bloodGlucoseMgDl ?? ext.bloodGlucoseMgDl) : undefined;
+      const elevationVal = (rm.elevationGainedMeters ?? ext.elevationGainedMeters) !== undefined ? Number(rm.elevationGainedMeters ?? ext.elevationGainedMeters) : undefined;
+      const avgSpeedVal = (rm.avgSpeedMps ?? ext.avgSpeedMps) !== undefined ? Number(rm.avgSpeedMps ?? ext.avgSpeedMps) : undefined;
+      const powerVal = (rm.powerWatts ?? ext.powerWatts) !== undefined ? Number(rm.powerWatts ?? ext.powerWatts) : undefined;
+      const hydrationLitersVal = (rm.hydrationLiters ?? ext.hydrationLiters) !== undefined ? Number(rm.hydrationLiters ?? ext.hydrationLiters) : undefined;
+
+      const incomingHydration = docData.hydrationState || null;
+      const incomingNutrition = docData.nutritionState || docData.hydrationState?.nutritionCurrent || null;
+      const incomingMeasurement = docData.latestMeasurement || docData.hydrationState?.latestMeasurement || null;
+      const incomingFinance = docData.financeModule || docData.hydrationState?.financeModule || null;
+      const incomingCloset = docData.closetModule || docData.hydrationState?.closetModule || null;
+      const incomingNotes = docData.notesModule || docData.hydrationState?.notesModule || null;
 
       const dynamicObservations: HealthObservation[] = [
         {
@@ -181,8 +218,68 @@ export default function GoogleHealthConnector({
         },
       ];
 
+      if (hrvVal > 0) {
+        dynamicObservations.push({
+          id: `fb-hrv-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Recuperación Autónoma (HRV)',
+          code: { coding: [{ system: 'http://loinc.org', code: '80404-7', display: 'HRV RMSSD' }] },
+          valueQuantity: { value: hrvVal, unit: 'ms' },
+          effectiveDateTime: snapshotIso,
+        });
+      }
+      if (distanceVal && distanceVal > 0) {
+        dynamicObservations.push({
+          id: `fb-dist-${Date.now()}`,
+          resourceType: 'Observation',
+          status: 'final',
+          category: 'Health Connect - Distancia',
+          code: { coding: [{ system: 'http://loinc.org', code: '41950-7', display: 'Distance' }] },
+          valueQuantity: { value: distanceVal, unit: 'm' },
+          effectiveDateTime: snapshotIso,
+        });
+      }
+
+      const extendedRoomPayload = {
+        steps: stepsVal,
+        deepSleepHours: deepSleepVal,
+        lightSleepHours: lightSleepVal,
+        remSleepHours: remSleepVal,
+        awakeMinutes: awakeMinVal,
+        awakeningsCount: awakeningsVal,
+        sleepEfficiency: sleepEfficiencyVal,
+        sleepStartTime: sleepStartStr,
+        sleepEndTime: sleepEndStr,
+        isFallbackRecentSleep,
+        sleepDate: sleepDateStr,
+        totalSleepHours: sleepVal,
+        restingHeartRate: hrVal,
+        avgHeartRate: avgHrVal,
+        minHeartRate: minHrVal,
+        maxHeartRate: maxHrVal,
+        hrv: hrvVal,
+        spo2: spo2Val,
+        caloriesBurned: calVal,
+        activeCaloriesBurned: activeCalVal,
+        totalCaloriesBurned: totalCalVal,
+        basalMetabolicRateKcal: bmrVal,
+        distanceMeters: distanceVal,
+        activityMinutes: activityMinVal,
+        elevationGainedMeters: elevationVal,
+        avgSpeedMps: avgSpeedVal,
+        powerWatts: powerVal,
+        respiratoryRateBpm: respRateVal,
+        bloodPressureSystolic: bpSysVal,
+        bloodPressureDiastolic: bpDiaVal,
+        bloodGlucoseMgDl: glucoseVal,
+        hydrationLiters: hydrationLitersVal,
+      };
+
       let updatedState: SyncSessionState | null = null;
       setSyncState((prev) => {
+        const effectiveSleep = sleepVal > 0 ? sleepVal : (prev?.currentMetrics?.sleepHours || 0);
+        const effectiveDeep = deepSleepVal > 0 ? deepSleepVal : (prev?.vyfithData?.roomMetrics?.deepSleepHours || 0);
         updatedState = {
           isPaired: true,
           deviceId: docData.deviceId || 'Vivo Y20',
@@ -194,13 +291,44 @@ export default function GoogleHealthConnector({
           syncCount: (prev?.syncCount || 0) + 1,
           changesToken: `firestore_${Date.now()}`,
           currentMetrics: {
+            ...(prev?.currentMetrics || {}),
             steps: stepsVal || prev?.currentMetrics?.steps || 0,
-            hrv: Number(docData.hrv ?? prev?.currentMetrics?.hrv ?? 76),
+            hrv: hrvVal || prev?.currentMetrics?.hrv || 76,
             heartRate: hrVal,
-            sleepHours: sleepVal || prev?.currentMetrics?.sleepHours || 0,
+            avgHeartRate: avgHrVal ?? prev?.currentMetrics?.avgHeartRate,
+            minHeartRate: minHrVal ?? prev?.currentMetrics?.minHeartRate,
+            maxHeartRate: maxHrVal ?? prev?.currentMetrics?.maxHeartRate,
+            sleepHours: effectiveSleep,
+            deepSleepHours: effectiveDeep,
+            lightSleepHours: lightSleepVal ?? prev?.currentMetrics?.lightSleepHours,
+            remSleepHours: remSleepVal ?? prev?.currentMetrics?.remSleepHours,
+            awakeMinutes: awakeMinVal ?? prev?.currentMetrics?.awakeMinutes,
+            awakeningsCount: awakeningsVal ?? prev?.currentMetrics?.awakeningsCount,
+            sleepEfficiency: sleepEfficiencyVal ?? prev?.currentMetrics?.sleepEfficiency,
+            sleepStartTime: sleepStartStr ?? prev?.currentMetrics?.sleepStartTime,
+            sleepEndTime: sleepEndStr ?? prev?.currentMetrics?.sleepEndTime,
+            spo2: spo2Val,
+            distanceMeters: distanceVal ?? prev?.currentMetrics?.distanceMeters,
+            activeCaloriesBurned: activeCalVal ?? prev?.currentMetrics?.activeCaloriesBurned,
+            totalCaloriesBurned: totalCalVal ?? prev?.currentMetrics?.totalCaloriesBurned,
+            basalMetabolicRateKcal: bmrVal ?? prev?.currentMetrics?.basalMetabolicRateKcal,
+            activityMinutes: activityMinVal ?? prev?.currentMetrics?.activityMinutes,
+            respiratoryRateBpm: respRateVal ?? prev?.currentMetrics?.respiratoryRateBpm,
+            hydrationLiters: hydrationLitersVal ?? prev?.currentMetrics?.hydrationLiters,
+            weightKg: Number(incomingMeasurement?.weightKg || prev?.currentMetrics?.weightKg || 55.7),
+            bodyFatPct: Number(incomingMeasurement?.bodyFatPct || prev?.currentMetrics?.bodyFatPct || 10.6),
           },
           recentObservations: dynamicObservations,
           syncEvents: prev?.syncEvents || [],
+          superAppSync: {
+            lastSyncedAt: snapshotIso,
+            hydrationState: incomingHydration ?? prev?.superAppSync?.hydrationState,
+            nutritionState: incomingNutrition ?? prev?.superAppSync?.nutritionState,
+            latestMeasurement: incomingMeasurement ?? prev?.superAppSync?.latestMeasurement,
+            financeSummary: incomingFinance ?? prev?.superAppSync?.financeSummary,
+            closetSummary: incomingCloset ?? prev?.superAppSync?.closetSummary,
+            notesSummary: incomingNotes ?? prev?.superAppSync?.notesSummary,
+          },
           vyfithData: {
             connected: true,
             appName: `VYFITH_APP (${sourceTag})`,
@@ -225,14 +353,9 @@ export default function GoogleHealthConnector({
                 docData.geminiAnalysis?.tiempoRecuperacionHoras || 0,
             },
             roomMetrics: {
-              steps: stepsVal,
-              deepSleepHours: Number(
-                docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 1.61
-              ),
-              totalSleepHours: sleepVal,
-              restingHeartRate: hrVal,
-              spo2: spo2Val,
-              caloriesBurned: calVal,
+              ...extendedRoomPayload,
+              totalSleepHours: effectiveSleep,
+              deepSleepHours: effectiveDeep,
             },
             hevySummary: {
               lastWorkoutName:
@@ -254,6 +377,7 @@ export default function GoogleHealthConnector({
         onSyncStateChange?.(updatedState);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('vyfith-health-sync', { detail: updatedState }));
+          window.dispatchEvent(new CustomEvent('vyfith-superapp-sync', { detail: (updatedState as SyncSessionState).superAppSync }));
         }
       }
 
@@ -261,7 +385,7 @@ export default function GoogleHealthConnector({
       setNotificationMsg(`☁️ Datos recibidos en vivo vía Firestore (${sleepVal > 0 ? `${sleepVal}h sueño • ` : ''}${stepsVal} pasos)`);
       setTimeout(() => setNotificationMsg(null), 5000);
 
-      // Replicar en el endpoint local para guardar en disco
+      // Replicar en el endpoint local para guardar TODO en disco (Salud + Super-App 4 módulos)
       void fetch('/api/sync/health', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -276,20 +400,19 @@ export default function GoogleHealthConnector({
             gruposPriorizar: docData.gruposPriorizar,
             gruposDescanso: docData.gruposDescanso,
           },
-          roomMetrics: {
-            steps: stepsVal,
-            deepSleepHours: Number(docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 2.1),
-            totalSleepHours: sleepVal,
-            restingHeartRate: hrVal,
-            spo2: spo2Val,
-            caloriesBurned: calVal,
-          },
+          roomMetrics: extendedRoomPayload,
           hevyWorkouts: {
             lastWorkoutName: docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || 'Horizontal Torso (Chest & Back)',
             totalVolumeKg: Number(docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 4484),
             setsCompleted: Number(docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 20),
             date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
           },
+          hydrationState: incomingHydration,
+          nutritionState: incomingNutrition,
+          latestMeasurement: incomingMeasurement,
+          financeModule: incomingFinance,
+          closetModule: incomingCloset,
+          notesModule: incomingNotes,
         }),
       }).catch(() => {});
     };
@@ -899,6 +1022,112 @@ export default function GoogleHealthConnector({
             {vyfithData?.hevySummary.totalVolumeKg.toLocaleString() ?? '14,850'} <span className="text-xs font-normal text-slate-500">kg</span>
           </div>
           <div className="text-[10px] text-slate-400 truncate">{vyfithData?.hevySummary.lastWorkoutName || 'Push Day'}</div>
+        </div>
+      </div>
+
+      {/* Sincronización Integral Super-App (24 Métricas Health Connect + 4 Módulos Android -> Nube -> Web) */}
+      <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-slate-50/90 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/70 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Cloud className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              Sincronización Integral Super-App (Salud &amp; Sueño + 4 Módulos Android)
+            </h3>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+            {syncState?.vyfithData?.roomMetrics?.isFallbackRecentSleep
+              ? `Sueño reciente (${syncState.vyfithData.roomMetrics.sleepDate || '7d'})`
+              : 'Health Connect 24 tipos + Cloud Bridge'}
+          </span>
+        </div>
+
+        {/* Arquitectura completa de sueño & métricas extendidas de Health Connect */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 text-xs">
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] text-slate-400 block">Sueño REM / Ligero</span>
+            <span className="font-bold text-slate-900 dark:text-white font-mono">
+              {vyfithData?.roomMetrics?.remSleepHours !== undefined
+                ? `${vyfithData.roomMetrics.remSleepHours}h / ${vyfithData.roomMetrics.lightSleepHours ?? 0}h`
+                : 'Pendiente fases'}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] text-slate-400 block">Eficiencia &amp; Despertares</span>
+            <span className="font-bold text-slate-900 dark:text-white font-mono">
+              {vyfithData?.roomMetrics?.sleepEfficiency !== undefined
+                ? `${Math.round(vyfithData.roomMetrics.sleepEfficiency)}% • ${vyfithData.roomMetrics.awakeningsCount ?? 0} desp.`
+                : 'Sin dato'}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] text-slate-400 block">FC Prom / Min-Max</span>
+            <span className="font-bold text-slate-900 dark:text-white font-mono">
+              {vyfithData?.roomMetrics?.avgHeartRate
+                ? `${Math.round(vyfithData.roomMetrics.avgHeartRate)} (${Math.round(vyfithData.roomMetrics.minHeartRate ?? 0)}–${Math.round(vyfithData.roomMetrics.maxHeartRate ?? 0)})`
+                : 'Sin dato'}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] text-slate-400 block">Distancia &amp; Min Activos</span>
+            <span className="font-bold text-slate-900 dark:text-white font-mono">
+              {vyfithData?.roomMetrics?.distanceMeters
+                ? `${(vyfithData.roomMetrics.distanceMeters / 1000).toFixed(2)} km • ${vyfithData.roomMetrics.activityMinutes ?? 0}m`
+                : 'Sin dato'}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] text-slate-400 block">Resp. Rate &amp; BMR</span>
+            <span className="font-bold text-slate-900 dark:text-white font-mono">
+              {vyfithData?.roomMetrics?.respiratoryRateBpm || vyfithData?.roomMetrics?.basalMetabolicRateKcal
+                ? `${vyfithData.roomMetrics.respiratoryRateBpm?.toFixed(1) ?? '—'} rpm • ${Math.round(vyfithData.roomMetrics.basalMetabolicRateKcal ?? 0)} kcal`
+                : 'Sin dato'}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] text-slate-400 block">PA / Glucosa / Masa Ósea</span>
+            <span className="font-bold text-slate-900 dark:text-white font-mono">
+              {vyfithData?.roomMetrics?.bloodPressureSystolic
+                ? `${Math.round(vyfithData.roomMetrics.bloodPressureSystolic)}/${Math.round(vyfithData.roomMetrics.bloodPressureDiastolic ?? 0)}`
+                : vyfithData?.roomMetrics?.boneMassKg
+                ? `${vyfithData.roomMetrics.boneMassKg.toFixed(1)} kg ósea`
+                : 'Sin dato'}
+            </span>
+          </div>
+        </div>
+
+        {/* Estado de los 4 Módulos de la Super-App */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 block">🩺 Salud, Agua &amp; Nutrición</span>
+            <span className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+              Agua: {syncState?.superAppSync?.hydrationState?.totalIntakeMl ?? syncState?.superAppSync?.hydrationState?.totalMl ?? '—'} ml •{' '}
+              Kcal: {syncState?.superAppSync?.nutritionState?.current?.calories ?? syncState?.superAppSync?.nutritionState?.calories ?? '—'}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400 block">🪙 Finanzas &amp; Medellín</span>
+            <span className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+              {syncState?.superAppSync?.financeSummary
+                ? `Liquidez: $${Math.round(syncState.superAppSync.financeSummary.totalLiquidityCop ?? 0).toLocaleString('es-CO')} (${syncState.superAppSync.financeSummary.accountsCount ?? 0} ctas)`
+                : 'Pendiente sync desde app'}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-purple-600 dark:text-purple-400 block">👗 Mi Armario IA</span>
+            <span className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+              {syncState?.superAppSync?.closetSummary
+                ? `${syncState.superAppSync.closetSummary.totalItems ?? 0} prendas (${syncState.superAppSync.closetSummary.favoriteItems ?? 0} fav)`
+                : 'Pendiente sync desde app'}
+            </span>
+          </div>
+          <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+            <span className="text-[10px] font-bold uppercase text-sky-600 dark:text-sky-400 block">📚 Notas &amp; Referencias</span>
+            <span className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 block mt-0.5">
+              {syncState?.superAppSync?.notesSummary
+                ? `${syncState.superAppSync.notesSummary.totalNotes ?? 0} notas • ${syncState.superAppSync.notesSummary.referencesCount ?? 0} refs`
+                : 'Pendiente sync desde app'}
+            </span>
+          </div>
         </div>
       </div>
 

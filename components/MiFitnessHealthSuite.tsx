@@ -70,35 +70,54 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
           (snap) => {
             if (snap.exists()) {
               const docData = snap.data();
-              const sleepVal = Number(docData.roomMetrics?.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? 7.3);
-              const deepVal = Number(docData.roomMetrics?.deepSleepHours ?? docData.deepSleepHours ?? 1.61);
-              const hrVal = Number(docData.roomMetrics?.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
-              const spo2Val = Number(docData.roomMetrics?.spo2 ?? docData.spo2 ?? 96.5);
-              const stepsVal = Number(docData.roomMetrics?.steps ?? docData.steps ?? 6411);
+              const rm = { ...(docData.hydrationState?.extendedHealthConnect || {}), ...(docData.roomMetrics || {}) };
+              const incomingSleep = Number(rm.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? 0);
+              const deepVal = Number(rm.deepSleepHours ?? docData.deepSleepHours ?? 0);
+              const hrVal = Number(rm.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
+              const spo2Val = Number(rm.spo2 ?? docData.spo2 ?? 96.5);
+              const stepsVal = Number(rm.steps ?? docData.steps ?? 0);
 
-              setInternalState((prev: any) => ({
-                ...prev,
-                isPaired: true,
-                currentMetrics: {
-                  ...(prev?.currentMetrics || {}),
-                  sleepHours: sleepVal,
-                  heartRate: hrVal,
-                  steps: stepsVal,
-                },
-                vyfithData: {
-                  ...(prev?.vyfithData || {}),
-                  connected: true,
-                  readinessScore: Number(docData.readinessScore ?? 85),
-                  roomMetrics: {
-                    ...(prev?.vyfithData?.roomMetrics || {}),
-                    totalSleepHours: sleepVal,
-                    deepSleepHours: deepVal,
-                    restingHeartRate: hrVal,
-                    spo2: spo2Val,
-                    steps: stepsVal,
+              setInternalState((prev: any) => {
+                const prevSleep = Number(prev?.currentMetrics?.sleepHours ?? prev?.vyfithData?.roomMetrics?.totalSleepHours ?? 0);
+                const sleepVal = incomingSleep > 0 ? incomingSleep : (prevSleep > 0 ? prevSleep : 7.3);
+                const effectiveDeep = deepVal > 0 ? deepVal : Number(prev?.vyfithData?.roomMetrics?.deepSleepHours ?? 1.61);
+                return {
+                  ...prev,
+                  isPaired: true,
+                  currentMetrics: {
+                    ...(prev?.currentMetrics || {}),
+                    sleepHours: sleepVal,
+                    deepSleepHours: effectiveDeep,
+                    lightSleepHours: rm.lightSleepHours ?? prev?.currentMetrics?.lightSleepHours,
+                    remSleepHours: rm.remSleepHours ?? prev?.currentMetrics?.remSleepHours,
+                    awakeMinutes: rm.awakeMinutes ?? prev?.currentMetrics?.awakeMinutes,
+                    awakeningsCount: rm.awakeningsCount ?? prev?.currentMetrics?.awakeningsCount,
+                    sleepEfficiency: rm.sleepEfficiency ?? prev?.currentMetrics?.sleepEfficiency,
+                    sleepStartTime: rm.sleepStartTime ?? prev?.currentMetrics?.sleepStartTime,
+                    sleepEndTime: rm.sleepEndTime ?? prev?.currentMetrics?.sleepEndTime,
+                    avgHeartRate: rm.avgHeartRate ?? prev?.currentMetrics?.avgHeartRate,
+                    minHeartRate: rm.minHeartRate ?? prev?.currentMetrics?.minHeartRate,
+                    maxHeartRate: rm.maxHeartRate ?? prev?.currentMetrics?.maxHeartRate,
+                    respiratoryRateBpm: rm.respiratoryRateBpm ?? prev?.currentMetrics?.respiratoryRateBpm,
+                    heartRate: hrVal,
+                    steps: stepsVal || prev?.currentMetrics?.steps || 0,
                   },
-                },
-              }));
+                  vyfithData: {
+                    ...(prev?.vyfithData || {}),
+                    connected: true,
+                    readinessScore: Number(docData.readinessScore ?? prev?.vyfithData?.readinessScore ?? 85),
+                    roomMetrics: {
+                      ...(prev?.vyfithData?.roomMetrics || {}),
+                      ...rm,
+                      totalSleepHours: sleepVal,
+                      deepSleepHours: effectiveDeep,
+                      restingHeartRate: hrVal,
+                      spo2: spo2Val,
+                      steps: stepsVal || prev?.vyfithData?.roomMetrics?.steps || 0,
+                    },
+                  },
+                };
+              });
             }
           },
           (err) => console.warn('MiFitness Firestore listener fallback:', err?.message)
@@ -117,38 +136,55 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
   }, []);
 
   const activeState = syncState || internalState;
+  const rm = activeState?.vyfithData?.roomMetrics;
   const totalSleepHours =
     activeState?.currentMetrics?.sleepHours ||
-    activeState?.vyfithData?.roomMetrics?.totalSleepHours ||
+    rm?.totalSleepHours ||
     7.3;
   const sleepH = Math.floor(totalSleepHours);
   const sleepM = Math.round((totalSleepHours - sleepH) * 60);
 
-  const rawDeep = activeState?.vyfithData?.roomMetrics?.deepSleepHours;
+  const rawDeep = rm?.deepSleepHours;
   const deepSleepHours = rawDeep !== undefined && rawDeep > 0 ? rawDeep : Number((totalSleepHours * 0.22).toFixed(2));
   const deepH = Math.floor(deepSleepHours);
   const deepM = Math.round((deepSleepHours - deepH) * 60);
-  const deepPct = Math.min(100, Math.max(10, Math.round((deepSleepHours / totalSleepHours) * 100)));
+  const deepPct = Math.min(100, Math.max(8, Math.round((deepSleepHours / Math.max(0.1, totalSleepHours)) * 100)));
 
-  const remSleepHours = Number((totalSleepHours * 0.24).toFixed(2));
+  const rawRem = rm?.remSleepHours;
+  const remSleepHours = rawRem !== undefined && rawRem > 0 ? rawRem : Number((totalSleepHours * 0.24).toFixed(2));
   const remH = Math.floor(remSleepHours);
   const remM = Math.round((remSleepHours - remH) * 60);
-  const remPct = 24;
+  const remPct = Math.min(100, Math.max(8, Math.round((remSleepHours / Math.max(0.1, totalSleepHours)) * 100)));
 
-  const awakeHours = Number((totalSleepHours * 0.04).toFixed(2));
-  const awakeMin = Math.round(awakeHours * 60) || 12;
+  const rawAwakeMin = rm?.awakeMinutes;
+  const awakeMin = rawAwakeMin !== undefined ? Math.round(rawAwakeMin) : Math.round(totalSleepHours * 0.04 * 60) || 12;
+  const awakeHours = Number((awakeMin / 60).toFixed(2));
 
-  const lightSleepHours = Math.max(0, Number((totalSleepHours - deepSleepHours - remSleepHours - awakeHours).toFixed(2)));
+  const rawLight = rm?.lightSleepHours;
+  const lightSleepHours = rawLight !== undefined && rawLight > 0
+    ? rawLight
+    : Math.max(0, Number((totalSleepHours - deepSleepHours - remSleepHours).toFixed(2)));
   const lightH = Math.floor(lightSleepHours);
   const lightM = Math.round((lightSleepHours - lightH) * 60);
-  const lightPct = Math.max(10, 100 - deepPct - remPct - 4);
+  const lightPct = Math.max(10, 100 - deepPct - remPct);
+
+  const sleepEfficiencyPct = rm?.sleepEfficiency !== undefined ? `${Math.round(rm.sleepEfficiency)}%` : '94%';
+  const awakeningsText = rm?.awakeningsCount !== undefined ? `${rm.awakeningsCount} veces` : '2 veces';
+  const sleepRangeLabel =
+    rm?.sleepStartTime && rm?.sleepEndTime
+      ? `${rm?.isFallbackRecentSleep && rm?.sleepDate ? `${rm.sleepDate} • ` : 'Sesión Real • '}${rm.sleepStartTime} – ${rm.sleepEndTime}`
+      : 'Última sesión sincronizada';
 
   const liveRhr =
     activeState?.currentMetrics?.heartRate ||
-    activeState?.vyfithData?.roomMetrics?.restingHeartRate ||
+    rm?.restingHeartRate ||
     62;
-  const liveSpo2 = activeState?.vyfithData?.roomMetrics?.spo2
-    ? Math.round(activeState.vyfithData.roomMetrics.spo2)
+  const liveAvgHr = Math.round(rm?.avgHeartRate || activeState?.currentMetrics?.avgHeartRate || 68);
+  const liveMinHr = Math.round(rm?.minHeartRate || activeState?.currentMetrics?.minHeartRate || Math.max(45, liveRhr - 8));
+  const liveMaxHr = Math.round(rm?.maxHeartRate || activeState?.currentMetrics?.maxHeartRate || 158);
+  const liveRespRate = rm?.respiratoryRateBpm || activeState?.currentMetrics?.respiratoryRateBpm || 15;
+  const liveSpo2 = rm?.spo2
+    ? Math.round(rm.spo2)
     : 97;
 
   const [activeTab, setActiveTab] = useState<'sleep' | 'heart' | 'stress' | 'spo2'>('sleep');
@@ -160,12 +196,14 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
 
   const metricsByRange = {
     today: {
-      rangeLabel: 'Noche de ayer • 23:15 – 06:45',
-      timeSubtitle: 'Última sesión sincronizada desde tu Vivo Y20',
+      rangeLabel: sleepRangeLabel,
+      timeSubtitle: rm?.isFallbackRecentSleep
+        ? `Sesión reciente (${rm.sleepDate || 'últimos 7 días'}) desde Health Connect`
+        : 'Última sesión sincronizada desde Google Health Connect',
       sleep: {
         totalHoursStr: `${sleepH}h ${sleepM}m`,
         totalTitle: `${sleepH} horas ${sleepM} minutos`,
-        efficiency: '94%',
+        efficiency: sleepEfficiencyPct,
         deepStr: `${deepH}h ${deepM}m`,
         deepPct: deepPct,
         lightStr: `${lightH}h ${lightM}m`,
@@ -173,7 +211,7 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
         remStr: `${remH}h ${remM}m`,
         remPct: remPct,
         awakeStr: `${awakeMin} min`,
-        wakeups: '2 veces',
+        wakeups: awakeningsText,
         animalEmoji: '🐻',
         animalName: 'El Oso',
         animalDesc: 'Cronotipo regular, sueño reparador profundo y recuperación muscular óptima.',
@@ -181,15 +219,15 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
         rhrSleepingBadge: 'Excelente Tono Vagal',
         spo2Sleeping: `${liveSpo2}%`,
         spo2SleepingBadge: 'Oxigenación Perfecta',
-        respRate: '15 rpm',
+        respRate: `${liveRespRate} rpm`,
         respBadge: 'Eupnea Estable',
         regularity: 'Alta',
         regularityBadge: 'Variación ±18 min',
       },
       heart: {
-        rangeStr: '52 – 158 lpm',
-        peakNote: 'Pico en entrenamiento a las 16:35',
-        avgHr: 68,
+        rangeStr: `${liveMinHr} – ${liveMaxHr} lpm`,
+        peakNote: 'Rango real capturado en Health Connect',
+        avgHr: liveAvgHr,
         rhr: liveRhr,
         z5Time: '6 min (4%)',
         z5Bar: '6%',

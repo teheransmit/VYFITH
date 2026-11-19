@@ -16,17 +16,23 @@ import {
   EyeOff,
   Bot,
   Zap,
+  Layers,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useNvidiaModelsCatalog } from '@/components/useNvidiaModelsCatalog';
 import NvidiaModelSelectGroups from '@/components/NvidiaModelSelectGroups';
+import type { ParallelAgentResult } from '@/lib/multiAiRouter';
 
 interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant';
   text: string;
   timestamp: string;
-  source?: 'gemini-ai' | 'nvidia-nim' | 'groq-llama-70b' | 'google-ai-studio-error' | 'initial';
+  source?: 'gemini-ai' | 'nvidia-nim' | 'groq-llama-70b' | 'multi-ai-parallel' | 'google-ai-studio-error' | 'initial';
   model?: string;
+  parallelAgents?: ParallelAgentResult[];
+  totalLatencyMs?: number;
 }
 
 const INITIAL_MESSAGES: ChatMessage[] = [
@@ -162,14 +168,16 @@ export default function PersonalBioAssistant() {
   const [customApiKey, setCustomApiKey] = useState('');
   const [nvidiaApiKey, setNvidiaApiKey] = useState('');
   const [groqApiKey, setGroqApiKey] = useState('');
-  const [selectedModel, setSelectedModel] = useState('auto');
+  const [selectedModel, setSelectedModel] = useState('parallel');
   const [showSettings, setShowSettings] = useState(false);
+  const [showManualKeyOverride, setShowManualKeyOverride] = useState(false);
+  const [expandedAgentMsgIds, setExpandedAgentMsgIds] = useState<Record<string, boolean>>({});
   const [showKeyText, setShowKeyText] = useState(false);
   const [showNvidiaText, setShowNvidiaText] = useState(false);
   const [showGroqText, setShowGroqText] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [isTestingKey, setIsTestingKey] = useState(false);
-  const [activeModel, setActiveModel] = useState('Google AI Studio (Gemini 3.5 Flash Lite)');
+  const [activeModel, setActiveModel] = useState('Consejo Multi-IA (Paralelo)');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const nvidiaCatalog = useNvidiaModelsCatalog(nvidiaApiKey);
@@ -188,7 +196,9 @@ export default function PersonalBioAssistant() {
       }
       if (storedNvidia) setNvidiaApiKey(storedNvidia);
       if (storedGroq) setGroqApiKey(storedGroq);
-      if (storedModel) setSelectedModel(storedModel);
+      if (storedModel) {
+        setSelectedModel(storedModel === 'auto' ? 'parallel' : storedModel);
+      }
     }
   }, []);
 
@@ -197,7 +207,7 @@ export default function PersonalBioAssistant() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = async () => {
     if (typeof window !== 'undefined') {
       if (customApiKey.trim()) {
         localStorage.setItem('vyfith_gemini_api_key', customApiKey.trim());
@@ -218,8 +228,30 @@ export default function PersonalBioAssistant() {
       }
 
       localStorage.setItem('vyfith_selected_model', selectedModel);
-      setSaveStatus('Ajustes y claves guardadas con éxito 🟢');
-      setTimeout(() => setSaveStatus(null), 3500);
+
+      if (nvidiaApiKey.trim() || groqApiKey.trim()) {
+        try {
+          const cfgRes = await fetch('/api/ai/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...(nvidiaApiKey.trim() ? { nvidiaApiKey: nvidiaApiKey.trim() } : {}),
+              ...(groqApiKey.trim() ? { groqApiKey: groqApiKey.trim() } : {}),
+            }),
+          });
+          const cfgData = await cfgRes.json();
+          setSaveStatus(
+            cfgRes.ok && cfgData.success
+              ? cfgData.message || 'Activado en servidor (.env.local) 🟢'
+              : `⚠️ ${cfgData.error || 'Error guardando en servidor'}`
+          );
+        } catch {
+          setSaveStatus('Ajustes guardados localmente 🟢');
+        }
+      } else {
+        setSaveStatus('Preferencia Multi-IA guardada 🟢');
+      }
+      setTimeout(() => setSaveStatus(null), 4000);
     }
   };
 
@@ -339,6 +371,8 @@ export default function PersonalBioAssistant() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         source: replySource,
         model: replyModel,
+        parallelAgents: Array.isArray(data?.parallelAgents) ? data.parallelAgents : undefined,
+        totalLatencyMs: typeof data?.totalLatencyMs === 'number' ? data.totalLatencyMs : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -400,11 +434,11 @@ export default function PersonalBioAssistant() {
             <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-indigo-400 border border-slate-200 dark:border-slate-700 transition-colors shadow-xs"
-                title="Configurar Gemini API Key"
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/80 transition-colors shadow-xs"
+                title="Configurar Consejo Multi-IA en Paralelo"
               >
-                <Settings className="w-3.5 h-3.5" />
-                <span>Configurar API</span>
+                <Layers className="w-3.5 h-3.5" />
+                <span>Consejo Multi-IA</span>
               </button>
               <a
                 href="https://github.com/teheransmit"
@@ -427,14 +461,14 @@ export default function PersonalBioAssistant() {
             </div>
           </div>
 
-          {/* Panel Desplegable de Configuración de API Key si está activo */}
+          {/* Panel Desplegable del Consejo Multi-IA */}
           {showSettings && (
             <div className="mt-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-2 duration-200 text-xs">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Key className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                    Orquestador de IA Multi-Modelo & Super-Respuesta
+                    Consejo Multi-IA en Paralelo (Todas las IAs a la vez)
                   </h3>
                 </div>
                 <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
@@ -443,85 +477,14 @@ export default function PersonalBioAssistant() {
               </div>
 
               <p className="text-xs text-slate-600 dark:text-slate-300 mb-3 leading-relaxed">
-                VYFITH conecta en tiempo real con <strong>Google AI Studio (Gemini)</strong>, <strong>NVIDIA NIM (1.000 créditos gratis)</strong> y <strong>Groq Cloud (Llama 3.3 70B)</strong>.
+                Cada consulta se envía simultáneamente a todos los modelos activos y fusiona sus análisis en una respuesta unificada.
               </p>
 
-              <div className="grid grid-cols-1 gap-2.5 mb-3">
-                {/* Clave Google AI Studio */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Google AI Studio API Key (Gemini)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showKeyText ? 'text' : 'password'}
-                      value={customApiKey}
-                      onChange={(e) => setCustomApiKey(e.target.value)}
-                      placeholder="Clave de Google AI Studio (ej. AIzaSy...)"
-                      className="w-full px-3 py-1.5 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowKeyText(!showKeyText)}
-                      className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    >
-                      {showKeyText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Clave NVIDIA NIM */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    NVIDIA NIM API Key (build.nvidia.com — 1.000 créditos gratis)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showNvidiaText ? 'text' : 'password'}
-                      value={nvidiaApiKey}
-                      onChange={(e) => setNvidiaApiKey(e.target.value)}
-                      placeholder="Clave de NVIDIA NIM (nvapi-...)"
-                      className="w-full px-3 py-1.5 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNvidiaText(!showNvidiaText)}
-                      className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    >
-                      {showNvidiaText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Clave Groq Cloud */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Groq Cloud API Key (Llama 3.3 70B Gratis)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showGroqText ? 'text' : 'password'}
-                      value={groqApiKey}
-                      onChange={(e) => setGroqApiKey(e.target.value)}
-                      placeholder="Clave gratuita de Groq (gsk_...)"
-                      className="w-full px-3 py-1.5 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowGroqText(!showGroqText)}
-                      className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                    >
-                      {showGroqText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Selector de Modelo y Motor */}
+              {/* Selector de Modo / Modelo */}
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                    Motor de Inferencia ({nvidiaCatalog.chatCount} modelos NVIDIA NIM en vivo)
+                    Modo de Ejecución ({nvidiaCatalog.chatCount} modelos NVIDIA NIM compatibles)
                   </label>
                   <button
                     type="button"
@@ -535,46 +498,105 @@ export default function PersonalBioAssistant() {
                 <select
                   value={selectedModel}
                   onChange={(e) => setSelectedModel(e.target.value)}
-                  className="w-full px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 cursor-pointer"
+                  className="w-full px-3 py-1.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40 cursor-pointer"
                 >
-                  <optgroup label="⚡ Automático & Google AI Studio">
-                    <option value="auto">⚡ Multi-Modelo Automático (NVIDIA NIM / Groq / Gemini)</option>
-                    <option value="gemini-3.5-flash-lite">🌟 Gemini 3.5 Flash Lite (Verificado 200 OK)</option>
-                    <option value="gemini-flash-lite-latest">⚡ Gemini Flash Lite Latest</option>
-                    <option value="gemini-2.5-flash">🌟 Gemini 2.5 Flash (Google AI Studio)</option>
-                    <option value="gemma">🧠 Gemma 4 26B (Alta Disponibilidad)</option>
+                  <optgroup label="⚡ Enjambre en Paralelo (Recomendado)">
+                    <option value="parallel">⚡ Todas las IAs a la vez (NVIDIA NIM + Gemini en Paralelo)</option>
+                  </optgroup>
+                  <optgroup label="Google AI Studio Individual">
+                    <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                    <option value="gemini-flash-lite-latest">Gemini Flash Lite Latest</option>
+                    <option value="gemini-3-flash-preview">Gemini 3 Flash</option>
+                    <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite</option>
                   </optgroup>
                   <NvidiaModelSelectGroups chatModels={nvidiaCatalog.chatModels} />
-                  <optgroup label="⚡ Groq Cloud (Gratis)">
-                    <option value="groq-llama">⚡ Groq Cloud — Llama 3.3 70B Versatile</option>
+                  <optgroup label="Groq Cloud">
+                    <option value="groq-llama">Groq Cloud — Llama 3.3 70B Versatile</option>
                   </optgroup>
                 </select>
               </div>
 
-              <div className="flex items-center gap-2 pt-1 border-t border-slate-200 dark:border-slate-700">
+              {showManualKeyOverride && (
+                <div className="grid grid-cols-1 gap-2.5 mb-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Rotar clave NVIDIA NIM (nvapi-...)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showNvidiaText ? 'text' : 'password'}
+                        value={nvidiaApiKey}
+                        onChange={(e) => setNvidiaApiKey(e.target.value)}
+                        placeholder="nvapi-..."
+                        className="w-full px-3 py-1.5 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNvidiaText(!showNvidiaText)}
+                        className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      >
+                        {showNvidiaText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Clave Groq opcional (gsk_...)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showGroqText ? 'text' : 'password'}
+                        value={groqApiKey}
+                        onChange={(e) => setGroqApiKey(e.target.value)}
+                        placeholder="gsk_..."
+                        className="w-full px-3 py-1.5 pr-10 rounded-xl text-xs font-mono bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowGroqText(!showGroqText)}
+                        className="cursor-pointer absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                      >
+                        {showGroqText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSaveSettings}
+                    className="cursor-pointer px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs"
+                  >
+                    {showManualKeyOverride ? 'Guardar en Servidor' : 'Guardar Preferencia'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleTestKey}
+                    disabled={isTestingKey}
+                    className="cursor-pointer px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center gap-1.5"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isTestingKey ? 'animate-spin' : ''}`} />
+                    <span>Probar Paralelo</span>
+                  </button>
+                </div>
                 <button
                   type="button"
-                  onClick={handleSaveSettings}
-                  className="cursor-pointer px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+                  onClick={() => setShowManualKeyOverride((v) => !v)}
+                  className="cursor-pointer text-[10px] font-mono text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline"
                 >
-                  Guardar
+                  {showManualKeyOverride ? 'Ocultar claves' : 'Conectar proveedor adicional'}
                 </button>
-                <button
-                  type="button"
-                  onClick={handleTestKey}
-                  disabled={isTestingKey}
-                  className="cursor-pointer px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors flex items-center gap-1.5"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isTestingKey ? 'animate-spin' : ''}`} />
-                  <span>Probar</span>
-                </button>
-                {saveStatus && (
-                  <p className="ml-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                    <Check className="w-3.5 h-3.5" />
-                    {saveStatus}
-                  </p>
-                )}
               </div>
+              {saveStatus && (
+                <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5" />
+                  {saveStatus}
+                </p>
+              )}
             </div>
           )}
 
@@ -724,7 +746,7 @@ export default function PersonalBioAssistant() {
                       Cerebro de Razonamiento Abierto de Santiago
                     </h3>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">
-                      Multi-Modelo Live
+                      Consejo Multi-IA
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-400 dark:text-slate-500">
@@ -734,6 +756,21 @@ export default function PersonalBioAssistant() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedModel((prev) => (prev === 'parallel' ? 'gemini-3.5-flash-lite' : 'parallel'))
+                  }
+                  className={`cursor-pointer hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
+                    selectedModel === 'parallel'
+                      ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
+                      : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                  }`}
+                  title="Alternar ejecución simultánea de todas las IAs vs modelo individual"
+                >
+                  <Layers className="w-3 h-3" />
+                  {selectedModel === 'parallel' ? 'En Paralelo (Todas)' : 'Individual'}
+                </button>
                 <button
                   onClick={handleClearChat}
                   className="cursor-pointer p-2 rounded-xl text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -769,29 +806,96 @@ export default function PersonalBioAssistant() {
                     )}
 
                     {m.sender === 'assistant' && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Zap className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
-                          {m.model || activeModel}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(m.text, m.id)}
-                          className="cursor-pointer opacity-70 group-hover:opacity-100 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 transition-opacity"
-                          title="Copiar respuesta"
-                        >
-                          {copiedId === m.id ? (
-                            <>
-                              <Check className="w-3 h-3 text-emerald-500" />
-                              <span className="text-emerald-500 font-medium">Copiado</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3 h-3" />
-                              <span>Copiar</span>
-                            </>
-                          )}
-                        </button>
+                      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-2 text-[10px] text-slate-400 dark:text-slate-500">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-indigo-500 dark:text-indigo-400" />
+                            {m.model || activeModel}
+                            {m.totalLatencyMs ? ` • ${(m.totalLatencyMs / 1000).toFixed(1)}s` : ''}
+                          </span>
+                          <div className="flex items-center gap-2.5">
+                            {m.parallelAgents && m.parallelAgents.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedAgentMsgIds((prev) => ({
+                                    ...prev,
+                                    [m.id]: !prev[m.id],
+                                  }))
+                                }
+                                className="cursor-pointer inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                              >
+                                <span>Ver respuestas ({m.parallelAgents.length} IAs)</span>
+                                {expandedAgentMsgIds[m.id] ? (
+                                  <ChevronUp className="w-3 h-3" />
+                                ) : (
+                                  <ChevronDown className="w-3 h-3" />
+                                )}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(m.text, m.id)}
+                              className="cursor-pointer opacity-70 group-hover:opacity-100 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 transition-opacity"
+                              title="Copiar respuesta"
+                            >
+                              {copiedId === m.id ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-500" />
+                                  <span className="text-emerald-500 font-medium">Copiado</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>Copiar</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {m.parallelAgents && m.parallelAgents.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {m.parallelAgents.map((agent) => (
+                              <span
+                                key={agent.id}
+                                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border font-mono text-[9px] ${
+                                  agent.success
+                                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                                    : 'bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400'
+                                }`}
+                              >
+                                <span
+                                  className={`w-1 h-1 rounded-full ${
+                                    agent.success ? 'bg-emerald-500' : 'bg-rose-500'
+                                  }`}
+                                />
+                                {agent.displayName} ({(agent.latencyMs / 1000).toFixed(1)}s)
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {m.parallelAgents && expandedAgentMsgIds[m.id] && (
+                          <div className="grid grid-cols-1 gap-2 pt-1">
+                            {m.parallelAgents.map((agent) => (
+                              <div
+                                key={agent.id}
+                                className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 text-[11px]"
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <strong className="text-slate-900 dark:text-white">{agent.displayName}</strong>
+                                  <span className="font-mono text-[10px]">
+                                    {agent.role} • {(agent.latencyMs / 1000).toFixed(1)}s
+                                  </span>
+                                </div>
+                                <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                                  {agent.success ? agent.reply : agent.error}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

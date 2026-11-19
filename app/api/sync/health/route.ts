@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getHealthSyncState, updateHealthSyncState, HealthObservation } from '@/lib/healthStore';
 import { INITIAL_FEMMTO_STATE, createFemmtoEntry } from '@/lib/femmtoStore';
+import { applyWaterPayload } from '@/lib/waterStore';
+import { getDailyNutritionState, saveDailyNutritionState } from '@/lib/nutritionStore';
+import { saveBodyMeasurement } from '@/lib/bodyMeasurementsStore';
+import { readStoredFinanceState, writeStoredFinanceState } from '@/lib/financeServerStore';
 import fs from 'fs';
 import path from 'path';
+
+function persistJsonModuleFile(filename: string, payload: any) {
+  try {
+    const filePath = path.join(process.cwd(), 'data', filename);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, JSON.stringify(payload, null, 2), 'utf8');
+  } catch (err) {
+    console.error(`Error persisting ${filename}:`, err);
+  }
+}
+
+function finiteOrUndefined(val: any): number | undefined {
+  if (val === null || val === undefined || val === '') return undefined;
+  const n = Number(val);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function positiveOrFallback(val: any, fallback: number | undefined): number | undefined {
+  const n = finiteOrUndefined(val);
+  return n !== undefined && n > 0 ? n : fallback;
+}
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -200,10 +225,39 @@ export async function POST(req: NextRequest) {
     // Caso A: Simulación o Envío real desde VYFITH_APP (FitSync AI Android)
     if (body.source === 'VYFITH_APP' || body.simulateVyfith) {
       const isSimulated = Boolean(body.simulateVyfith);
+      const prevDisk = loadStateFromDisk() || getHealthSyncState();
+      const prevRoom: any = prevDisk?.vyfithData?.roomMetrics || {};
+      const prevCur: any = prevDisk?.currentMetrics || {};
+
+      const incomingSleepHours = isSimulated
+        ? 8.2
+        : Number(
+            body.roomMetrics?.totalSleepHours ??
+              body.totalSleepHours ??
+              body.sleepHours ??
+              body.sleepTotalHours ??
+              0
+          );
+      const incomingSteps = isSimulated
+        ? Math.floor(Math.random() * 4000) + 9000
+        : Number(body.roomMetrics?.steps ?? body.steps ?? body.stepCount ?? 0);
+
+      const deviceIdStr = String(body.deviceId || prevDisk?.deviceId || '');
+      const isBlankEmulator =
+        !isSimulated &&
+        (deviceIdStr.includes('sdk_gphone') ||
+          deviceIdStr.includes('Emulator') ||
+          deviceIdStr.includes('x86')) &&
+        incomingSteps === 0 &&
+        incomingSleepHours === 0;
+
+      const preservePriorSleep = incomingSleepHours <= 0 && Number(prevCur?.sleepHours || prevRoom?.totalSleepHours || 0) > 0;
 
       const readinessScore = isSimulated
         ? Math.floor(Math.random() * 25) + 75 // 75 - 99
-        : Number(body.readinessScore || 85);
+        : isBlankEmulator && Number(prevDisk?.vyfithData?.readinessScore || 0) > 0
+        ? Number(prevDisk.vyfithData.readinessScore)
+        : Number(body.readinessScore || prevDisk?.vyfithData?.readinessScore || 85);
 
       const readinessCategory =
         readinessScore >= 80
@@ -212,157 +266,325 @@ export async function POST(req: NextRequest) {
           ? 'Recuperación Adecuada'
           : 'Necesita Descanso';
 
-      const geminiAnalysis = {
-        diagnostico: isSimulated
-          ? 'Análisis Gemini AI: El atleta presenta una variabilidad cardíaca (HRV) alta de 78 ms y descanso reparador (2.2 h de sueño profundo). Fatiga del SNC mínima.'
-          : (body.geminiAnalysis?.diagnostico || body.diagnostico || 'Evaluación médica deportiva completada.'),
-        recomendacionMuscular: isSimulated
-          ? 'Día óptimo para levantamiento pesado de hipertrofia. Carga recomendada: RPE 8.5 en ejercicios básicos multiarticulares.'
-          : (body.geminiAnalysis?.recomendacionMuscular || body.recomendacionMuscular || 'Continuar progresión planificada.'),
-        gruposPriorizar: body.geminiAnalysis?.gruposPriorizar || body.gruposPriorizar || ['Espalda / Dorsales', 'Bíceps', 'Core'],
-        gruposDescanso: body.geminiAnalysis?.gruposDescanso || body.gruposDescanso || ['Piernas / Cuádriceps'],
-        tiempoRecuperacionHoras: body.geminiAnalysis?.tiempoRecuperacionHoras || body.tiempoRecuperacionHoras || 0,
-      };
+      const prevGemini = prevDisk?.vyfithData?.geminiAnalysis;
+      const geminiAnalysis = isBlankEmulator && prevGemini?.diagnostico
+        ? prevGemini
+        : {
+            diagnostico: isSimulated
+              ? 'Análisis Gemini AI: El atleta presenta una variabilidad cardíaca (HRV) alta de 78 ms y descanso reparador (2.2 h de sueño profundo). Fatiga del SNC mínima.'
+              : body.geminiAnalysis?.diagnostico || body.diagnostico || prevGemini?.diagnostico || 'Evaluación médica deportiva completada.',
+            recomendacionMuscular: isSimulated
+              ? 'Día óptimo para levantamiento pesado de hipertrofia. Carga recomendada: RPE 8.5 en ejercicios básicos multiarticulares.'
+              : body.geminiAnalysis?.recomendacionMuscular || body.recomendacionMuscular || prevGemini?.recomendacionMuscular || 'Continuar progresión planificada.',
+            gruposPriorizar: body.geminiAnalysis?.gruposPriorizar || body.gruposPriorizar || prevGemini?.gruposPriorizar || ['Espalda / Dorsales', 'Bíceps', 'Core'],
+            gruposDescanso: body.geminiAnalysis?.gruposDescanso || body.gruposDescanso || prevGemini?.gruposDescanso || ['Piernas / Cuádriceps'],
+            tiempoRecuperacionHoras: body.geminiAnalysis?.tiempoRecuperacionHoras || body.tiempoRecuperacionHoras || prevGemini?.tiempoRecuperacionHoras || 0,
+          };
+
+      const totalSleepHours = preservePriorSleep
+        ? Number(prevRoom?.totalSleepHours ?? prevCur?.sleepHours ?? 0)
+        : incomingSleepHours;
+
+      const deepSleepHours = preservePriorSleep
+        ? Number(prevRoom?.deepSleepHours ?? prevCur?.deepSleepHours ?? 0)
+        : Number(
+            body.roomMetrics?.deepSleepHours ??
+              body.deepSleepHours ??
+              (isSimulated ? 2.3 : Number((totalSleepHours * 0.22).toFixed(2)))
+          );
+
+      const lightSleepHours = preservePriorSleep
+        ? finiteOrUndefined(prevRoom?.lightSleepHours ?? prevCur?.lightSleepHours)
+        : finiteOrUndefined(body.roomMetrics?.lightSleepHours ?? body.lightSleepHours);
+
+      const remSleepHours = preservePriorSleep
+        ? finiteOrUndefined(prevRoom?.remSleepHours ?? prevCur?.remSleepHours)
+        : finiteOrUndefined(body.roomMetrics?.remSleepHours ?? body.remSleepHours);
+
+      const awakeMinutes = preservePriorSleep
+        ? finiteOrUndefined(prevRoom?.awakeMinutes ?? prevCur?.awakeMinutes)
+        : finiteOrUndefined(body.roomMetrics?.awakeMinutes ?? body.awakeMinutes);
+
+      const awakeningsCount = preservePriorSleep
+        ? finiteOrUndefined(prevRoom?.awakeningsCount ?? prevCur?.awakeningsCount)
+        : finiteOrUndefined(body.roomMetrics?.awakeningsCount ?? body.awakeningsCount);
+
+      const sleepEfficiency = preservePriorSleep
+        ? finiteOrUndefined(prevRoom?.sleepEfficiency ?? prevCur?.sleepEfficiency)
+        : finiteOrUndefined(body.roomMetrics?.sleepEfficiency ?? body.sleepEfficiency);
+
+      const sleepStartTime = preservePriorSleep
+        ? prevRoom?.sleepStartTime ?? prevCur?.sleepStartTime ?? null
+        : body.roomMetrics?.sleepStartTime ?? body.sleepStartTime ?? prevRoom?.sleepStartTime ?? null;
+
+      const sleepEndTime = preservePriorSleep
+        ? prevRoom?.sleepEndTime ?? prevCur?.sleepEndTime ?? null
+        : body.roomMetrics?.sleepEndTime ?? body.sleepEndTime ?? prevRoom?.sleepEndTime ?? null;
+
+      const isFallbackRecentSleep = preservePriorSleep
+        ? Boolean(prevRoom?.isFallbackRecentSleep)
+        : Boolean(body.roomMetrics?.isFallbackRecentSleep ?? body.isFallbackRecentSleep);
+
+      const sleepDate = preservePriorSleep
+        ? prevRoom?.sleepDate ?? null
+        : body.roomMetrics?.sleepDate ?? body.sleepDate ?? null;
+
+      const steps =
+        isBlankEmulator && Number(prevRoom?.steps ?? prevCur?.steps ?? 0) > 0
+          ? Number(prevRoom?.steps ?? prevCur?.steps ?? 0)
+          : incomingSteps;
+
+      const restingHeartRate = Number(
+        positiveOrFallback(
+          body.roomMetrics?.restingHeartRate ?? body.restingHeartRate,
+          prevRoom?.restingHeartRate ?? prevCur?.heartRate ?? (isSimulated ? Math.floor(Math.random() * 8) + 56 : 62)
+        )
+      );
+
+      const spo2 = Number(
+        positiveOrFallback(body.roomMetrics?.spo2 ?? body.spo2, prevRoom?.spo2 ?? prevCur?.spo2 ?? 97)
+      );
+
+      const caloriesBurned =
+        isBlankEmulator && Number(prevRoom?.caloriesBurned ?? 0) > 0
+          ? Number(prevRoom.caloriesBurned)
+          : Number(body.roomMetrics?.caloriesBurned ?? body.caloriesBurned ?? (isSimulated ? 2450 : steps * 0.04));
+
+      const avgHeartRate = positiveOrFallback(body.roomMetrics?.avgHeartRate ?? body.avgHeartRate, prevRoom?.avgHeartRate ?? prevCur?.avgHeartRate);
+      const minHeartRate = positiveOrFallback(body.roomMetrics?.minHeartRate ?? body.minHeartRate, prevRoom?.minHeartRate ?? prevCur?.minHeartRate);
+      const maxHeartRate = positiveOrFallback(body.roomMetrics?.maxHeartRate ?? body.maxHeartRate, prevRoom?.maxHeartRate ?? prevCur?.maxHeartRate);
+      const hrvVal = positiveOrFallback(body.roomMetrics?.hrv ?? body.hrv ?? body.hrvRmssdMs, prevRoom?.hrv ?? prevCur?.hrv);
+      const activeCaloriesBurned = positiveOrFallback(body.roomMetrics?.activeCaloriesBurned ?? body.activeCaloriesBurned, prevRoom?.activeCaloriesBurned ?? prevCur?.activeCaloriesBurned);
+      const totalCaloriesBurned = positiveOrFallback(body.roomMetrics?.totalCaloriesBurned ?? body.totalCaloriesBurned, prevRoom?.totalCaloriesBurned ?? prevCur?.totalCaloriesBurned);
+      const basalMetabolicRateKcal = positiveOrFallback(body.roomMetrics?.basalMetabolicRateKcal ?? body.basalMetabolicRateKcal, prevRoom?.basalMetabolicRateKcal ?? prevCur?.basalMetabolicRateKcal);
+      const distanceMeters = positiveOrFallback(body.roomMetrics?.distanceMeters ?? body.distanceMeters, prevRoom?.distanceMeters ?? prevCur?.distanceMeters);
+      const activityMinutes = positiveOrFallback(body.roomMetrics?.activityMinutes ?? body.activityMinutes, prevRoom?.activityMinutes ?? prevCur?.activityMinutes);
+      const elevationGainedMeters = positiveOrFallback(body.roomMetrics?.elevationGainedMeters ?? body.elevationGainedMeters, prevRoom?.elevationGainedMeters ?? prevCur?.elevationGainedMeters);
+      const avgSpeedMps = positiveOrFallback(body.roomMetrics?.avgSpeedMps ?? body.avgSpeedMps, prevRoom?.avgSpeedMps ?? prevCur?.avgSpeedMps);
+      const powerWatts = positiveOrFallback(body.roomMetrics?.powerWatts ?? body.powerWatts, prevRoom?.powerWatts ?? prevCur?.powerWatts);
+      const respiratoryRateBpm = positiveOrFallback(body.roomMetrics?.respiratoryRateBpm ?? body.respiratoryRateBpm, prevRoom?.respiratoryRateBpm ?? prevCur?.respiratoryRateBpm);
+      const bloodPressureSystolic = positiveOrFallback(body.roomMetrics?.bloodPressureSystolic ?? body.bloodPressureSystolic, prevRoom?.bloodPressureSystolic ?? prevCur?.bloodPressureSystolic);
+      const bloodPressureDiastolic = positiveOrFallback(body.roomMetrics?.bloodPressureDiastolic ?? body.bloodPressureDiastolic, prevRoom?.bloodPressureDiastolic ?? prevCur?.bloodPressureDiastolic);
+      const bloodGlucoseMgDl = positiveOrFallback(body.roomMetrics?.bloodGlucoseMgDl ?? body.bloodGlucoseMgDl, prevRoom?.bloodGlucoseMgDl ?? prevCur?.bloodGlucoseMgDl);
+      const weightKgVal = positiveOrFallback(body.roomMetrics?.weightKg ?? body.weightKg, prevCur?.weightKg);
+      const bodyFatPctVal = positiveOrFallback(body.roomMetrics?.bodyFatPct ?? body.bodyFatPct, prevCur?.bodyFatPct);
+      const boneMassKgVal = positiveOrFallback(body.roomMetrics?.boneMassKg ?? body.boneMassKg, prevRoom?.boneMassKg ?? prevCur?.boneMassKg);
+      const leanBodyMassKgVal = positiveOrFallback(body.roomMetrics?.leanBodyMassKg ?? body.leanBodyMassKg, prevRoom?.leanBodyMassKg ?? prevCur?.leanBodyMassKg);
+      const heightCmVal = positiveOrFallback(body.roomMetrics?.heightCm ?? body.heightCm, prevRoom?.heightCm ?? prevCur?.heightCm);
+      const hydrationLitersVal = positiveOrFallback(body.roomMetrics?.hydrationLiters ?? body.hydrationLiters, prevRoom?.hydrationLiters ?? prevCur?.hydrationLiters);
+      const nutritionCaloriesKcal = positiveOrFallback(body.roomMetrics?.nutritionCaloriesKcal ?? body.nutritionCaloriesKcal, prevRoom?.nutritionCaloriesKcal);
+      const nutritionProteinGrams = positiveOrFallback(body.roomMetrics?.nutritionProteinGrams ?? body.nutritionProteinGrams, prevRoom?.nutritionProteinGrams);
 
       const roomMetrics = {
-        steps: isSimulated ? Math.floor(Math.random() * 4000) + 9000 : Number(body.roomMetrics?.steps ?? body.steps ?? 10500),
-        deepSleepHours: isSimulated ? 2.3 : Number(body.roomMetrics?.deepSleepHours ?? body.deepSleepHours ?? 2.1),
-        totalSleepHours: isSimulated ? 8.2 : Number(body.roomMetrics?.totalSleepHours ?? body.totalSleepHours ?? 7.9),
-        restingHeartRate: isSimulated ? Math.floor(Math.random() * 8) + 56 : Number(body.roomMetrics?.restingHeartRate ?? body.restingHeartRate ?? 60),
-        spo2: Number(body.roomMetrics?.spo2 ?? body.spo2 ?? 99),
-        caloriesBurned: isSimulated ? Math.floor(Math.random() * 500) + 2300 : Number(body.roomMetrics?.caloriesBurned ?? body.caloriesBurned ?? 2400),
+        steps,
+        deepSleepHours,
+        lightSleepHours,
+        remSleepHours,
+        awakeMinutes,
+        awakeningsCount,
+        sleepEfficiency,
+        sleepStartTime,
+        sleepEndTime,
+        isFallbackRecentSleep,
+        sleepDate,
+        totalSleepHours,
+        restingHeartRate,
+        avgHeartRate,
+        minHeartRate,
+        maxHeartRate,
+        hrv: hrvVal,
+        spo2,
+        caloriesBurned,
+        activeCaloriesBurned,
+        totalCaloriesBurned,
+        basalMetabolicRateKcal,
+        distanceMeters,
+        activityMinutes,
+        elevationGainedMeters,
+        avgSpeedMps,
+        powerWatts,
+        respiratoryRateBpm,
+        bloodPressureSystolic,
+        bloodPressureDiastolic,
+        bloodGlucoseMgDl,
+        boneMassKg: boneMassKgVal,
+        leanBodyMassKg: leanBodyMassKgVal,
+        heightCm: heightCmVal,
+        hydrationLiters: hydrationLitersVal,
+        nutritionCaloriesKcal,
+        nutritionProteinGrams,
       };
 
       const hevySummary = {
-        lastWorkoutName: body.hevyWorkouts?.lastWorkoutName || body.lastWorkoutName || 'Pull Day B - Hipertrofia',
-        totalVolumeKg: Number(body.hevyWorkouts?.totalVolumeKg ?? body.totalVolumeKg ?? 15420),
-        setsCompleted: Number(body.hevyWorkouts?.setsCompleted ?? body.setsCompleted ?? 20),
-        date: body.hevyWorkouts?.date || body.workoutDate || nowIso.slice(0, 10),
+        lastWorkoutName: body.hevyWorkouts?.lastWorkoutName || body.lastWorkoutName || prevDisk?.vyfithData?.hevySummary?.lastWorkoutName || 'Horizontal Torso (Chest & Back)',
+        totalVolumeKg: Number(body.hevyWorkouts?.totalVolumeKg ?? body.totalVolumeKg ?? prevDisk?.vyfithData?.hevySummary?.totalVolumeKg ?? 4484),
+        setsCompleted: Number(body.hevyWorkouts?.setsCompleted ?? body.setsCompleted ?? prevDisk?.vyfithData?.hevySummary?.setsCompleted ?? 20),
+        date: body.hevyWorkouts?.date || body.workoutDate || prevDisk?.vyfithData?.hevySummary?.date || nowIso.slice(0, 10),
       };
 
-      // Generar observaciones FHIR a partir de Room Database
+      // Persistir módulos adicionales de la Super-App si llegan en el paquete
+      let superAppSyncNext: any = prevDisk?.superAppSync ? { ...prevDisk.superAppSync } : {};
+      superAppSyncNext.lastSyncedAt = nowIso;
+
+      if (body.hydrationState && typeof body.hydrationState === 'object') {
+        const h = body.hydrationState;
+        superAppSyncNext.hydrationState = h;
+        const totalMlVal = Number(h.totalIntakeMl ?? h.totalMl ?? 0);
+        const goalMlVal = Number(h.dailyGoalMl ?? h.goalMl ?? 3000);
+        if (totalMlVal > 0 || (Array.isArray(h.entries) && h.entries.length > 0)) {
+          applyWaterPayload({
+            date: h.date,
+            totalMl: totalMlVal,
+            goalMl: goalMlVal,
+            entries: Array.isArray(h.entries) ? h.entries : undefined,
+          });
+        }
+      }
+
+      const incomingNut = body.nutritionState || body.hydrationState?.nutritionCurrent;
+      if (incomingNut && typeof incomingNut === 'object') {
+        superAppSyncNext.nutritionState = incomingNut;
+        if (incomingNut.meals && typeof incomingNut.meals === 'object') {
+          saveDailyNutritionState(incomingNut);
+        } else if (Number(incomingNut.calories || 0) > 0) {
+          const curNut = getDailyNutritionState();
+          saveDailyNutritionState({
+            ...curNut,
+            date: incomingNut.date || curNut.date,
+            current: {
+              ...curNut.current,
+              calories: Number(incomingNut.calories ?? curNut.current.calories),
+              protein: Number(incomingNut.protein ?? curNut.current.protein),
+              carbs: Number(incomingNut.carbs ?? curNut.current.carbs),
+              fat: Number(incomingNut.fat ?? curNut.current.fat),
+              waterMl: Number(incomingNut.waterMl ?? curNut.current.waterMl),
+            },
+          });
+        }
+      }
+
+      const incomingMeas = body.latestMeasurement || body.hydrationState?.latestMeasurement;
+      if (incomingMeas && typeof incomingMeas === 'object' && Number(incomingMeas.weightKg || 0) > 0) {
+        superAppSyncNext.latestMeasurement = incomingMeas;
+        if (Number(incomingMeas.waistCm || 0) > 0 && body.persistMeasurement !== false) {
+          saveBodyMeasurement(incomingMeas);
+        }
+      }
+
+      if (body.financeModule && typeof body.financeModule === 'object') {
+        superAppSyncNext.financeSummary = {
+          ...body.financeModule,
+          lastUpdated: nowIso,
+        };
+        try {
+          const currentFinance = readStoredFinanceState();
+          const mergedFinance = {
+            ...currentFinance,
+            androidFinanceSync: {
+              ...body.financeModule,
+              syncedAt: nowIso,
+            },
+          } as any;
+          writeStoredFinanceState(mergedFinance);
+        } catch (err) {
+          console.warn('Error syncing financeModule snapshot:', err);
+        }
+      }
+
+      if (body.closetModule && typeof body.closetModule === 'object') {
+        superAppSyncNext.closetSummary = {
+          ...body.closetModule,
+          lastUpdated: nowIso,
+        };
+        persistJsonModuleFile('real_closet_state.json', {
+          ...body.closetModule,
+          lastSyncedAt: nowIso,
+        });
+      }
+
+      if (body.notesModule && typeof body.notesModule === 'object') {
+        superAppSyncNext.notesSummary = {
+          ...body.notesModule,
+          lastUpdated: nowIso,
+        };
+        persistJsonModuleFile('real_notes_state.json', {
+          ...body.notesModule,
+          lastSyncedAt: nowIso,
+        });
+      }
+
+      // Generar observaciones FHIR completas a partir de Health Connect & Room Database
+      const makeObs = (
+        key: string,
+        code: string,
+        display: string,
+        category: string,
+        value: number,
+        unit: string
+      ): HealthObservation => ({
+        id: `vyfith-${key}-${Date.now()}`,
+        resourceType: 'Observation',
+        status: 'final',
+        category,
+        code: {
+          coding: [{ system: 'http://loinc.org', code, display }],
+        },
+        valueQuantity: { value, unit },
+        effectiveDateTime: nowIso,
+      });
+
       incomingObservations = [
-        {
-          id: `vyfith-readiness-${Date.now()}`,
-          resourceType: 'Observation',
-          status: 'final',
-          category: 'Recuperación / Readiness AI',
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '77202-0',
-                display: 'Athlete Readiness Score (0-100)',
-              },
-            ],
-          },
-          valueQuantity: {
-            value: readinessScore,
-            unit: 'score',
-          },
-          effectiveDateTime: nowIso,
-        },
-        {
-          id: `vyfith-steps-${Date.now()}`,
-          resourceType: 'Observation',
-          status: 'final',
-          category: 'Health Connect - Pasos',
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '55423-8',
-                display: 'Number of steps',
-              },
-            ],
-          },
-          valueQuantity: {
-            value: roomMetrics.steps,
-            unit: 'steps',
-          },
-          effectiveDateTime: nowIso,
-        },
-        {
-          id: `vyfith-hr-${Date.now()}`,
-          resourceType: 'Observation',
-          status: 'final',
-          category: 'Cardiovascular - Reposo',
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '8867-4',
-                display: 'Resting Heart Rate',
-              },
-            ],
-          },
-          valueQuantity: {
-            value: roomMetrics.restingHeartRate,
-            unit: 'bpm',
-          },
-          effectiveDateTime: nowIso,
-        },
-        {
-          id: `vyfith-sleep-${Date.now()}`,
-          resourceType: 'Observation',
-          status: 'final',
-          category: 'Health Connect - Sueño',
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '93832-4',
-                display: 'Sleep duration total',
-              },
-            ],
-          },
-          valueQuantity: {
-            value: roomMetrics.totalSleepHours,
-            unit: 'hours',
-          },
-          effectiveDateTime: nowIso,
-        },
-        {
-          id: `vyfith-spo2-${Date.now()}`,
-          resourceType: 'Observation',
-          status: 'final',
-          category: 'Oximetría Biométrica',
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '2708-6',
-                display: 'Oxygen saturation (SpO2)',
-              },
-            ],
-          },
-          valueQuantity: {
-            value: roomMetrics.spo2,
-            unit: '%',
-          },
-          effectiveDateTime: nowIso,
-        },
-        {
-          id: `vyfith-cal-${Date.now()}`,
-          resourceType: 'Observation',
-          status: 'final',
-          category: 'Actividad Física - Calorías',
-          code: {
-            coding: [
-              {
-                system: 'http://loinc.org',
-                code: '41981-2',
-                display: 'Active energy burned',
-              },
-            ],
-          },
-          valueQuantity: {
-            value: roomMetrics.caloriesBurned,
-            unit: 'kcal',
-          },
-          effectiveDateTime: nowIso,
-        },
+        makeObs('readiness', '77202-0', 'Athlete Readiness Score (0-100)', 'Recuperación / Readiness AI', readinessScore, 'score'),
+        makeObs('steps', '55423-8', 'Number of steps', 'Health Connect - Pasos', roomMetrics.steps, 'steps'),
+        makeObs('hr', '8867-4', 'Resting Heart Rate', 'Cardiovascular - Reposo', roomMetrics.restingHeartRate, 'bpm'),
+        makeObs('sleep', '93832-4', 'Sleep duration total', 'Health Connect - Sueño', roomMetrics.totalSleepHours, 'hours'),
+        makeObs('deep-sleep', '93831-6', 'Deep sleep duration', 'Health Connect - Arquitectura Sueño', roomMetrics.deepSleepHours, 'hours'),
+        makeObs('spo2', '2708-6', 'Oxygen saturation (SpO2)', 'Oximetría Biométrica', roomMetrics.spo2, '%'),
+        makeObs('cal', '41981-2', 'Active energy burned', 'Actividad Física - Calorías', roomMetrics.caloriesBurned, 'kcal'),
       ];
+
+      if (remSleepHours !== undefined && remSleepHours > 0) {
+        incomingObservations.push(makeObs('rem-sleep', '93830-8', 'REM sleep duration', 'Health Connect - Arquitectura Sueño', remSleepHours, 'hours'));
+      }
+      if (lightSleepHours !== undefined && lightSleepHours > 0) {
+        incomingObservations.push(makeObs('light-sleep', '93829-0', 'Light sleep duration', 'Health Connect - Arquitectura Sueño', lightSleepHours, 'hours'));
+      }
+      if (hrvVal !== undefined && hrvVal > 0) {
+        incomingObservations.push(makeObs('hrv', '80404-7', 'Heart rate variability (RMSSD)', 'Recuperación Autónoma (HRV)', hrvVal, 'ms'));
+      }
+      if (avgHeartRate !== undefined && avgHeartRate > 0) {
+        incomingObservations.push(makeObs('hr-avg', '8867-4', 'Average Heart Rate', 'Cardiovascular - Promedio', avgHeartRate, 'bpm'));
+      }
+      if (distanceMeters !== undefined && distanceMeters > 0) {
+        incomingObservations.push(makeObs('distance', '41950-7', 'Distance walked/run', 'Health Connect - Distancia', distanceMeters, 'm'));
+      }
+      if (totalCaloriesBurned !== undefined && totalCaloriesBurned > 0) {
+        incomingObservations.push(makeObs('total-cal', '41979-6', 'Total calories burned', 'Gasto Energético Total', totalCaloriesBurned, 'kcal'));
+      }
+      if (basalMetabolicRateKcal !== undefined && basalMetabolicRateKcal > 0) {
+        incomingObservations.push(makeObs('bmr', '19228-2', 'Basal metabolic rate', 'Metabolismo Basal', basalMetabolicRateKcal, 'kcal/day'));
+      }
+      if (respiratoryRateBpm !== undefined && respiratoryRateBpm > 0) {
+        incomingObservations.push(makeObs('resp-rate', '9279-1', 'Respiratory rate', 'Ventilación Pulmonar', respiratoryRateBpm, 'breaths/min'));
+      }
+      if (weightKgVal !== undefined && weightKgVal > 0) {
+        incomingObservations.push(makeObs('weight', '29463-7', 'Body weight', 'Composición Corporal', weightKgVal, 'kg'));
+      }
+      if (bodyFatPctVal !== undefined && bodyFatPctVal > 0) {
+        incomingObservations.push(makeObs('bodyfat', '41982-0', 'Body fat percentage', 'Composición Corporal', bodyFatPctVal, '%'));
+      }
+      if (leanBodyMassKgVal !== undefined && leanBodyMassKgVal > 0) {
+        incomingObservations.push(makeObs('leanmass', '73964-9', 'Lean body mass', 'Composición Corporal', leanBodyMassKgVal, 'kg'));
+      }
+      if (bloodPressureSystolic !== undefined && bloodPressureSystolic > 0) {
+        incomingObservations.push(makeObs('bp-sys', '8480-6', 'Systolic blood pressure', 'Cardiovascular - Presión Arterial', bloodPressureSystolic, 'mmHg'));
+      }
+      if (bloodGlucoseMgDl !== undefined && bloodGlucoseMgDl > 0) {
+        incomingObservations.push(makeObs('glucose', '2339-0', 'Blood glucose', 'Metabólico - Glucosa', bloodGlucoseMgDl, 'mg/dL'));
+      }
+      if (hydrationLitersVal !== undefined && hydrationLitersVal > 0) {
+        incomingObservations.push(makeObs('hydration', '9052-2', 'Fluid intake total', 'Hidratación Health Connect', hydrationLitersVal, 'L'));
+      }
 
       const nextToken = `vyfith_sync_${Date.now()}`;
 
@@ -370,13 +592,43 @@ export async function POST(req: NextRequest) {
         state.lastSyncTime = nowIso;
         state.syncCount += 1;
         state.changesToken = nextToken;
-        state.deviceId = body.deviceId || 'VYFITH-Android-Mobile';
-        state.deviceName = body.deviceName || 'VYFITH_APP (Google Health Connect)';
+        state.deviceId = isBlankEmulator && prevDisk?.deviceId ? prevDisk.deviceId : body.deviceId || 'VYFITH-Android-Mobile';
+        state.deviceName = body.deviceName || prevDisk?.deviceName || 'VYFITH_APP (Google Health Connect)';
         state.isPaired = true;
 
         state.currentMetrics.steps = roomMetrics.steps;
         state.currentMetrics.heartRate = roomMetrics.restingHeartRate;
-        state.currentMetrics.sleepHours = roomMetrics.totalSleepHours;
+        if (roomMetrics.totalSleepHours > 0) {
+          state.currentMetrics.sleepHours = roomMetrics.totalSleepHours;
+        }
+        state.currentMetrics.deepSleepHours = roomMetrics.deepSleepHours;
+        if (lightSleepHours !== undefined) state.currentMetrics.lightSleepHours = lightSleepHours;
+        if (remSleepHours !== undefined) state.currentMetrics.remSleepHours = remSleepHours;
+        if (awakeMinutes !== undefined) state.currentMetrics.awakeMinutes = awakeMinutes;
+        if (awakeningsCount !== undefined) state.currentMetrics.awakeningsCount = awakeningsCount;
+        if (sleepEfficiency !== undefined) state.currentMetrics.sleepEfficiency = sleepEfficiency;
+        if (sleepStartTime) state.currentMetrics.sleepStartTime = sleepStartTime;
+        if (sleepEndTime) state.currentMetrics.sleepEndTime = sleepEndTime;
+        state.currentMetrics.spo2 = roomMetrics.spo2;
+        if (hrvVal !== undefined) state.currentMetrics.hrv = hrvVal;
+        if (avgHeartRate !== undefined) state.currentMetrics.avgHeartRate = avgHeartRate;
+        if (minHeartRate !== undefined) state.currentMetrics.minHeartRate = minHeartRate;
+        if (maxHeartRate !== undefined) state.currentMetrics.maxHeartRate = maxHeartRate;
+        if (distanceMeters !== undefined) state.currentMetrics.distanceMeters = distanceMeters;
+        if (activeCaloriesBurned !== undefined) state.currentMetrics.activeCaloriesBurned = activeCaloriesBurned;
+        if (totalCaloriesBurned !== undefined) state.currentMetrics.totalCaloriesBurned = totalCaloriesBurned;
+        if (basalMetabolicRateKcal !== undefined) state.currentMetrics.basalMetabolicRateKcal = basalMetabolicRateKcal;
+        if (activityMinutes !== undefined) state.currentMetrics.activityMinutes = activityMinutes;
+        if (respiratoryRateBpm !== undefined) state.currentMetrics.respiratoryRateBpm = respiratoryRateBpm;
+        if (bloodPressureSystolic !== undefined) state.currentMetrics.bloodPressureSystolic = bloodPressureSystolic;
+        if (bloodPressureDiastolic !== undefined) state.currentMetrics.bloodPressureDiastolic = bloodPressureDiastolic;
+        if (bloodGlucoseMgDl !== undefined) state.currentMetrics.bloodGlucoseMgDl = bloodGlucoseMgDl;
+        if (elevationGainedMeters !== undefined) state.currentMetrics.elevationGainedMeters = elevationGainedMeters;
+        if (avgSpeedMps !== undefined) state.currentMetrics.avgSpeedMps = avgSpeedMps;
+        if (powerWatts !== undefined) state.currentMetrics.powerWatts = powerWatts;
+        if (hydrationLitersVal !== undefined) state.currentMetrics.hydrationLiters = hydrationLitersVal;
+        if (boneMassKgVal !== undefined) state.currentMetrics.boneMassKg = boneMassKgVal;
+        if (heightCmVal !== undefined) state.currentMetrics.heightCm = heightCmVal;
 
         state.vyfithData = {
           connected: true,
@@ -389,7 +641,8 @@ export async function POST(req: NextRequest) {
           hevySummary,
         };
 
-        state.recentObservations = [...incomingObservations, ...state.recentObservations].slice(0, 20);
+        state.superAppSync = superAppSyncNext;
+        state.recentObservations = [...incomingObservations, ...state.recentObservations].slice(0, 30);
       });
 
       // Persistir inmediatamente a disco en tiempo real
@@ -398,7 +651,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: true,
-          message: '¡Datos recibidos exitosamente desde VYFITH_APP y guardados en tiempo real!',
+          message: '¡Datos completos recibidos desde VYFITH_APP (Health Connect + Super-App) y guardados en tiempo real!',
           nextChangesToken: nextToken,
           syncedRecords: incomingObservations.length,
           data: updated,
@@ -474,18 +727,107 @@ export async function POST(req: NextRequest) {
         category: item.category || 'Salud Móvil',
       }));
 
+      let newSpo2 = 0;
+      let newCalories = 0;
+      let newDistance = 0;
+      let newDeepSleep = 0;
+      let newRemSleep = 0;
+      let newLightSleep = 0;
+      let newRespRate = 0;
+
       for (const obs of incomingObservations) {
         const code = obs.code?.coding?.[0]?.code;
-        const val = obs.valueQuantity?.value || 0;
+        const val = Number(obs.valueQuantity?.value || 0);
         if (code === '55423-8') newStepsDelta += val;
         else if (code === '80404-7') newHrv = val;
         else if (code === '8867-4') newHr = val;
         else if (code === '93832-4') newSleep = val;
+        else if (code === '93831-6') newDeepSleep = val;
+        else if (code === '93830-8') newRemSleep = val;
+        else if (code === '93829-0') newLightSleep = val;
+        else if (code === '2708-6') newSpo2 = val;
+        else if (code === '41981-2') newCalories += val;
+        else if (code === '41950-7') newDistance += val;
+        else if (code === '9279-1') newRespRate = val;
         else if (code === '29463-7') newWeight = val;
         else if (code === '41982-0') newBodyFat = val;
         else if (code === '73964-9') newMuscle = val;
         else if (code === '39156-5') newBmi = val;
       }
+
+      const nextTokenFhir = `hc_token_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+
+      const updatedFhir = updateHealthSyncState((state) => {
+        state.lastSyncTime = nowIso;
+        state.syncCount += 1;
+        state.changesToken = nextTokenFhir;
+        if (body.deviceId) state.deviceId = body.deviceId;
+        if (body.deviceName) state.deviceName = body.deviceName;
+
+        if (newStepsDelta > 0) {
+          state.currentMetrics.steps += newStepsDelta;
+          state.vyfithData.roomMetrics.steps = state.currentMetrics.steps;
+        }
+        if (newHrv > 0) {
+          state.currentMetrics.hrv = newHrv;
+          state.vyfithData.roomMetrics.hrv = newHrv;
+        }
+        if (newHr > 0) {
+          state.currentMetrics.heartRate = newHr;
+          state.vyfithData.roomMetrics.restingHeartRate = newHr;
+        }
+        if (newSleep > 0) {
+          state.currentMetrics.sleepHours = newSleep;
+          state.vyfithData.roomMetrics.totalSleepHours = newSleep;
+        }
+        if (newDeepSleep > 0) {
+          state.currentMetrics.deepSleepHours = newDeepSleep;
+          state.vyfithData.roomMetrics.deepSleepHours = newDeepSleep;
+        }
+        if (newRemSleep > 0) {
+          state.currentMetrics.remSleepHours = newRemSleep;
+          state.vyfithData.roomMetrics.remSleepHours = newRemSleep;
+        }
+        if (newLightSleep > 0) {
+          state.currentMetrics.lightSleepHours = newLightSleep;
+          state.vyfithData.roomMetrics.lightSleepHours = newLightSleep;
+        }
+        if (newSpo2 > 0) {
+          state.currentMetrics.spo2 = newSpo2;
+          state.vyfithData.roomMetrics.spo2 = newSpo2;
+        }
+        if (newCalories > 0) {
+          state.vyfithData.roomMetrics.caloriesBurned = newCalories;
+          state.currentMetrics.activeCaloriesBurned = newCalories;
+        }
+        if (newDistance > 0) {
+          state.currentMetrics.distanceMeters = newDistance;
+          state.vyfithData.roomMetrics.distanceMeters = newDistance;
+        }
+        if (newRespRate > 0) {
+          state.currentMetrics.respiratoryRateBpm = newRespRate;
+          state.vyfithData.roomMetrics.respiratoryRateBpm = newRespRate;
+        }
+        if (newWeight > 0) state.currentMetrics.weightKg = newWeight;
+        if (newBodyFat > 0) state.currentMetrics.bodyFatPct = newBodyFat;
+        if (newMuscle > 0) state.currentMetrics.skeletalMuscleKg = newMuscle;
+        if (newBmi > 0) state.currentMetrics.bmi = newBmi;
+
+        state.recentObservations = [...incomingObservations, ...state.recentObservations].slice(0, 30);
+      });
+
+      persistStateToDisk(updatedFhir);
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Sincronización procesada exitosamente en formato HL7 FHIR R4 y guardada en tiempo real',
+          nextChangesToken: nextTokenFhir,
+          syncedRecords: incomingObservations.length,
+          data: updatedFhir,
+        },
+        { headers: corsHeaders }
+      );
     }
 
     const nextToken = `hc_token_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;

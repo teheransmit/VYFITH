@@ -6,7 +6,9 @@ import {
   Sparkles,
   ShieldCheck,
   ShieldAlert,
-  Key,
+  Layers,
+  ChevronDown,
+  ChevronUp,
   GitBranch,
   RefreshCw,
   ArrowUpRight,
@@ -14,7 +16,6 @@ import {
   Dumbbell,
   Calendar,
   Terminal,
-  ExternalLink,
   CheckCircle2,
   AlertTriangle,
   Wrench,
@@ -25,6 +26,7 @@ import type {
   CognitiveInsightCard,
   CognitivePulseCachePayload,
 } from '@/app/api/cognitive-pulse/route';
+import type { ParallelAgentResult } from '@/lib/multiAiRouter';
 import type { DashboardTab } from '@/lib/navigation';
 import { useNvidiaModelsCatalog } from '@/components/useNvidiaModelsCatalog';
 import NvidiaModelSelectGroups from '@/components/NvidiaModelSelectGroups';
@@ -84,13 +86,23 @@ export default function CognitivePulseSentinel({
   // Paneles desplegables
   const [showApiKeysDrawer, setShowApiKeysDrawer] = useState<boolean>(false);
   const [showSelfHealDrawer, setShowSelfHealDrawer] = useState<boolean>(false);
+  const [showParallelDetails, setShowParallelDetails] = useState<boolean>(false);
+  const [showManualKeyOverride, setShowManualKeyOverride] = useState<boolean>(false);
 
-  // Claves API guardadas en localStorage (compatibles con PersonalBioAssistant)
+  // Modo Multi-IA (por defecto: todas las IAs en paralelo a la vez)
+  const [aiMode, setAiMode] = useState<'parallel' | 'single'>('parallel');
   const [geminiKey, setGeminiKey] = useState<string>('');
   const [nvidiaKey, setNvidiaKey] = useState<string>('');
   const [groqKey, setGroqKey] = useState<string>('');
-  const [preferredModel, setPreferredModel] = useState<string>('auto');
+  const [preferredModel, setPreferredModel] = useState<string>('parallel');
   const [keysSavedNotice, setKeysSavedNotice] = useState<string | null>(null);
+  const [isSavingServerKey, setIsSavingServerKey] = useState<boolean>(false);
+  const [serverAiStatus, setServerAiStatus] = useState<{
+    geminiReady: boolean;
+    nvidiaReady: boolean;
+    groqReady: boolean;
+    activeSquadLabels: string[];
+  } | null>(null);
   const nvidiaCatalog = useNvidiaModelsCatalog(nvidiaKey);
 
   // Controles de Auto-Reparación & Git
@@ -111,7 +123,14 @@ export default function CognitivePulseSentinel({
     }
     setNvidiaKey(localStorage.getItem('vyfith_nvidia_api_key') || '');
     setGroqKey(localStorage.getItem('vyfith_groq_api_key') || '');
-    setPreferredModel(localStorage.getItem('vyfith_ai_model') || 'auto');
+    const storedMode = localStorage.getItem('vyfith_ai_mode');
+    if (storedMode === 'single') {
+      setAiMode('single');
+    } else {
+      setAiMode('parallel');
+    }
+    const storedModel = localStorage.getItem('vyfith_ai_model') || 'parallel';
+    setPreferredModel(storedModel === 'auto' ? 'parallel' : storedModel);
   }, []);
 
   // Sentinel global en navegador: atrapa errores de runtime y promesas no capturadas
@@ -155,9 +174,10 @@ export default function CognitivePulseSentinel({
   const fetchInitialState = useCallback(async () => {
     setIsLoadingPulse(true);
     try {
-      const [pulseRes, healRes] = await Promise.all([
+      const [pulseRes, healRes, aiCfgRes] = await Promise.all([
         fetch('/api/cognitive-pulse', { cache: 'no-store' }),
         fetch('/api/system/self-heal', { cache: 'no-store' }),
+        fetch('/api/ai/config', { cache: 'no-store' }),
       ]);
 
       if (pulseRes.ok) {
@@ -170,6 +190,16 @@ export default function CognitivePulseSentinel({
       if (healRes.ok) {
         const healData = await healRes.json();
         setHealStatus(healData);
+      }
+
+      if (aiCfgRes.ok) {
+        const cfgData = await aiCfgRes.json();
+        setServerAiStatus({
+          geminiReady: Boolean(cfgData.geminiReady),
+          nvidiaReady: Boolean(cfgData.nvidiaReady),
+          groqReady: Boolean(cfgData.groqReady),
+          activeSquadLabels: Array.isArray(cfgData.activeSquadLabels) ? cfgData.activeSquadLabels : [],
+        });
       }
     } catch (err) {
       console.warn('[CognitivePulseSentinel] Error cargando estado inicial:', err);
@@ -186,19 +216,60 @@ export default function CognitivePulseSentinel({
     return () => clearInterval(interval);
   }, [fetchInitialState]);
 
-  const handleSaveApiKeys = () => {
+  const handleActivateServerKeys = async () => {
     if (typeof window === 'undefined') return;
     localStorage.setItem('vyfith_gemini_api_key', geminiKey.trim());
     localStorage.setItem('vyfith_nvidia_api_key', nvidiaKey.trim());
     localStorage.setItem('vyfith_groq_api_key', groqKey.trim());
-    localStorage.setItem('vyfith_ai_model', preferredModel);
-    setKeysSavedNotice('Claves guardadas localmente en tu navegador.');
-    setTimeout(() => setKeysSavedNotice(null), 3500);
+    localStorage.setItem('vyfith_ai_mode', aiMode);
+    localStorage.setItem('vyfith_ai_model', aiMode === 'parallel' ? 'parallel' : preferredModel);
+
+    if (!nvidiaKey.trim() && !groqKey.trim()) {
+      setKeysSavedNotice('Preferencia Multi-IA en paralelo guardada.');
+      setTimeout(() => setKeysSavedNotice(null), 3500);
+      return;
+    }
+
+    setIsSavingServerKey(true);
+    try {
+      const res = await fetch('/api/ai/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...(nvidiaKey.trim() ? { nvidiaApiKey: nvidiaKey.trim() } : {}),
+          ...(groqKey.trim() ? { groqApiKey: groqKey.trim() } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setServerAiStatus((prev) => ({
+          geminiReady: Boolean(data.geminiReady),
+          nvidiaReady: Boolean(data.nvidiaReady),
+          groqReady: Boolean(data.groqReady),
+          activeSquadLabels: prev?.activeSquadLabels || [],
+        }));
+        setKeysSavedNotice(data.message || 'Activado en servidor (.env.local).');
+        await fetchInitialState();
+      } else {
+        setKeysSavedNotice(`⚠️ ${data.error || 'Error guardando clave'}`);
+      }
+    } catch (err: unknown) {
+      setKeysSavedNotice(`⚠️ ${(err as Error)?.message || 'Error de red'}`);
+    } finally {
+      setIsSavingServerKey(false);
+      setTimeout(() => setKeysSavedNotice(null), 5000);
+    }
   };
 
   const handleCorrelateWithAi = async () => {
     setIsCorrelating(true);
     setAiError(null);
+    const activeModelParam =
+      aiMode === 'parallel'
+        ? 'parallel'
+        : preferredModel === 'auto' || preferredModel === 'parallel'
+        ? 'gemini-3.5-flash-lite'
+        : preferredModel;
     try {
       const res = await fetch('/api/cognitive-pulse', {
         method: 'POST',
@@ -207,7 +278,7 @@ export default function CognitivePulseSentinel({
           apiKey: geminiKey.trim() || undefined,
           nvidiaApiKey: nvidiaKey.trim() || undefined,
           groqApiKey: groqKey.trim() || undefined,
-          model: preferredModel,
+          model: activeModelParam,
         }),
       });
       const data = await res.json();
@@ -308,9 +379,9 @@ export default function CognitivePulseSentinel({
 
   const activeAiEngineBadge =
     aiPulse?.model ||
-    (nvidiaKey || telemetry?.systemAudit?.nvidiaReady
-      ? 'NVIDIA NIM + Gemini Listos'
-      : 'Google AI Studio (Gemini)');
+    (serverAiStatus?.nvidiaReady || nvidiaKey || telemetry?.systemAudit?.nvidiaReady
+      ? 'Consejo Multi-IA: NVIDIA NIM + Gemini en Paralelo'
+      : 'Consejo Multi-IA: 3 Modelos en Paralelo');
 
   return (
     <section
@@ -386,127 +457,140 @@ export default function CognitivePulseSentinel({
             }}
             className={`cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               showApiKeysDrawer
-                ? 'bg-zinc-200/80 dark:bg-white/10 border-zinc-300 dark:border-white/20 text-zinc-950 dark:text-white'
+                ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
                 : 'bg-white dark:bg-white/[0.03] border-zinc-200 dark:border-white/[0.08] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/[0.06]'
             }`}
           >
-            <Key className="w-3.5 h-3.5 text-amber-500" />
-            APIs Gratis (Gemini / NVIDIA / Groq)
+            <Layers className="w-3.5 h-3.5 text-emerald-500" />
+            Consejo Multi-IA ({aiMode === 'parallel' ? 'Paralelo' : 'Individual'})
           </button>
         </div>
       </div>
 
-      {/* Cajón 1: Configuración de APIs Gratuitas (Google AI Studio / NVIDIA NIM / Groq) */}
+      {/* Cajón 1: Panel del Consejo Multi-IA en Paralelo (Todas las IAs trabajando a la vez) */}
       {showApiKeysDrawer && (
-        <div className="my-4 p-4 rounded-xl bg-zinc-50 dark:bg-[#0b0d10] border border-zinc-200 dark:border-white/[0.08] space-y-3">
+        <div className="my-4 p-4 rounded-xl bg-zinc-50 dark:bg-[#0b0d10] border border-zinc-200 dark:border-white/[0.08] space-y-3.5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h4 className="text-xs font-bold text-zinc-900 dark:text-white">
-                Motores de IA Gratuitos & Paga Personal (Sin Interrupciones)
+              <h4 className="text-xs font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-emerald-500" />
+                Consejo Multi-IA en Paralelo (Todas las IAs trabajando a la vez)
               </h4>
               <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                Tu clave de Google AI Studio ya está activa en el servidor. Puedes sumar NVIDIA NIM (1.000 créditos gratis) o Groq (500 tok/s gratis).
+                Al pulsar «Correlacionar con IA», VYFITH consulta simultáneamente a todos los proveedores activos y sintetiza sus aportes reales.
               </p>
             </div>
-            <div className="flex items-center gap-2 text-[11px]">
-              <a
-                href="https://aistudio.google.com/apikey"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+            <div className="inline-flex rounded-lg p-0.5 bg-zinc-200/70 dark:bg-white/[0.06] border border-zinc-300/60 dark:border-white/10 shrink-0">
+              <button
+                type="button"
+                onClick={() => setAiMode('parallel')}
+                className={`cursor-pointer px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
+                  aiMode === 'parallel'
+                    ? 'bg-emerald-600 text-white shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                }`}
               >
-                Google AI Studio <ExternalLink className="w-3 h-3" />
-              </a>
-              <span className="text-zinc-400">•</span>
-              <a
-                href="https://build.nvidia.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
+                Todas a la vez (Paralelo)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAiMode('single')}
+                className={`cursor-pointer px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
+                  aiMode === 'single'
+                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-2xs'
+                    : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
+                }`}
               >
-                NVIDIA NIM Gratis <ExternalLink className="w-3 h-3" />
-              </a>
-              <span className="text-zinc-400">•</span>
-              <a
-                href="https://console.groq.com/keys"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline font-medium"
-              >
-                Groq Gratis <ExternalLink className="w-3 h-3" />
-              </a>
+                Modelo Individual
+              </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          {/* Tarjetas de estado real: solo motores activos en el enjambre */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <div className="p-3 rounded-lg bg-white dark:bg-[#14171d] border border-emerald-500/35 flex items-center justify-between gap-2">
+              <div>
+                <div className="text-[11px] font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  NVIDIA NIM ({nvidiaCatalog.chatCount} LLMs en vivo)
+                </div>
+                <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
+                  {serverAiStatus?.nvidiaReady || nvidiaKey
+                    ? 'Nemotron 3 Ultra 550B + Super 120B + Bolt en paralelo'
+                    : 'Listo para conectar cuando agregues tu clave'}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
+                {serverAiStatus?.nvidiaReady || nvidiaKey ? 'ACTIVO EN PARALELO' : 'LISTO'}
+              </span>
+            </div>
+
+            <div className="p-3 rounded-lg bg-white dark:bg-[#14171d] border border-emerald-500/35 flex items-center justify-between gap-2">
+              <div>
+                <div className="text-[11px] font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Google AI Studio (Gemini)
+                </div>
+                <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
+                  {serverAiStatus?.nvidiaReady || nvidiaKey
+                    ? 'Gemini 3.5 Flash Lite coordinando síntesis biométrica'
+                    : 'Gemini 3.5 + Gemini 3 Flash + Gemini 3.1 Lite en paralelo'}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
+                ACTIVO EN PARALELO
+              </span>
+            </div>
+
+            {(serverAiStatus?.groqReady || groqKey) && (
+              <div className="p-3 rounded-lg bg-white dark:bg-[#14171d] border border-emerald-500/35 flex items-center justify-between gap-2 md:col-span-2">
+                <div>
+                  <div className="text-[11px] font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Groq Cloud (Alta Velocidad)
+                  </div>
+                  <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400">
+                    Llama 3.3 70B Versatile activo en el Consejo
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold shrink-0">
+                  ACTIVO EN PARALELO
+                </span>
+              </div>
+            )}
+          </div>
+
+          {aiMode === 'single' && (
             <div>
               <label className="block text-[10px] font-mono uppercase text-zinc-500 mb-1">
-                Motor Preferido ({nvidiaCatalog.chatCount} NVIDIA + Gemini + Groq)
+                Modelo Único ({nvidiaCatalog.chatCount} NVIDIA + Gemini)
               </label>
               <select
                 value={preferredModel}
                 onChange={(e) => setPreferredModel(e.target.value)}
                 className="w-full px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-[#14171d] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100"
               >
-                <optgroup label="⚡ Automático & Google AI Studio">
-                  <option value="auto">Automático (NVIDIA NIM / Groq / Gemini)</option>
-                  <option value="gemini-3.5-flash-lite">Google Gemini 3.5 Flash Lite (Verificado 200 OK)</option>
+                <optgroup label="⚡ Google AI Studio">
+                  <option value="gemini-3.5-flash-lite">Google Gemini 3.5 Flash Lite</option>
                   <option value="gemini-flash-lite-latest">Google Gemini Flash Lite Latest</option>
-                  <option value="gemma-4-26b-a4b-it">Google Gemma 4 26B</option>
-                  <option value="gemini-2.5-flash">Google Gemini 2.5 Flash</option>
+                  <option value="gemini-3-flash-preview">Google Gemini 3 Flash</option>
+                  <option value="gemini-3.1-flash-lite-preview">Google Gemini 3.1 Flash Lite</option>
                 </optgroup>
                 <NvidiaModelSelectGroups chatModels={nvidiaCatalog.chatModels} />
-                <optgroup label="⚡ Groq Cloud (Gratis 500 tok/s)">
-                  <option value="groq-llama">Groq Cloud • Llama 3.3 70B Versatile</option>
-                </optgroup>
+                {(serverAiStatus?.groqReady || groqKey) && (
+                  <optgroup label="⚡ Groq Cloud">
+                    <option value="groq-llama">Groq Cloud • Llama 3.3 70B Versatile</option>
+                  </optgroup>
+                )}
               </select>
             </div>
-
-            <div>
-              <label className="block text-[10px] font-mono uppercase text-zinc-500 mb-1">
-                Gemini Key (Opcional, ya hay en servidor)
-              </label>
-              <input
-                type="password"
-                value={geminiKey}
-                onChange={(e) => setGeminiKey(e.target.value)}
-                placeholder="AIza... / AQ..."
-                className="w-full px-2.5 py-1.5 rounded-lg text-xs font-mono bg-white dark:bg-[#14171d] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-mono uppercase text-zinc-500 mb-1">
-                NVIDIA NIM Key (nvapi-...)
-              </label>
-              <input
-                type="password"
-                value={nvidiaKey}
-                onChange={(e) => setNvidiaKey(e.target.value)}
-                placeholder="nvapi-..."
-                className="w-full px-2.5 py-1.5 rounded-lg text-xs font-mono bg-white dark:bg-[#14171d] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-mono uppercase text-zinc-500 mb-1">
-                Groq API Key (gsk_...)
-              </label>
-              <input
-                type="password"
-                value={groqKey}
-                onChange={(e) => setGroqKey(e.target.value)}
-                placeholder="gsk_..."
-                className="w-full px-2.5 py-1.5 rounded-lg text-xs font-mono bg-white dark:bg-[#14171d] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-          </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-            <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center gap-3 text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
               <span>
                 Catálogo NVIDIA en vivo: <strong className="text-emerald-600 dark:text-emerald-400">{nvidiaCatalog.liveApiCount || 32}</strong> endpoints API /{' '}
-                <strong className="text-zinc-800 dark:text-zinc-200">{nvidiaCatalog.chatCount}</strong> LLMs de chat y código
+                <strong className="text-zinc-800 dark:text-zinc-200">{nvidiaCatalog.chatCount}</strong> LLMs disponibles
               </span>
               <button
                 type="button"
@@ -514,19 +598,61 @@ export default function CognitivePulseSentinel({
                 disabled={nvidiaCatalog.isLoading}
                 className="cursor-pointer underline text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 disabled:opacity-50"
               >
-                {nvidiaCatalog.isLoading ? 'Actualizando...' : 'Refrescar catálogo'}
+                {nvidiaCatalog.isLoading ? 'Actualizando...' : 'Refrescar'}
               </button>
               {keysSavedNotice && (
                 <span className="text-emerald-600 dark:text-emerald-400 font-semibold">• {keysSavedNotice}</span>
               )}
             </div>
+
             <button
-              onClick={handleSaveApiKeys}
-              className="cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
+              type="button"
+              onClick={() => setShowManualKeyOverride((v) => !v)}
+              className="cursor-pointer text-[11px] font-mono text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 underline"
             >
-              Guardar Claves Localmente
+              {showManualKeyOverride ? 'Ocultar configuración avanzada' : 'Conectar proveedor adicional'}
             </button>
           </div>
+
+          {showManualKeyOverride && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 items-end pt-2 border-t border-zinc-200/70 dark:border-white/[0.06]">
+              <div>
+                <label className="block text-[10px] font-mono uppercase text-zinc-500 mb-1">
+                  Clave NVIDIA NIM (nvapi-...)
+                </label>
+                <input
+                  type="password"
+                  value={nvidiaKey}
+                  onChange={(e) => setNvidiaKey(e.target.value)}
+                  placeholder="Opcional si deseas rotar clave..."
+                  className="w-full px-2.5 py-1.5 rounded-lg text-xs font-mono bg-white dark:bg-[#14171d] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
+
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <label className="block text-[10px] font-mono uppercase text-zinc-500 mb-1">
+                    Clave Groq (gsk_...)
+                  </label>
+                  <input
+                    type="password"
+                    value={groqKey}
+                    onChange={(e) => setGroqKey(e.target.value)}
+                    placeholder="gsk_..."
+                    className="w-full px-2.5 py-1.5 rounded-lg text-xs font-mono bg-white dark:bg-[#14171d] border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleActivateServerKeys}
+                  disabled={isSavingServerKey}
+                  className="cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shrink-0 disabled:opacity-50"
+                >
+                  {isSavingServerKey ? 'Guardando...' : 'Actualizar'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -624,19 +750,85 @@ export default function CognitivePulseSentinel({
       )}
 
       {aiPulse?.executivePulse && (
-        <div className="mt-4 p-3.5 rounded-xl bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200/70 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <p className="text-xs text-zinc-700 dark:text-zinc-200 leading-relaxed">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold mr-2">
-              Síntesis IA ({aiPulse.model}):
+        <div className="mt-4 p-3.5 rounded-xl bg-zinc-50 dark:bg-white/[0.03] border border-zinc-200/70 dark:border-white/[0.06] space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <p className="text-xs text-zinc-700 dark:text-zinc-200 leading-relaxed">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold mr-2">
+                Síntesis IA ({aiPulse.model}):
+              </span>
+              {aiPulse.executivePulse}
+            </p>
+            <span className="text-[10px] font-mono text-zinc-400 shrink-0">
+              {aiPulse.totalLatencyMs
+                ? `${(aiPulse.totalLatencyMs / 1000).toFixed(1)}s • `
+                : ''}
+              {new Date(aiPulse.generatedAt).toLocaleTimeString('es-CO', {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </span>
-            {aiPulse.executivePulse}
-          </p>
-          <span className="text-[10px] font-mono text-zinc-400 shrink-0">
-            {new Date(aiPulse.generatedAt).toLocaleTimeString('es-CO', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
+          </div>
+
+          {Array.isArray(aiPulse.parallelAgents) && aiPulse.parallelAgents.length > 0 && (
+            <div className="pt-2 border-t border-zinc-200/60 dark:border-white/[0.06] space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {aiPulse.parallelAgents.map((agent: ParallelAgentResult) => (
+                    <span
+                      key={agent.id}
+                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono border ${
+                        agent.success
+                          ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-700 dark:text-emerald-300'
+                          : 'bg-rose-500/10 border-rose-500/25 text-rose-700 dark:text-rose-300'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          agent.success ? 'bg-emerald-500' : 'bg-rose-500'
+                        }`}
+                      />
+                      {agent.displayName} ({(agent.latencyMs / 1000).toFixed(1)}s)
+                    </span>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowParallelDetails((v) => !v)}
+                  className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 hover:underline"
+                >
+                  <span>Ver aportes individuales ({aiPulse.parallelAgents.length} IAs)</span>
+                  {showParallelDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </button>
+              </div>
+
+              {showParallelDetails && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+                  {aiPulse.parallelAgents.map((agent: ParallelAgentResult) => (
+                    <div
+                      key={agent.id}
+                      className="p-2.5 rounded-lg bg-white dark:bg-[#14171d] border border-zinc-200/80 dark:border-white/10 text-[11px]"
+                    >
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <strong className="text-zinc-900 dark:text-white font-semibold truncate">
+                          {agent.displayName}
+                        </strong>
+                        <span className="font-mono text-[10px] text-zinc-400 shrink-0">
+                          {agent.success ? `${(agent.latencyMs / 1000).toFixed(1)}s` : `HTTP ${agent.status}`}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 block mb-1">
+                        {agent.role}
+                      </span>
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-300 line-clamp-4 break-words">
+                        {agent.success ? agent.reply : agent.error}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

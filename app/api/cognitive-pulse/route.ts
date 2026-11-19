@@ -7,7 +7,11 @@ import {
   readMegaProyectoNotes,
 } from '@/lib/liveTelemetryReader';
 import { buildLiveSystemInstruction } from '@/lib/santiagoKnowledgeBase';
-import { dispatchMultiAiChat } from '@/lib/multiAiRouter';
+import {
+  dispatchMultiAiChat,
+  dispatchMultiAiParallel,
+  type ParallelAgentResult,
+} from '@/lib/multiAiRouter';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -26,6 +30,8 @@ export interface CognitivePulseCachePayload {
   source: string;
   executivePulse: string;
   insights: CognitiveInsightCard[];
+  parallelAgents?: ParallelAgentResult[];
+  totalLatencyMs?: number;
 }
 
 const CACHE_FILE = path.join(process.cwd(), 'data', 'cognitive_pulse_cache.json');
@@ -99,6 +105,7 @@ async function runLiveAiCorrelation(params: {
   nvidiaKey?: string | null;
   groqKey?: string | null;
   requestedModel?: string;
+  selectedParallelModels?: string[];
 }) {
   const megaNotes = readMegaProyectoNotes();
   const systemInstruction = buildLiveSystemInstruction(
@@ -145,18 +152,39 @@ Analiza la telemetría viva verificada en este instante y responde ÚNICAMENTE c
 }
 `.trim();
 
-  const aiResult = await dispatchMultiAiChat({
-    systemInstruction,
-    messages: [{ role: 'user', text: correlationPrompt }],
-    requestedModel: params.requestedModel || 'auto',
-    keys: {
-      geminiKey: params.geminiKey,
-      nvidiaKey: params.nvidiaKey,
-      groqKey: params.groqKey,
-    },
-    temperature: 0.4,
-    maxTokens: 1500,
-  });
+  const reqModel = params.requestedModel || 'parallel';
+  const useParallel = reqModel === 'parallel' || reqModel === 'auto';
+
+  const parallelOutcome = useParallel
+    ? await dispatchMultiAiParallel({
+        systemInstruction,
+        messages: [{ role: 'user', text: correlationPrompt }],
+        mode: 'json-consensus',
+        keys: {
+          geminiKey: params.geminiKey,
+          nvidiaKey: params.nvidiaKey,
+          groqKey: params.groqKey,
+        },
+        selectedParallelModels: params.selectedParallelModels,
+        temperature: 0.4,
+        maxTokens: 1500,
+      })
+    : null;
+
+  const aiResult = parallelOutcome
+    ? parallelOutcome
+    : await dispatchMultiAiChat({
+        systemInstruction,
+        messages: [{ role: 'user', text: correlationPrompt }],
+        requestedModel: reqModel,
+        keys: {
+          geminiKey: params.geminiKey,
+          nvidiaKey: params.nvidiaKey,
+          groqKey: params.groqKey,
+        },
+        temperature: 0.4,
+        maxTokens: 1500,
+      });
 
   if (!aiResult.success || !aiResult.reply) {
     return {
@@ -164,6 +192,7 @@ Analiza la telemetría viva verificada en este instante y responde ÚNICAMENTE c
       aiStatus: aiResult.status,
       aiError: aiResult.error || 'Error llamando al proveedor de IA',
       modelAttempted: aiResult.model,
+      parallelAgents: parallelOutcome?.parallelAgents,
       cachedPulse: readPulseCache(),
     };
   }
@@ -177,6 +206,12 @@ Analiza la telemetría viva verificada en este instante y responde ÚNICAMENTE c
       source: aiResult.source,
       executivePulse: aiResult.reply.slice(0, 420),
       insights: [],
+      ...(parallelOutcome
+        ? {
+            parallelAgents: parallelOutcome.parallelAgents,
+            totalLatencyMs: parallelOutcome.totalLatencyMs,
+          }
+        : {}),
     };
     writePulseCache(payload);
     return {
@@ -193,6 +228,12 @@ Analiza la telemetría viva verificada en este instante y responde ÚNICAMENTE c
     source: aiResult.source,
     executivePulse: parsed.executivePulse,
     insights: parsed.insights,
+    ...(parallelOutcome
+      ? {
+          parallelAgents: parallelOutcome.parallelAgents,
+          totalLatencyMs: parallelOutcome.totalLatencyMs,
+        }
+      : {}),
   };
   writePulseCache(payload);
 
@@ -261,7 +302,10 @@ export async function POST(req: NextRequest) {
     const geminiKey = body.apiKey || req.headers.get('x-gemini-api-key');
     const nvidiaKey = body.nvidiaApiKey || req.headers.get('x-nvidia-api-key');
     const groqKey = body.groqApiKey || req.headers.get('x-groq-api-key');
-    const requestedModel = body.model || 'auto';
+    const requestedModel = body.model || 'parallel';
+    const selectedParallelModels = Array.isArray(body.selectedParallelModels)
+      ? body.selectedParallelModels
+      : undefined;
 
     const outcome = await runLiveAiCorrelation({
       telemetry,
@@ -269,6 +313,7 @@ export async function POST(req: NextRequest) {
       nvidiaKey,
       groqKey,
       requestedModel,
+      selectedParallelModels,
     });
 
     return NextResponse.json({
@@ -279,6 +324,7 @@ export async function POST(req: NextRequest) {
       aiError: outcome.aiError,
       aiStatus: outcome.aiStatus,
       modelAttempted: outcome.modelAttempted,
+      parallelAgents: outcome.parallelAgents,
     });
   } catch (err: unknown) {
     return NextResponse.json(

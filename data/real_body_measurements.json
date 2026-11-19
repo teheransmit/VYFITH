@@ -102,5 +102,31 @@
     "thighRightCm": 50,
     "calfLeftCm": 33.5,
     "calfRightCm": 34
+  },
+  {
+    "id": "meas-2026-11-19-1795120133983",
+    "date": "2026-11-19",
+    "timestamp": "2026-11-19T20:28:53.983Z",
+    "notes": "",
+    "weightKg": 56,
+    "weightLbs": 123.5,
+    "waistCm": 71,
+    "neckCm": 36.5,
+    "heightCm": 172,
+    "bodyFatPct": 10.8,
+    "leanBodyMassKg": 50,
+    "leanBodyMassLbs": 110.2,
+    "shouldersCm": 110,
+    "chestCm": 92.5,
+    "bicepsLeftCm": 30.5,
+    "bicepsRightCm": 31,
+    "forearmLeftCm": 26,
+    "forearmRightCm": 26.5,
+    "abdomenCm": 72,
+    "hipsCm": 88,
+    "thighLeftCm": 49.5,
+    "thighRightCm": 50,
+    "calfLeftCm": 33.5,
+    "calfRightCm": 34
   }
 ]
