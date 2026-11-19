@@ -187,31 +187,54 @@ export default function MuscleHeatmap() {
         </div>
       )}
 
-      {/* Contenido: Silueta Anatómica & Selector de Músculos */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Visualizador Anatómico (Silueta Vectorial) */}
-        <div className="lg:col-span-5 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex flex-col items-center">
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-            <span>Selecciona un grupo muscular para auditar:</span>
-          </span>
+      {/* Contenido: Selector de Músculos & Diagnóstico */}
+      <div className="space-y-6">
+        {/* Visualizador Anatómico & Selector de Grupos Musculares */}
+        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 flex flex-col">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+              <span>Selecciona un grupo muscular para auditar:</span>
+            </span>
+            <div className="flex items-center gap-3 text-[10px] text-slate-500 font-mono">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" /> Óptimo
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500" /> Mantenimiento
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-blue-500" /> Recuperación
+              </span>
+            </div>
+          </div>
 
-          <div className="grid grid-cols-2 gap-2.5 w-full">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
             {Object.values(muscleVolumes).map((m) => {
               const isSelected = selectedMuscle === m.id;
+              const shortLabels: Record<string, string> = {
+                chest: 'Pectoral',
+                back: 'Espalda',
+                shoulders: 'Deltoides',
+                triceps: 'Tríceps',
+                biceps: 'Bíceps',
+                quads: 'Cuádriceps',
+                hamstrings: 'Femorales',
+                calves: 'Pantorrillas',
+              };
               return (
                 <button
                   key={m.id}
                   onClick={() => setSelectedMuscle(m.id)}
-                  className={`cursor-pointer p-2 sm:p-3 rounded-xl border text-left transition-all ${
+                  className={`cursor-pointer p-2.5 sm:p-3 rounded-xl border text-left transition-all ${
                     isSelected
                       ? 'bg-rose-50 dark:bg-rose-950/80 border-rose-300 dark:border-rose-700 shadow-xs'
                       : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1 gap-1">
                     <span className="text-[11px] sm:text-xs font-bold text-slate-900 dark:text-white truncate">
-                      {m.name}
+                      {shortLabels[m.id] || m.name}
                     </span>
                     <span
                       className="w-2.5 h-2.5 rounded-full shrink-0"
@@ -225,22 +248,10 @@ export default function MuscleHeatmap() {
               );
             })}
           </div>
-
-          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 w-full flex items-center justify-around text-[10px] text-slate-500 font-mono">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" /> Óptimo (MEV-MRV)
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-amber-500" /> Mantenimiento
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500" /> Recuperación
-            </span>
-          </div>
         </div>
 
         {/* Detalle del Músculo Seleccionado & Alertas de Plateau */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="space-y-6">
           {/* Tarjeta de Diagnóstico del Músculo Activo */}
           <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between mb-3">
@@ -284,25 +295,28 @@ export default function MuscleHeatmap() {
               {plateaus.map((p, idx) => (
                 <div
                   key={idx}
-                  className={`p-3.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+                  className={`p-3.5 rounded-2xl border flex flex-col gap-2.5 text-xs transition-colors ${
                     p.type === 'warning'
                       ? 'bg-amber-50/70 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-950 dark:text-amber-200'
                       : 'bg-emerald-50/70 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-950 dark:text-emerald-200'
                   }`}
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <strong className="text-slate-900 dark:text-white font-bold">{p.exercise}</strong>
                       <span className="font-mono px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-bold">
                         {p.currentWeight}
                       </span>
                     </div>
-                    <p className="text-[11px] opacity-80 mt-1">{p.detail}</p>
+
+                    <div className="sm:text-right">
+                      <span className="font-bold text-[11px] px-2.5 py-1 rounded-lg bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 text-slate-800 dark:text-slate-200 shadow-2xs break-words inline-block">
+                        {p.action}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="sm:text-right shrink-0">
-                    <span className="font-bold block text-[11px]">{p.action}</span>
-                  </div>
+                  <p className="text-[11px] opacity-85 leading-relaxed">{p.detail}</p>
                 </div>
               ))}
             </div>
