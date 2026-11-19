@@ -8,10 +8,10 @@
     "targetWaterMl": 2900
   },
   "current": {
-    "calories": 0,
-    "protein": 0,
-    "carbs": 0,
-    "fat": 0,
+    "calories": 385,
+    "protein": 30.4,
+    "carbs": 58.9,
+    "fat": 1.8,
     "waterMl": 1800
   },
   "meals": {
@@ -19,21 +19,53 @@
       "mealType": "desayuno",
       "title": "DESAYUNO",
       "time": "07:30",
-      "items": [],
-      "totalKcal": 0,
-      "totalProtein": 0,
-      "totalCarbs": 0,
-      "totalFat": 0
+      "items": [
+        {
+          "id": "15c3dbde-4f26-4a79-9f8b-08e781fddd98",
+          "name": "Whey Protein Isolate Shake",
+          "spanishName": "Batido de Proteína Whey",
+          "portionDisplay": "1 scoop (32 g)",
+          "grams": 32,
+          "calories": 125,
+          "protein": 25,
+          "carbs": 2.5,
+          "fat": 1.2,
+          "fiber": 0,
+          "source": "nlp_voice",
+          "confidence": 0.96,
+          "notes": "en la mañana desayuné un pedazo de pan un pancake una taza de café con un Scoop de proteína"
+        }
+      ],
+      "totalKcal": 125,
+      "totalProtein": 25,
+      "totalCarbs": 2.5,
+      "totalFat": 1.2
     },
     "almuerzo": {
       "mealType": "almuerzo",
       "title": "ALMUERZO",
       "time": "13:00",
-      "items": [],
-      "totalKcal": 0,
-      "totalProtein": 0,
-      "totalCarbs": 0,
-      "totalFat": 0
+      "items": [
+        {
+          "id": "0a6b2d56-4d8f-4a63-811f-0184ed364209",
+          "name": "Cooked white rice",
+          "spanishName": "Arroz blanco cocido",
+          "portionDisplay": "1 porción (200 g)",
+          "grams": 200,
+          "calories": 260,
+          "protein": 5.4,
+          "carbs": 56.4,
+          "fat": 0.6,
+          "fiber": 0.4,
+          "source": "nlp_voice",
+          "confidence": 0.94,
+          "notes": "comí arroz con Frijol y carne molida luego mi abuela me echó más arroz otra carne más y más frijoles o sea comí como dos veces por decirlo así en el almuerzo"
+        }
+      ],
+      "totalKcal": 260,
+      "totalProtein": 5.4,
+      "totalCarbs": 56.4,
+      "totalFat": 0.6
     },
     "cena": {
       "mealType": "cena",
@@ -56,6 +88,37 @@
       "totalFat": 0
     }
   },
-  "recentScans": [],
-  "lastUpdated": "2026-11-19T20:42:46.063Z"
+  "recentScans": [
+    {
+      "id": "0a6b2d56-4d8f-4a63-811f-0184ed364209",
+      "name": "Cooked white rice",
+      "spanishName": "Arroz blanco cocido",
+      "portionDisplay": "1 porción (200 g)",
+      "grams": 200,
+      "calories": 260,
+      "protein": 5.4,
+      "carbs": 56.4,
+      "fat": 0.6,
+      "fiber": 0.4,
+      "source": "nlp_voice",
+      "confidence": 0.94,
+      "notes": "comí arroz con Frijol y carne molida luego mi abuela me echó más arroz otra carne más y más frijoles o sea comí como dos veces por decirlo así en el almuerzo"
+    },
+    {
+      "id": "15c3dbde-4f26-4a79-9f8b-08e781fddd98",
+      "name": "Whey Protein Isolate Shake",
+      "spanishName": "Batido de Proteína Whey",
+      "portionDisplay": "1 scoop (32 g)",
+      "grams": 32,
+      "calories": 125,
+      "protein": 25,
+      "carbs": 2.5,
+      "fat": 1.2,
+      "fiber": 0,
+      "source": "nlp_voice",
+      "confidence": 0.96,
+      "notes": "en la mañana desayuné un pedazo de pan un pancake una taza de café con un Scoop de proteína"
+    }
+  ],
+  "lastUpdated": "2026-11-19T21:27:38.631Z"
 }

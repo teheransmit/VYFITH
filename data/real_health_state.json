@@ -1,25 +1,25 @@
 {
   "isPaired": true,
-  "deviceId": "V2027",
-  "deviceName": "VYFITH_APP (Vivo Y20)",
+  "deviceId": "sdk_gphone64_arm64",
+  "deviceName": "VYFITH_APP (Firestore Stream)",
   "pairingToken": "MEGA-HC-8924",
-  "lastSyncTime": "2026-11-19T20:42:46.061Z",
-  "syncCount": 336,
-  "changesToken": "vyfith_sync_1795120966064",
+  "lastSyncTime": "2026-11-19T21:27:38.615Z",
+  "syncCount": 444,
+  "changesToken": "vyfith_sync_1795123658635",
   "currentMetrics": {
     "steps": 1030,
     "hrv": 76,
     "heartRate": 56,
     "sleepHours": 7.4,
-    "weightKg": 55.7,
-    "bodyFatPct": 10.6,
+    "weightKg": 56,
+    "bodyFatPct": 10.8,
     "skeletalMuscleKg": 25.1,
     "bmi": 18.8,
     "waterL": 32.8,
     "proteinKg": 13.9,
     "mineralsKg": 3.2,
     "fatMassKg": 5.9,
-    "leanBodyMassKg": 46.6,
+    "leanBodyMassKg": 49.952,
     "fatFreeMassKg": 49.8,
     "hevySummary": {
       "lastWorkoutName": "Horizontal Torso (Chest & Back)",
@@ -28,31 +28,37 @@
       "date": "2026-10-27"
     },
     "deepSleepHours": 2.5,
-    "lightSleepHours": 3.94,
-    "remSleepHours": 1.75,
-    "awakeMinutes": 18,
-    "awakeningsCount": 2,
-    "sleepEfficiency": 94,
-    "sleepStartTime": "23:15",
-    "sleepEndTime": "06:45",
+    "lightSleepHours": 3.05,
+    "remSleepHours": 1.85,
+    "awakeMinutes": 20,
+    "awakeningsCount": 3,
+    "sleepEfficiency": 95.7,
+    "sleepStartTime": "21:58",
+    "sleepEndTime": "05:42",
     "spo2": 96.82,
-    "avgHeartRate": 68,
-    "minHeartRate": 56,
-    "maxHeartRate": 118,
-    "distanceMeters": 4885,
-    "activeCaloriesBurned": 340,
-    "totalCaloriesBurned": 2120,
-    "respiratoryRateBpm": 15
+    "avgHeartRate": 94.0203125,
+    "minHeartRate": 50,
+    "maxHeartRate": 142,
+    "distanceMeters": 784.86,
+    "activeCaloriesBurned": 126,
+    "totalCaloriesBurned": 1585.6427779444377,
+    "respiratoryRateBpm": 15,
+    "watchActivitySummary": "1 entrenamiento(s) (1 del reloj): Ciclismo [Reloj] (12m • 23 kcal)",
+    "basalMetabolicRateKcal": 1398,
+    "activityMinutes": 12,
+    "avgSpeedMps": 3.4331390792742758,
+    "boneMassKg": 3.230099999999996,
+    "heightCm": 172
   },
   "vyfithData": {
     "connected": true,
     "appName": "VYFITH_APP (FitSync AI Android)",
-    "readinessScore": 82,
-    "readinessCategory": "Vitalidad Óptima",
-    "lastSyncTimestamp": "2026-11-19T20:42:46.061Z",
+    "readinessScore": 71,
+    "readinessCategory": "Recuperación Adecuada",
+    "lastSyncTimestamp": "2026-11-19T21:27:38.615Z",
     "geminiAnalysis": {
-      "diagnostico": "[CUMPLISTE A MEDIAS • Score 82/100]\nVEREDICTO DEL DÍA (Jueves 19 de noviembre, 2026): CUMPLISTE A MEDIAS (Puntaje Integral: 82/100).\n\n1. CÓMO TE FUE HOY: En tu perfil ectomorfo de 55.50 kg (46.50 kg de masa magra y 10.40% de grasa corporal), cerraste la noche con 7h 24m (7.40 h) de sueño neto real descontando despertares. Durante el día acumulaste 1,030 pasos (~3.33 km y 126.00 kcal quemadas), con una actividad de entrenamiento de 59 minutos (59 minutos de movimiento físico activo) y una saturación de oxígeno (SpO2) promedio de 96.82%. En hidratación registraste 1,800 ml de tu meta de 2,900 ml (62.07%) — [Vaso Morado: 2x (800 ml) • Vaso Blanco/Azul: 0x (0 ml) • Termo Uni: 1x (1,000 ml)].\n\n2. EN QUÉ LA CAGASTE (SIN FILTRO): Dejaste la hidratación incompleta: te faltan 1,100 ml para cerrar tu meta de 2,900 ml (unos 4 Vasos Blancos con Azul de 350 ml). No aflojes al final del día. Estuviste demasiado sedentario: solo 1,030 pasos de 10,000. Pasar todo el día sentado en clases sin caminar reduce tu flujo sanguíneo de recuperación y empeora la partición de nutrientes.\n\n3. QUÉ DEBES MEJORAR AHORA MISMO: Cierra tu déficit hídrico de 1,100 ml hoy mismo: tómate 1 Termo(s) de la Universidad (1,000 ml c/u) + 1 Vaso Morado (400 ml) antes de la 10:00 PM (sin tomar todo de golpe justo antes de dormir para no cortar tu sueño profundo). Recupera la deuda de sueño esta noche: desconecta pantallas 45 minutos antes y duerme al menos 36 minutos adicionales hasta asegurar 7h 30m–8h 0m netas. Completa los 8,970 pasos faltantes con una caminata continua de ~89 minutos en el campus o al regresar a casa. Enfoque Muscular y Nutrición Ectomorfa (55.50 kg): Prioriza Pectoral Superior, Deltoides Lateral, Tríceps y deja descansar Articulación Lumbar, Flexores de Cadera. Asegura al menos 111.00 g de proteína hoy.\n",
-      "recomendacionMuscular": "ERRORES A CORREGIR: Dejaste la hidratación incompleta: te faltan 1,100 ml para cerrar tu meta de 2,900 ml (unos 4 Vasos Blancos con Azul de 350 ml). No aflojes al final del día. | Estuviste demasiado sedentario: solo 1,030 pasos de 10,000. Pasar todo el día sentado en clases sin caminar reduce tu flujo sanguíneo de recuperación y empeora la partición de nutrientes.\nPLAN DE ACCIÓN: Cierra tu déficit hídrico de 1,100 ml hoy mismo: tómate 1 Termo(s) de la Universidad (1,000 ml c/u) + 1 Vaso Morado (400 ml) antes de la 10:00 PM (sin tomar todo de golpe justo antes de dormir para no cortar tu sueño profundo). | Recupera la deuda de sueño esta noche: desconecta pantallas 45 minutos antes y duerme al menos 36 minutos adicionales hasta asegurar 7h 30m–8h 0m netas. | Completa los 8,970 pasos faltantes con una caminata continua de ~89 minutos en el campus o al regresar a casa. | Enfoque Muscular y Nutrición Ectomorfa (55.50 kg): Prioriza Pectoral Superior, Deltoides Lateral, Tríceps y deja descansar Articulación Lumbar, Flexores de Cadera. Asegura al menos 111.00 g de proteína hoy.\n",
+      "diagnostico": "[CUMPLISTE A MEDIAS • Score 71/100]\nVEREDICTO DEL DÍA (Jueves 19 de noviembre, 2026): CUMPLISTE A MEDIAS (Puntaje Integral: 71/100).\n\n1. CÓMO TE FUE HOY: En tu perfil ectomorfo de 56.00 kg (49.95 kg de masa magra y 10.80% de grasa corporal), cerraste la noche con 7h 24m (7.40 h) de sueño neto real descontando despertares. Durante el día acumulaste 1,030 pasos (~0.78 km y 41.20 kcal quemadas), con una actividad de entrenamiento de 0 minutos (Sin sesiones de entrenamiento hoy) y una saturación de oxígeno (SpO2) promedio de 96.82%. En hidratación registraste 1,800 ml de tu meta de 2,900 ml (62.07%) — [Vaso Morado: 2x (700 ml) • Vaso Blanco/Azul: 0x (0 ml) • Termo Uni: 1x (500 ml)].\n\n2. EN QUÉ LA CAGASTE (SIN FILTRO): Dejaste la hidratación incompleta: te faltan 1,100 ml para cerrar tu meta de 2,900 ml (unos 4 Vasos Blancos con Azul de 330 ml). No aflojes al final del día. Estuviste demasiado sedentario: solo 1,030 pasos de 10,000. Pasar todo el día sentado en clases sin caminar reduce tu flujo sanguíneo de recuperación y empeora la partición de nutrientes. Tienes activado el modo 'Día de Universidad + Gimnasio' pero registraste 0 minutos de entrenamiento. Si hoy tocaba fierros, fallaste a la sesión; si hoy era descanso, ajusta el modo para no falsear tus métricas.\n\n3. QUÉ DEBES MEJORAR AHORA MISMO: Cierra tu déficit hídrico de 1,100 ml hoy mismo: tómate 2 Termo(s) de la Universidad (500 ml c/u) + 1 Vaso Morado (350 ml) antes de la 10:00 PM (sin tomar todo de golpe justo antes de dormir para no cortar tu sueño profundo). Recupera la deuda de sueño esta noche: desconecta pantallas 45 minutos antes y duerme al menos 36 minutos adicionales hasta asegurar 7h 30m–8h 0m netas. Completa los 8,970 pasos faltantes con una caminata continua de ~89 minutos en el campus o al regresar a casa. Enfoque Muscular y Nutrición Ectomorfa (56.00 kg): Prioriza Pectoral Superior, Deltoides Lateral, Tríceps y deja descansar Articulación Lumbar, Flexores de Cadera. Asegura al menos 112.00 g de proteína hoy.",
+      "recomendacionMuscular": "ERRORES A CORREGIR: Dejaste la hidratación incompleta: te faltan 1,100 ml para cerrar tu meta de 2,900 ml (unos 4 Vasos Blancos con Azul de 330 ml). No aflojes al final del día. | Estuviste demasiado sedentario: solo 1,030 pasos de 10,000. Pasar todo el día sentado en clases sin caminar reduce tu flujo sanguíneo de recuperación y empeora la partición de nutrientes. | Tienes activado el modo 'Día de Universidad + Gimnasio' pero registraste 0 minutos de entrenamiento. Si hoy tocaba fierros, fallaste a la sesión; si hoy era descanso, ajusta el modo para no falsear tus métricas.\nPLAN DE ACCIÓN: Cierra tu déficit hídrico de 1,100 ml hoy mismo: tómate 2 Termo(s) de la Universidad (500 ml c/u) + 1 Vaso Morado (350 ml) antes de la 10:00 PM (sin tomar todo de golpe justo antes de dormir para no cortar tu sueño profundo). | Recupera la deuda de sueño esta noche: desconecta pantallas 45 minutos antes y duerme al menos 36 minutos adicionales hasta asegurar 7h 30m–8h 0m netas. | Completa los 8,970 pasos faltantes con una caminata continua de ~89 minutos en el campus o al regresar a casa. | Enfoque Muscular y Nutrición Ectomorfa (56.00 kg): Prioriza Pectoral Superior, Deltoides Lateral, Tríceps y deja descansar Articulación Lumbar, Flexores de Cadera. Asegura al menos 112.00 g de proteína hoy.",
       "gruposPriorizar": [
         "Pectoral Superior",
         "Deltoides Lateral",
@@ -67,34 +73,45 @@
     "roomMetrics": {
       "steps": 1030,
       "deepSleepHours": 2.5,
-      "sleepStartTime": "23:15",
-      "sleepEndTime": "06:45",
+      "lightSleepHours": 3.05,
+      "remSleepHours": 1.85,
+      "awakeMinutes": 20,
+      "awakeningsCount": 3,
+      "sleepEfficiency": 95.7,
+      "sleepStartTime": "21:58",
+      "sleepEndTime": "05:42",
       "isFallbackRecentSleep": false,
-      "sleepDate": null,
+      "sleepDate": "2026-11-19",
       "totalSleepHours": 7.4,
       "restingHeartRate": 56,
-      "avgHeartRate": 68,
-      "minHeartRate": 56,
-      "maxHeartRate": 118,
+      "avgHeartRate": 94.0203125,
+      "minHeartRate": 50,
+      "maxHeartRate": 142,
       "hrv": 76,
       "spo2": 96.82,
-      "caloriesBurned": 126,
-      "activeCaloriesBurned": 340,
-      "totalCaloriesBurned": 2120,
-      "distanceMeters": 4885,
+      "caloriesBurned": 41.2,
+      "activeCaloriesBurned": 126,
+      "totalCaloriesBurned": 1585.6427779444377,
+      "basalMetabolicRateKcal": 1398,
+      "distanceMeters": 784.86,
+      "activityMinutes": 12,
+      "avgSpeedMps": 3.4331390792742758,
       "respiratoryRateBpm": 15,
-      "leanBodyMassKg": 46.6
+      "boneMassKg": 3.230099999999996,
+      "leanBodyMassKg": 49.952,
+      "heightCm": 172,
+      "watchActivitySummary": "1 entrenamiento(s) (1 del reloj): Ciclismo [Reloj] (12m • 23 kcal)"
     },
     "hevySummary": {
-      "lastWorkoutName": "Sin sesiones registradas",
-      "totalVolumeKg": 0,
-      "setsCompleted": 0,
-      "date": "2026-11-19"
+      "lastWorkoutName": "Horizontal Torso (Chest & Back)",
+      "totalVolumeKg": 5940,
+      "setsCompleted": 25,
+      "date": "17 nov 2026, 17:11"
     }
   },
   "recentObservations": [
     {
-      "id": "vyfith-readiness-1795120966064",
+      "id": "vyfith-readiness-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -108,13 +125,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 82,
+        "value": 71,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-steps-1795120966064",
+      "id": "vyfith-steps-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -131,10 +148,10 @@
         "value": 1030,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-hr-1795120966064",
+      "id": "vyfith-hr-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Reposo",
@@ -151,10 +168,10 @@
         "value": 56,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-sleep-1795120966064",
+      "id": "vyfith-sleep-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Sueño",
@@ -171,10 +188,10 @@
         "value": 7.4,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-deep-sleep-1795120966064",
+      "id": "vyfith-deep-sleep-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Arquitectura Sueño",
@@ -191,10 +208,10 @@
         "value": 2.5,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-spo2-1795120966064",
+      "id": "vyfith-spo2-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Oximetría Biométrica",
@@ -211,10 +228,10 @@
         "value": 96.82,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-cal-1795120966064",
+      "id": "vyfith-cal-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Actividad Física - Calorías",
@@ -228,13 +245,53 @@
         ]
       },
       "valueQuantity": {
-        "value": 126,
+        "value": 41.2,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-hrv-1795120966064",
+      "id": "vyfith-rem-sleep-1795123658635",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Health Connect - Arquitectura Sueño",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93830-8",
+            "display": "REM sleep duration"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 1.85,
+        "unit": "hours"
+      },
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
+    },
+    {
+      "id": "vyfith-light-sleep-1795123658635",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Health Connect - Arquitectura Sueño",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93829-0",
+            "display": "Light sleep duration"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 3.05,
+        "unit": "hours"
+      },
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
+    },
+    {
+      "id": "vyfith-hrv-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación Autónoma (HRV)",
@@ -251,10 +308,10 @@
         "value": 76,
         "unit": "ms"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-hr-avg-1795120966064",
+      "id": "vyfith-hr-avg-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Promedio",
@@ -268,13 +325,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 68,
+        "value": 94.0203125,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-distance-1795120966064",
+      "id": "vyfith-distance-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Distancia",
@@ -288,13 +345,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 4885,
+        "value": 784.86,
         "unit": "m"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-total-cal-1795120966064",
+      "id": "vyfith-total-cal-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Gasto Energético Total",
@@ -308,13 +365,33 @@
         ]
       },
       "valueQuantity": {
-        "value": 2120,
+        "value": 1585.6427779444377,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-resp-rate-1795120966064",
+      "id": "vyfith-bmr-1795123658635",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Metabolismo Basal",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "19228-2",
+            "display": "Basal metabolic rate"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 1398,
+        "unit": "kcal/day"
+      },
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
+    },
+    {
+      "id": "vyfith-resp-rate-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Ventilación Pulmonar",
@@ -331,10 +408,10 @@
         "value": 15,
         "unit": "breaths/min"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-weight-1795120966064",
+      "id": "vyfith-weight-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Composición Corporal",
@@ -348,13 +425,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 55.7,
+        "value": 56,
         "unit": "kg"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-bodyfat-1795120966064",
+      "id": "vyfith-bodyfat-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Composición Corporal",
@@ -368,13 +445,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 10.6,
+        "value": 10.8,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-leanmass-1795120966064",
+      "id": "vyfith-leanmass-1795123658635",
       "resourceType": "Observation",
       "status": "final",
       "category": "Composición Corporal",
@@ -388,13 +465,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 46.6,
+        "value": 49.952,
         "unit": "kg"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.061Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.615Z"
     },
     {
-      "id": "vyfith-readiness-1795120966060",
+      "id": "vyfith-readiness-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación / Readiness AI",
@@ -408,13 +485,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 82,
+        "value": 71,
         "unit": "score"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-steps-1795120966060",
+      "id": "vyfith-steps-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Pasos",
@@ -431,10 +508,10 @@
         "value": 1030,
         "unit": "steps"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-hr-1795120966060",
+      "id": "vyfith-hr-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Reposo",
@@ -451,10 +528,10 @@
         "value": 56,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-sleep-1795120966060",
+      "id": "vyfith-sleep-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Sueño",
@@ -471,10 +548,10 @@
         "value": 7.4,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-deep-sleep-1795120966060",
+      "id": "vyfith-deep-sleep-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Arquitectura Sueño",
@@ -491,10 +568,10 @@
         "value": 2.5,
         "unit": "hours"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-spo2-1795120966060",
+      "id": "vyfith-spo2-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Oximetría Biométrica",
@@ -511,10 +588,10 @@
         "value": 96.82,
         "unit": "%"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-cal-1795120966060",
+      "id": "vyfith-cal-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Actividad Física - Calorías",
@@ -528,13 +605,53 @@
         ]
       },
       "valueQuantity": {
-        "value": 126,
+        "value": 41.2,
         "unit": "kcal"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-hrv-1795120966060",
+      "id": "vyfith-rem-sleep-1795123658613",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Health Connect - Arquitectura Sueño",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93830-8",
+            "display": "REM sleep duration"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 1.85,
+        "unit": "hours"
+      },
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
+    },
+    {
+      "id": "vyfith-light-sleep-1795123658613",
+      "resourceType": "Observation",
+      "status": "final",
+      "category": "Health Connect - Arquitectura Sueño",
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "93829-0",
+            "display": "Light sleep duration"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 3.05,
+        "unit": "hours"
+      },
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
+    },
+    {
+      "id": "vyfith-hrv-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Recuperación Autónoma (HRV)",
@@ -551,10 +668,10 @@
         "value": 76,
         "unit": "ms"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-hr-avg-1795120966060",
+      "id": "vyfith-hr-avg-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Cardiovascular - Promedio",
@@ -568,13 +685,13 @@
         ]
       },
       "valueQuantity": {
-        "value": 68,
+        "value": 94.0203125,
         "unit": "bpm"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     },
     {
-      "id": "vyfith-distance-1795120966060",
+      "id": "vyfith-distance-1795123658613",
       "resourceType": "Observation",
       "status": "final",
       "category": "Health Connect - Distancia",
@@ -588,110 +705,10 @@
         ]
       },
       "valueQuantity": {
-        "value": 4885,
+        "value": 784.86,
         "unit": "m"
       },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
-    },
-    {
-      "id": "vyfith-total-cal-1795120966060",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Gasto Energético Total",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "41979-6",
-            "display": "Total calories burned"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 2120,
-        "unit": "kcal"
-      },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
-    },
-    {
-      "id": "vyfith-resp-rate-1795120966060",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Ventilación Pulmonar",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "9279-1",
-            "display": "Respiratory rate"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 15,
-        "unit": "breaths/min"
-      },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
-    },
-    {
-      "id": "vyfith-weight-1795120966060",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Composición Corporal",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "29463-7",
-            "display": "Body weight"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 55.7,
-        "unit": "kg"
-      },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
-    },
-    {
-      "id": "vyfith-bodyfat-1795120966060",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Composición Corporal",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "41982-0",
-            "display": "Body fat percentage"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 10.6,
-        "unit": "%"
-      },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
-    },
-    {
-      "id": "vyfith-leanmass-1795120966060",
-      "resourceType": "Observation",
-      "status": "final",
-      "category": "Composición Corporal",
-      "code": {
-        "coding": [
-          {
-            "system": "http://loinc.org",
-            "code": "73964-9",
-            "display": "Lean body mass"
-          }
-        ]
-      },
-      "valueQuantity": {
-        "value": 46.6,
-        "unit": "kg"
-      },
-      "effectiveDateTime": "2026-11-19T20:42:46.055Z"
+      "effectiveDateTime": "2026-11-19T21:27:38.583Z"
     }
   ],
   "femmtoData": {
@@ -1072,36 +1089,98 @@
     ]
   },
   "superAppSync": {
-    "lastSyncedAt": "2026-11-19T20:42:46.061Z",
+    "lastSyncedAt": "2026-11-19T21:27:38.615Z",
     "financeSummary": {
-      "totalLiquidityCop": 45724.27,
+      "totalLiquidityCop": 70724.27,
       "accountsCount": 3,
-      "medellinEstimatedCostCop": 584549,
-      "medellinAvailableFundCop": 45724.27,
-      "dailyLogsCount": 1,
+      "dailyLogsCount": 6,
       "pendingWalksWeeklyCop": 0,
-      "lastUpdated": "2026-11-19T18:15:34.878Z"
-    },
-    "closetSummary": {
-      "recentItems": [
+      "lastUpdated": "2026-11-19T21:27:38.615Z",
+      "accounts": [
         {
-          "id": 1,
-          "name": "Camiseta Negra Oversize",
-          "occasionTag": "Casual",
-          "isFavorite": true,
-          "category": "Tops",
-          "colorName": "Negro"
+          "balance": 0,
+          "name": "Efectivo",
+          "type": "CASH"
+        },
+        {
+          "type": "NU",
+          "balance": 25000,
+          "name": "Cuenta Nu"
+        },
+        {
+          "balance": 45724.27,
+          "name": "Nequi",
+          "type": "NEQUI"
         }
       ],
-      "favoriteItems": 4,
-      "totalItems": 12,
+      "recentLogs": [
+        {
+          "rappiIncome": 0,
+          "walksIncome": 14000,
+          "netChange": 14000,
+          "dateDisplay": "31 de agosto, 2026",
+          "targetAccountName": "Efectivo",
+          "dailyExpense": 0,
+          "note": "Paseos de Sienna y Molly"
+        },
+        {
+          "rappiIncome": 22000,
+          "walksIncome": 19850,
+          "dateDisplay": "30 de agosto, 2026",
+          "dailyExpense": 0,
+          "targetAccountName": "Cuenta Nu",
+          "netChange": 41850,
+          "note": "Día completo de 3 paseos + Rappi domingo"
+        },
+        {
+          "note": "Turno Rappi noche de sábado",
+          "dailyExpense": 6000,
+          "dateDisplay": "29 de agosto, 2026",
+          "targetAccountName": "Nequi",
+          "rappiIncome": 32000,
+          "netChange": 26000,
+          "walksIncome": 0
+        },
+        {
+          "dateDisplay": "28 de agosto, 2026",
+          "rappiIncome": 18000,
+          "note": "Sienna + Frida + Turno Rappi viernes",
+          "walksIncome": 14850,
+          "targetAccountName": "Cuenta Nu",
+          "netChange": 32850,
+          "dailyExpense": 0
+        },
+        {
+          "targetAccountName": "Efectivo",
+          "dailyExpense": 3500,
+          "note": "Paseos Frida y Molly",
+          "rappiIncome": 0,
+          "walksIncome": 10850,
+          "netChange": 7350,
+          "dateDisplay": "27 de agosto, 2026"
+        },
+        {
+          "rappiIncome": 25000,
+          "walksIncome": 9000,
+          "dateDisplay": "26 de agosto, 2026",
+          "note": "Paseo Sienna mañana + 2 horas Rappi tarde",
+          "targetAccountName": "Nequi",
+          "dailyExpense": 0,
+          "netChange": 34000
+        }
+      ]
+    },
+    "closetSummary": {
+      "favoriteItems": 0,
+      "totalItems": 15,
       "categoriesCount": {
-        "Bottoms": 3,
-        "Outerwear": 2,
-        "Tops": 4,
-        "Calzado": 3
+        "Calzado": 3,
+        "Tops": 3,
+        "Accesorios": 3,
+        "Outerwear": 3,
+        "Bottoms": 3
       },
-      "lastUpdated": "2026-11-19T18:15:34.878Z"
+      "lastUpdated": "2026-11-19T21:27:38.615Z"
     },
     "notesSummary": {
       "referencesCount": 3,
@@ -1118,103 +1197,103 @@
       "lastUpdated": "2026-11-19T18:15:34.878Z"
     },
     "hydrationState": {
-      "nutritionCurrent": {
-        "carbs": 0,
-        "protein": 0,
-        "targetKcal": 2800,
-        "fat": 0,
-        "lastUpdated": "2026-11-19T14:46:06.225032-05:00",
-        "targetFat": 80,
-        "date": "2026-11-19",
-        "targetCarbs": 380,
-        "targetWaterMl": 2900,
-        "targetProtein": 140,
-        "waterMl": 1800,
-        "calories": 0
-      },
-      "uniThermosMl": 1000,
-      "goalMl": 2900,
-      "isGymDay": true,
+      "purpleCupMl": 350,
       "dailyGoalMl": 2900,
+      "uniThermosMl": 500,
       "totalMl": 1800,
+      "progressPercent": 62.06896551724138,
+      "date": "2026-11-19",
+      "nutritionCurrent": {
+        "fat": 1.8,
+        "calories": 385,
+        "date": "2026-11-19",
+        "targetWaterMl": 2900,
+        "lastUpdated": "2026-11-19T13:27:11.354394-08:00",
+        "targetKcal": 2800,
+        "targetFat": 80,
+        "targetProtein": 140,
+        "targetCarbs": 380,
+        "protein": 30.4,
+        "waterMl": 1800,
+        "carbs": 58.9
+      },
+      "totalIntakeMl": 1800,
       "entriesCount": 3,
+      "latestMeasurement": {
+        "date": "2026-11-19",
+        "bicepsLeftCm": 30.5,
+        "forearmRightCm": 26.5,
+        "waistCm": 71,
+        "bodyFatPct": 10.8,
+        "thighLeftCm": 49.5,
+        "chestCm": 92.5,
+        "forearmLeftCm": 26,
+        "calfLeftCm": 33.5,
+        "thighRightCm": 50,
+        "weightKg": 56,
+        "heightCm": 172,
+        "shouldersCm": 110,
+        "neckCm": 36.5,
+        "bicepsRightCm": 31,
+        "hipsCm": 88,
+        "abdomenCm": 72,
+        "calfRightCm": 34
+      },
+      "goalMl": 2900,
       "entries": [
         {
+          "id": "water-1795117544586",
           "ml": 400,
-          "time": "2026-11-19T14:45:00-05:00",
-          "id": "water-1795117544586"
+          "time": "2026-11-19T14:45:00-08:00"
         },
         {
+          "time": "2026-11-19T14:45:00-08:00",
           "id": "water-1795117545876",
-          "time": "2026-11-19T14:45:00-05:00",
           "ml": 400
         },
         {
           "id": "water-1795117566214",
           "ml": 1000,
-          "time": "2026-11-19T14:46:00-05:00"
+          "time": "2026-11-19T14:46:00-08:00"
         }
       ],
-      "whiteBlueCupMl": 350,
-      "purpleCupMl": 400,
-      "progressPercent": 62.06896551724138,
-      "totalIntakeMl": 1800,
-      "date": "2026-11-19",
-      "remainingMl": 1100,
-      "latestMeasurement": {
-        "shouldersCm": 110,
-        "thighRightCm": 50,
-        "date": "2026-11-19",
-        "abdomenCm": 72,
-        "heightCm": 172,
-        "weightKg": 56,
-        "calfRightCm": 34,
-        "waistCm": 71,
-        "thighLeftCm": 49.5,
-        "hipsCm": 88,
-        "bodyFatPct": 10.8,
-        "bicepsLeftCm": 30.5,
-        "forearmRightCm": 26.5,
-        "calfLeftCm": 33.5,
-        "neckCm": 36.5,
-        "chestCm": 92.5,
-        "bicepsRightCm": 31,
-        "forearmLeftCm": 26
-      }
+      "isGymDay": true,
+      "whiteBlueCupMl": 330,
+      "remainingMl": 1100
     },
     "nutritionState": {
-      "carbs": 0,
-      "protein": 0,
-      "targetKcal": 2800,
-      "fat": 0,
-      "lastUpdated": "2026-11-19T14:46:06.225032-05:00",
-      "targetFat": 80,
+      "fat": 1.8,
+      "calories": 385,
       "date": "2026-11-19",
-      "targetCarbs": 380,
       "targetWaterMl": 2900,
+      "lastUpdated": "2026-11-19T13:27:11.354394-08:00",
+      "targetKcal": 2800,
+      "targetFat": 80,
       "targetProtein": 140,
+      "targetCarbs": 380,
+      "protein": 30.4,
       "waterMl": 1800,
-      "calories": 0
+      "carbs": 58.9
     },
     "latestMeasurement": {
-      "shouldersCm": 110,
-      "thighRightCm": 50,
-      "date": "2026-11-19",
-      "abdomenCm": 72,
-      "heightCm": 172,
-      "weightKg": 56,
-      "calfRightCm": 34,
-      "waistCm": 71,
-      "thighLeftCm": 49.5,
-      "hipsCm": 88,
-      "bodyFatPct": 10.8,
       "bicepsLeftCm": 30.5,
-      "forearmRightCm": 26.5,
-      "calfLeftCm": 33.5,
-      "neckCm": 36.5,
-      "chestCm": 92.5,
       "bicepsRightCm": 31,
-      "forearmLeftCm": 26
+      "abdomenCm": 72,
+      "date": "2026-11-19",
+      "shouldersCm": 110,
+      "neckCm": 36.5,
+      "forearmLeftCm": 26,
+      "calfLeftCm": 33.5,
+      "calfRightCm": 34,
+      "hipsCm": 88,
+      "forearmRightCm": 26.5,
+      "waistCm": 71,
+      "thighRightCm": 50,
+      "thighLeftCm": 49.5,
+      "bodyFatPct": 10.8,
+      "weightKg": 56,
+      "heightCm": 172,
+      "chestCm": 92.5
     }
   }
 }

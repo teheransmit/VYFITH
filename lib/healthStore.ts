@@ -69,6 +69,9 @@ export interface VyfithAppIntegration {
     hydrationLiters?: number;
     nutritionCaloriesKcal?: number;
     nutritionProteinGrams?: number;
+    nutritionCarbsGrams?: number;
+    nutritionFatGrams?: number;
+    watchActivitySummary?: string | null;
     totalSleepHours: number;
   };
   hevySummary: {
@@ -170,6 +173,7 @@ export interface SyncSessionState {
     fatFreeMassKg?: number;
     boneMassKg?: number;
     heightCm?: number;
+    watchActivitySummary?: string | null;
   };
   recentObservations: HealthObservation[];
   vyfithData: VyfithAppIntegration;
@@ -318,10 +322,10 @@ export function getHealthSyncState(): SyncSessionState {
           caloriesBurned: 2450,
         },
         hevySummary: {
-          lastWorkoutName: 'Push Day A - Hipertrofia',
-          totalVolumeKg: 14850,
-          setsCompleted: 18,
-          date: '2026-09-24',
+          lastWorkoutName: 'Sin sincronizar',
+          totalVolumeKg: 0,
+          setsCompleted: 0,
+          date: '',
         },
       },
       syncEvents: [

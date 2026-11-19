@@ -23,6 +23,7 @@ import UnifiedScheduleCalendarSection from '@/components/UnifiedScheduleCalendar
 import UnifiedAcademicSection from '@/components/UnifiedAcademicSection';
 import PersonalBioAssistant from '@/components/PersonalBioAssistant';
 import CognitivePulseSentinel from '@/components/CognitivePulseSentinel';
+import GlobalVyfithCloudBridge from '@/components/GlobalVyfithCloudBridge';
 import AuthShieldGate, { useAuth } from '@/components/AuthShieldGate';
 import UserSessionBadge from '@/components/UserSessionBadge';
 import CommandPaletteModal from '@/components/CommandPaletteModal';
@@ -138,6 +139,7 @@ function HomeDashboard() {
 
   return (
     <main className="min-h-screen bg-[#f6f7f9] dark:bg-[#090a0d] text-zinc-900 dark:text-zinc-100 py-6 px-3 sm:px-6 lg:px-8 font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+      <GlobalVyfithCloudBridge />
       <div className={`app-shell mx-auto w-full min-w-0 ${layoutMode === 'puzzle' ? 'puzzle-mode' : 'expanded-mode'}`}>
         {/* Banner discreto de modo rompecabezas en monitores grandes */}
         {/* VISTA 1: MODO VIAJE MÓVIL (Preservado para móvil / desplazamientos futuros) */}

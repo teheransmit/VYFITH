@@ -30,6 +30,7 @@ import {
   GymLiveStatus,
 } from '@/lib/upbGymStore';
 import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
+import { computeLiveHevyCorrelation } from '@/lib/hevyAnalyticsBridge';
 import MuscleHeatmap from './MuscleHeatmap';
 import HevyWorkoutsSection from './HevyWorkoutsSection';
 import HevyBodyDistribution from './HevyBodyDistribution';
@@ -70,8 +71,11 @@ export function UpbGymStatusAndKpis() {
     };
   }, []);
 
-  const totalWeeklyVolume = sessions.reduce((acc, s) => acc + s.totalVolumeKg, 0);
-  const totalWeeklySets = sessions.reduce((acc, s) => acc + s.totalSets, 0);
+  const hevyCorr = computeLiveHevyCorrelation(sessions);
+  const displayVolumeKg = hevyCorr.acute7dVolumeKg > 0 ? hevyCorr.acute7dVolumeKg : hevyCorr.activeMicrocycleVolumeKg;
+  const displaySets = hevyCorr.acute7dSets > 0 ? hevyCorr.acute7dSets : hevyCorr.activeMicrocycleSets;
+  const displayRpe = hevyCorr.rpeAverage > 0 ? hevyCorr.rpeAverage.toFixed(1) : '—';
+  const deltaSign = hevyCorr.volumeDeltaPct >= 0 ? '+' : '';
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/90 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
@@ -80,11 +84,11 @@ export function UpbGymStatusAndKpis() {
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
               <Dumbbell className="w-3.5 h-3.5 text-rose-500" />
-              Gimnasio UPB & Hevy Workouts
+              Gimnasio UPB & Hevy Workouts ({hevyCorr.totalSessionsAllTime} sesiones)
             </span>
           </div>
           <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-            Estado de Horario & KPIs de Volumen
+            Estado de Horario & KPIs de Volumen Real
           </h3>
         </div>
 
@@ -121,42 +125,44 @@ export function UpbGymStatusAndKpis() {
       {/* Grid de 4 KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
-          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Volumen Semanal</span>
+          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">
+            {hevyCorr.acute7dVolumeKg > 0 ? 'Volumen (7 días)' : 'Volumen Microciclo'}
+          </span>
           <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
-            {totalWeeklyVolume.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">kg</span>
+            {displayVolumeKg.toLocaleString()} <span className="text-[10px] font-normal text-slate-400">kg</span>
           </div>
           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block mt-0.5 truncate">
-            Climatizado UPB
+            {hevyCorr.latestSession?.name || 'Hevy Real'}
           </span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
           <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Series Efectivas</span>
           <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
-            {totalWeeklySets} <span className="text-[10px] font-normal text-slate-400">sets</span>
+            {displaySets} <span className="text-[10px] font-normal text-slate-400">sets</span>
           </div>
-          <span className="text-[10px] text-slate-400 block mt-0.5">
-            RPE prom 8.4
+          <span className="text-[10px] text-slate-400 block mt-0.5 truncate">
+            {hevyCorr.acute7dSessions} ses. en 7d
           </span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
-          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Esfuerzo Percibido</span>
+          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">RPE Real Prom.</span>
           <div className="text-lg font-black text-amber-600 mt-0.5">
-            8.4 <span className="text-[10px] font-normal text-slate-400">/ 10</span>
+            {displayRpe} <span className="text-[10px] font-normal text-slate-400">/ 10</span>
           </div>
           <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium block mt-0.5">
-            Hipertrofia
+            {hevyCorr.rpeAverage >= 9 ? 'Alta Intensidad' : 'Hipertrofia'}
           </span>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
-          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">Sobrecarga Prog.</span>
-          <div className="text-lg font-black text-emerald-600 mt-0.5 flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> +4.8%
+          <span className="text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 block">ACWR / Delta 7d</span>
+          <div className={`text-lg font-black mt-0.5 flex items-center gap-1 ${hevyCorr.acwr > 1.5 ? 'text-rose-500' : 'text-emerald-600'}`}>
+            <TrendingUp className="w-3.5 h-3.5" /> {hevyCorr.acwr.toFixed(2)}
           </div>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block mt-0.5">
-            vs mes anterior
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block mt-0.5">
+            {hevyCorr.prev7dVolumeKg > 0 ? `${deltaSign}${hevyCorr.volumeDeltaPct}% vs 7d prev` : 'Carga 7d / 28d'}
           </span>
         </div>
       </div>

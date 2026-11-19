@@ -1,21 +1,13 @@
 {
-  "recentItems": [
-    {
-      "id": 1,
-      "name": "Camiseta Negra Oversize",
-      "occasionTag": "Casual",
-      "isFavorite": true,
-      "category": "Tops",
-      "colorName": "Negro"
-    }
-  ],
-  "favoriteItems": 4,
-  "totalItems": 12,
+  "favoriteItems": 0,
+  "totalItems": 15,
   "categoriesCount": {
-    "Bottoms": 3,
-    "Outerwear": 2,
-    "Tops": 4,
-    "Calzado": 3
+    "Calzado": 3,
+    "Tops": 3,
+    "Accesorios": 3,
+    "Outerwear": 3,
+    "Bottoms": 3
   },
-  "lastSyncedAt": "2026-11-19T18:15:34.878Z"
+  "lastUpdated": "2026-11-19T21:27:38.615Z",
+  "lastSyncedAt": "2026-11-19T21:27:38.615Z"
 }

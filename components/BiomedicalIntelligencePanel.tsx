@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Activity,
   Brain,
@@ -22,6 +22,7 @@ import {
   DEFAULT_SANTIAGO_BIOMEDICAL_INPUT,
   MathematicalDiagnosticMetadata,
 } from '@/lib/biomedicalEngine';
+import { computeLiveHevyCorrelation } from '@/lib/hevyAnalyticsBridge';
 
 export default function BiomedicalIntelligencePanel() {
   const initialComputed = computeDeterministicBiomedicalAnalysis(DEFAULT_SANTIAGO_BIOMEDICAL_INPUT);
@@ -29,15 +30,144 @@ export default function BiomedicalIntelligencePanel() {
   const [inputState, setInputState] = useState<BiomedicalInputPayload>(
     initialComputed.normalizedInput
   );
+  const [liveBaselineInput, setLiveBaselineInput] = useState<BiomedicalInputPayload | null>(null);
+  const [liveSyncMeta, setLiveSyncMeta] = useState<{
+    deviceLabel: string;
+    lastSyncLabel: string;
+    waterMl: number;
+    waterGoalMl: number;
+    hevySessionsCount: number;
+    latestWorkoutLabel: string;
+  } | null>(null);
+  const [activeMode, setActiveMode] = useState<'live' | 'sweet_spot' | 'parciales_upb' | 'inhibicion_parasimpatica'>('live');
   const [prescription, setPrescription] = useState<BiomedicalPrescriptionOutput>(
     initialComputed.prescription
   );
   const [diagnostics, setDiagnostics] = useState<MathematicalDiagnosticMetadata>(
     initialComputed.diagnostics
   );
-  const [engineSource, setEngineSource] = useState<string>('Deterministic Mathematical Matrix');
+  const [engineSource, setEngineSource] = useState<string>('Telemetría Viva Correlacionada (Teléfono + Hevy)');
   const [isCalculating, setIsCalculating] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
+
+  const loadLiveTelemetry = useCallback(async (forceApply = true) => {
+    try {
+      const [healthRes, hevyRes, waterRes] = await Promise.all([
+        fetch(`/api/sync/health?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch(`/api/sync/hevy?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch(`/api/water?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+      ]);
+
+      const hData = healthRes?.data;
+      const workouts = Array.isArray(hevyRes?.workouts) ? hevyRes.workouts : [];
+      const waterToday = waterRes?.today;
+
+      const cur = hData?.currentMetrics || {};
+      const rm = hData?.vyfithData?.roomMetrics || {};
+      const totalSleep = Number(cur.sleepHours || rm.totalSleepHours || 0);
+      const deepSleep = Number(cur.deepSleepHours || rm.deepSleepHours || (totalSleep > 0 ? Number((totalSleep * 0.22).toFixed(2)) : 0));
+      const remSleep = Number(cur.remSleepHours || rm.remSleepHours || (totalSleep > 0 ? Number((totalSleep * 0.24).toFixed(2)) : 0));
+      const lightSleep = Number(
+        cur.lightSleepHours || rm.lightSleepHours || Math.max(0, Number((totalSleep - deepSleep - remSleep).toFixed(2)))
+      );
+      const awakeMins = Number(cur.awakeMinutes ?? rm.awakeMinutes ?? 18);
+      const rhr = Number(cur.heartRate || rm.restingHeartRate || 58);
+      const spo2 = Number(cur.spo2 || rm.spo2 || 97);
+      const steps = Number(cur.steps ?? rm.steps ?? 0);
+      const activeCals = Number(cur.activeCaloriesBurned || rm.activeCaloriesBurned || rm.caloriesBurned || 0);
+      const waterMl = Number(waterToday?.totalMl ?? hData?.superAppSync?.hydrationState?.totalIntakeMl ?? 0);
+      const waterGoalMl = Number(waterToday?.goalMl ?? hData?.superAppSync?.hydrationState?.dailyGoalMl ?? 2900);
+
+      const hevyCorr = computeLiveHevyCorrelation(workouts, {
+        readinessScore: Number(hData?.vyfithData?.readinessScore || 75),
+        sleepHours: totalSleep,
+        hydrationPct: waterGoalMl > 0 ? (waterMl / waterGoalMl) * 100 : 100,
+      });
+
+      const livePayload: BiomedicalInputPayload = {
+        biometrics: {
+          steps,
+          cadenceSpm: 112,
+          restingHeartRate: rhr,
+          rhrSevenDayMean: Number((rhr + 1.5).toFixed(1)),
+          rhrThirtyDaySeries: DEFAULT_SANTIAGO_BIOMEDICAL_INPUT.biometrics.rhrThirtyDaySeries?.map((v, i, arr) =>
+            i === arr.length - 1 ? rhr : Math.max(50, Math.round(rhr + ((arr.length - 1 - i) / arr.length) * 3))
+          ),
+          heartRateSeries: [
+            { bpm: Number(cur.minHeartRate || rhr), timestamp: new Date().toISOString() },
+            { bpm: Number(cur.avgHeartRate || rhr + 10), timestamp: new Date().toISOString() },
+            { bpm: Number(cur.maxHeartRate || rhr + 45), timestamp: new Date().toISOString() },
+          ],
+          sleepMetrics: {
+            totalSleepHours: Number(totalSleep.toFixed(2)),
+            deepSleepHours: Number(deepSleep.toFixed(2)),
+            remSleepHours: Number(remSleep.toFixed(2)),
+            lightSleepHours: Number(lightSleep.toFixed(2)),
+            awakeMinutes: Math.round(awakeMins),
+          },
+          spo2: {
+            average: Number(spo2.toFixed(1)),
+            minimum: Number(Math.max(92, spo2 - 1.5).toFixed(1)),
+          },
+          activeCalories: Math.round(activeCals),
+        },
+        workoutMetrics: {
+          lastWorkoutName: hevyCorr.latestSession?.name || 'Horizontal Torso (Chest & Back)',
+          totalVolumeKg: Math.round(hevyCorr.latestSession?.totalVolumeKg || 0),
+          setsCompleted: Number(hevyCorr.latestSession?.totalSets || 0),
+          rpeAverage: hevyCorr.rpeAverage || 8.5,
+          acuteLoadSevenDaysKg: hevyCorr.acute7dVolumeKg > 0 ? hevyCorr.acute7dVolumeKg : hevyCorr.activeMicrocycleVolumeKg,
+          chronicLoadTwentyEightDaysKg: hevyCorr.chronic28dVolumeKg > 0 ? hevyCorr.chronic28dVolumeKg : hevyCorr.activeMicrocycleVolumeKg * 4,
+        },
+        academicContext: {
+          activeSemester: 'Vacaciones 2026-II → Plan 2027-I (Ing. Civil UPB)',
+          criticalSubjects: ['Mecánica de Suelos (Solo Teoría)', 'Análisis de Estructuras', 'Fundamentos de Hidrología'],
+          studyHoursToday: 2.0,
+          academicMilestone: 'Normal',
+        },
+      };
+
+      setLiveBaselineInput(livePayload);
+      setLiveSyncMeta({
+        deviceLabel: hData?.deviceId || 'V2027',
+        lastSyncLabel: hData?.lastSyncTime
+          ? new Date(hData.lastSyncTime).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+          : 'en vivo',
+        waterMl,
+        waterGoalMl,
+        hevySessionsCount: hevyCorr.totalSessionsAllTime,
+        latestWorkoutLabel: hevyCorr.latestSession
+          ? `${hevyCorr.latestSession.name} (${Math.round(hevyCorr.latestSession.totalVolumeKg).toLocaleString()} kg)`
+          : 'Sin sesión Hevy',
+      });
+
+      if (forceApply) {
+        const computed = computeDeterministicBiomedicalAnalysis(livePayload);
+        setInputState(computed.normalizedInput);
+        setPrescription(computed.prescription);
+        setDiagnostics(computed.diagnostics);
+        setEngineSource('Telemetría Viva Correlacionada (Teléfono + Hevy + Agua)');
+        setActiveMode('live');
+      }
+    } catch (err) {
+      console.warn('Error cargando telemetría viva en BiomedicalIntelligencePanel:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadLiveTelemetry(true);
+    const onGlobalUpdate = () => {
+      void loadLiveTelemetry(activeMode === 'live');
+    };
+    window.addEventListener('vyfith-health-sync', onGlobalUpdate);
+    window.addEventListener('vyfith-hevy-updated', onGlobalUpdate);
+    window.addEventListener('vyfith-superapp-sync', onGlobalUpdate);
+    return () => {
+      window.removeEventListener('vyfith-health-sync', onGlobalUpdate);
+      window.removeEventListener('vyfith-hevy-updated', onGlobalUpdate);
+      window.removeEventListener('vyfith-superapp-sync', onGlobalUpdate);
+    };
+  }, [loadLiveTelemetry, activeMode]);
 
   const runBiomedicalEngine = useCallback(
     async (payloadToRun: BiomedicalInputPayload, useGemini = true) => {
@@ -76,17 +206,32 @@ export default function BiomedicalIntelligencePanel() {
   );
 
   const handlePresetScenario = (
-    scenario: 'sweet_spot' | 'parciales_upb' | 'inhibicion_parasimpatica'
+    scenario: 'live' | 'sweet_spot' | 'parciales_upb' | 'inhibicion_parasimpatica'
   ) => {
+    setActiveMode(scenario);
+    if (scenario === 'live') {
+      if (liveBaselineInput) {
+        const computed = computeDeterministicBiomedicalAnalysis(liveBaselineInput);
+        setInputState(computed.normalizedInput);
+        setPrescription(computed.prescription);
+        setDiagnostics(computed.diagnostics);
+        setEngineSource('Telemetría Viva Correlacionada (Teléfono + Hevy + Agua)');
+      } else {
+        void loadLiveTelemetry(true);
+      }
+      return;
+    }
+
     let nextInput: BiomedicalInputPayload;
+    const base = liveBaselineInput || DEFAULT_SANTIAGO_BIOMEDICAL_INPUT;
 
     if (scenario === 'sweet_spot') {
       nextInput = DEFAULT_SANTIAGO_BIOMEDICAL_INPUT;
     } else if (scenario === 'parciales_upb') {
       nextInput = {
-        ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT,
+        ...base,
         biometrics: {
-          ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT.biometrics,
+          ...base.biometrics,
           steps: 6400,
           restingHeartRate: 61,
           sleepMetrics: {
@@ -98,15 +243,12 @@ export default function BiomedicalIntelligencePanel() {
           },
         },
         workoutMetrics: {
-          ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT.workoutMetrics,
-          lastWorkoutName: 'Push Day (Pectoral, Deltoides, Tríceps)',
-          totalVolumeKg: 6850,
-          rpeAverage: 8.5,
-          acuteLoadSevenDaysKg: 31200,
-          chronicLoadTwentyEightDaysKg: 94000,
+          ...base.workoutMetrics,
+          rpeAverage: 8.8,
+          acuteLoadSevenDaysKg: Math.max(base.workoutMetrics.acuteLoadSevenDaysKg || 18000, 22000),
         },
         academicContext: {
-          ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT.academicContext,
+          ...base.academicContext,
           studyHoursToday: 7.5,
           academicMilestone: 'Semana de Parciales',
         },
@@ -114,9 +256,9 @@ export default function BiomedicalIntelligencePanel() {
     } else {
       // Escenario de Inhibición Parasimpática (RHR +5 bpm vs media 7d y Sueño Profundo < 1.3h + ACWR >= 1.5)
       nextInput = {
-        ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT,
+        ...base,
         biometrics: {
-          ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT.biometrics,
+          ...base.biometrics,
           steps: 12900,
           restingHeartRate: 65,
           rhrSevenDayMean: 59.5,
@@ -129,15 +271,13 @@ export default function BiomedicalIntelligencePanel() {
           },
         },
         workoutMetrics: {
-          ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT.workoutMetrics,
-          lastWorkoutName: 'Leg Day (Sentadilla Libre, Peso Muerto Rumano)',
-          totalVolumeKg: 9400,
+          ...base.workoutMetrics,
           rpeAverage: 9.4,
           acuteLoadSevenDaysKg: 38500,
           chronicLoadTwentyEightDaysKg: 98000,
         },
         academicContext: {
-          ...DEFAULT_SANTIAGO_BIOMEDICAL_INPUT.academicContext,
+          ...base.academicContext,
           studyHoursToday: 8.0,
           academicMilestone: 'Entrega Proyecto Final',
         },
@@ -201,27 +341,49 @@ export default function BiomedicalIntelligencePanel() {
       {/* Escenarios Rápidos y Controles del Simulador */}
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 mr-1">
-          Escenarios de Prueba:
+          Modo de Correlación:
         </span>
         <button
-          onClick={() => handlePresetScenario('sweet_spot')}
-          className="cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition-colors"
+          onClick={() => handlePresetScenario('live')}
+          className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+            activeMode === 'live'
+              ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-sm'
+              : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/30'
+          }`}
         >
-          1. Sweet Spot (ACWR 1.12 • RHR 58 bpm • N3 1.8h)
+          ● En Vivo ({liveSyncMeta ? `${inputState.biometrics.restingHeartRate} bpm • ${inputState.biometrics.sleepMetrics.totalSleepHours}h • Agua ${liveSyncMeta.waterMl}ml` : 'Teléfono + Hevy'})
         </button>
         <button
           onClick={() => handlePresetScenario('parciales_upb')}
-          className="cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 transition-colors"
+          className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+            activeMode === 'parciales_upb'
+              ? 'bg-amber-500 text-slate-950 border-amber-400'
+              : 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30'
+          }`}
         >
-          2. Semana de Parciales UPB (REM 1.2h &lt; 1.5h • Estructuras/Vías II)
+          Simular Parciales UPB (REM 1.2h)
         </button>
         <button
           onClick={() => handlePresetScenario('inhibicion_parasimpatica')}
-          className="cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 transition-colors"
+          className={`cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+            activeMode === 'inhibicion_parasimpatica'
+              ? 'bg-rose-500 text-white border-rose-400'
+              : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border-rose-500/30'
+          }`}
         >
-          3. Alerta Inhibición Parasimpática (RHR +5.5 bpm • N3 1.1h • ACWR 1.57)
+          Simular Alerta Fatiga SNC
         </button>
       </div>
+      {liveSyncMeta && activeMode === 'live' && (
+        <div className="mt-3 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-mono text-emerald-200 flex flex-wrap items-center justify-between gap-2">
+          <span>
+            🔗 Correlación viva activa: <strong>{liveSyncMeta.deviceLabel}</strong> ({liveSyncMeta.lastSyncLabel}) ↔ <strong>Hevy ({liveSyncMeta.hevySessionsCount} sesiones • {liveSyncMeta.latestWorkoutLabel})</strong>
+          </span>
+          <span>
+            Agua: {liveSyncMeta.waterMl}/{liveSyncMeta.waterGoalMl} ml • Pasos: {inputState.biometrics.steps.toLocaleString()}
+          </span>
+        </div>
+      )}
 
       {showSimulator && (
         <div className="mt-5 p-5 rounded-2xl bg-slate-800/80 border border-slate-700 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
@@ -337,7 +499,7 @@ export default function BiomedicalIntelligencePanel() {
 
       {/* Resumen Biomédico y Métricas Matemáticas */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3.5 mt-6">
-        <div className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700/80">
+        <div className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700/80 min-w-0">
           <span className="text-[11px] font-mono uppercase text-slate-400 block">
             Readiness Global
           </span>
@@ -345,24 +507,24 @@ export default function BiomedicalIntelligencePanel() {
             {prescription.readinessScore}{' '}
             <span className="text-xs font-normal text-slate-400">/ 100</span>
           </div>
-          <span className="text-[11px] text-slate-300 mt-1 block truncate">
+          <span className="text-[11px] text-slate-300 mt-1 block leading-snug break-words">
             {prescription.readinessCategory}
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700/80">
+        <div className="p-4 rounded-2xl bg-slate-800/70 border border-slate-700/80 min-w-0">
           <span className="text-[11px] font-mono uppercase text-slate-400 block">
             Ratio ACWR (7d / 28d)
           </span>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex flex-wrap items-center gap-1.5 mt-1">
             <span className="text-2xl font-extrabold text-white font-mono">
               {prescription.biomedicalSummary.acwr}
             </span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${acwrColor}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border leading-tight break-words ${acwrColor}`}>
               {prescription.biomedicalSummary.acwrStatus}
             </span>
           </div>
-          <span className="text-[10px] text-slate-400 font-mono mt-1 block">
+          <span className="text-[10px] text-slate-400 font-mono mt-1.5 block leading-snug">
             Aguda: {diagnostics.acuteWeeklyLoadKg.toLocaleString('es-CO')} kg / Crónica:{' '}
             {diagnostics.chronicWeeklyAvgKg.toLocaleString('es-CO')} kg
           </span>

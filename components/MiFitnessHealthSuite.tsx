@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SyncSessionState } from '@/lib/healthStore';
+import { normalizeIncomingVyfithPayload } from '@/lib/vyfithHealthNormalizer';
 import { getFirestoreDb } from '@/lib/firebaseClient';
 import { doc, onSnapshot } from 'firebase/firestore';
 import {
@@ -70,17 +71,21 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
           (snap) => {
             if (snap.exists()) {
               const docData = snap.data();
-              const rm = { ...(docData.hydrationState?.extendedHealthConnect || {}), ...(docData.roomMetrics || {}) };
-              const incomingSleep = Number(rm.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? 0);
-              const deepVal = Number(rm.deepSleepHours ?? docData.deepSleepHours ?? 0);
-              const hrVal = Number(rm.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
-              const spo2Val = Number(rm.spo2 ?? docData.spo2 ?? 96.5);
-              const stepsVal = Number(rm.steps ?? docData.steps ?? 0);
+              const norm = normalizeIncomingVyfithPayload(docData);
+              if (norm.isBlankEmulator) return;
+
+              const incomingSleep = norm.totalSleepHours;
+              const deepVal = norm.deepSleepHours;
+              const hrVal = norm.restingHeartRate ?? 0;
+              const spo2Val = norm.spo2 ?? 0;
+              const stepsVal = norm.steps;
 
               setInternalState((prev: any) => {
                 const prevSleep = Number(prev?.currentMetrics?.sleepHours ?? prev?.vyfithData?.roomMetrics?.totalSleepHours ?? 0);
-                const sleepVal = incomingSleep > 0 ? incomingSleep : (prevSleep > 0 ? prevSleep : 7.3);
-                const effectiveDeep = deepVal > 0 ? deepVal : Number(prev?.vyfithData?.roomMetrics?.deepSleepHours ?? 1.61);
+                const sleepVal = incomingSleep > 0 ? incomingSleep : prevSleep;
+                const effectiveDeep = deepVal > 0 ? deepVal : Number(prev?.vyfithData?.roomMetrics?.deepSleepHours ?? prev?.currentMetrics?.deepSleepHours ?? 0);
+                const effectiveHr = hrVal > 0 ? hrVal : Number(prev?.currentMetrics?.heartRate ?? prev?.vyfithData?.roomMetrics?.restingHeartRate ?? 0);
+                const effectiveSpo2 = spo2Val > 0 ? spo2Val : Number(prev?.currentMetrics?.spo2 ?? prev?.vyfithData?.roomMetrics?.spo2 ?? 0);
                 return {
                   ...prev,
                   isPaired: true,
@@ -88,31 +93,42 @@ export default function MiFitnessHealthSuite({ syncState }: MiFitnessHealthSuite
                     ...(prev?.currentMetrics || {}),
                     sleepHours: sleepVal,
                     deepSleepHours: effectiveDeep,
-                    lightSleepHours: rm.lightSleepHours ?? prev?.currentMetrics?.lightSleepHours,
-                    remSleepHours: rm.remSleepHours ?? prev?.currentMetrics?.remSleepHours,
-                    awakeMinutes: rm.awakeMinutes ?? prev?.currentMetrics?.awakeMinutes,
-                    awakeningsCount: rm.awakeningsCount ?? prev?.currentMetrics?.awakeningsCount,
-                    sleepEfficiency: rm.sleepEfficiency ?? prev?.currentMetrics?.sleepEfficiency,
-                    sleepStartTime: rm.sleepStartTime ?? prev?.currentMetrics?.sleepStartTime,
-                    sleepEndTime: rm.sleepEndTime ?? prev?.currentMetrics?.sleepEndTime,
-                    avgHeartRate: rm.avgHeartRate ?? prev?.currentMetrics?.avgHeartRate,
-                    minHeartRate: rm.minHeartRate ?? prev?.currentMetrics?.minHeartRate,
-                    maxHeartRate: rm.maxHeartRate ?? prev?.currentMetrics?.maxHeartRate,
-                    respiratoryRateBpm: rm.respiratoryRateBpm ?? prev?.currentMetrics?.respiratoryRateBpm,
-                    heartRate: hrVal,
+                    lightSleepHours: norm.lightSleepHours ?? prev?.currentMetrics?.lightSleepHours,
+                    remSleepHours: norm.remSleepHours ?? prev?.currentMetrics?.remSleepHours,
+                    awakeMinutes: norm.awakeMinutes ?? prev?.currentMetrics?.awakeMinutes,
+                    awakeningsCount: norm.awakeningsCount ?? prev?.currentMetrics?.awakeningsCount,
+                    sleepEfficiency: norm.sleepEfficiency ?? prev?.currentMetrics?.sleepEfficiency,
+                    sleepStartTime: norm.sleepStartTime ?? prev?.currentMetrics?.sleepStartTime,
+                    sleepEndTime: norm.sleepEndTime ?? prev?.currentMetrics?.sleepEndTime,
+                    avgHeartRate: norm.avgHeartRate ?? prev?.currentMetrics?.avgHeartRate,
+                    minHeartRate: norm.minHeartRate ?? prev?.currentMetrics?.minHeartRate,
+                    maxHeartRate: norm.maxHeartRate ?? prev?.currentMetrics?.maxHeartRate,
+                    respiratoryRateBpm: norm.respiratoryRateBpm ?? prev?.currentMetrics?.respiratoryRateBpm,
+                    spo2: effectiveSpo2,
+                    heartRate: effectiveHr,
                     steps: stepsVal || prev?.currentMetrics?.steps || 0,
                   },
                   vyfithData: {
                     ...(prev?.vyfithData || {}),
                     connected: true,
-                    readinessScore: Number(docData.readinessScore ?? prev?.vyfithData?.readinessScore ?? 85),
+                    readinessScore: Number(norm.readinessScore ?? prev?.vyfithData?.readinessScore ?? 75),
                     roomMetrics: {
                       ...(prev?.vyfithData?.roomMetrics || {}),
-                      ...rm,
                       totalSleepHours: sleepVal,
                       deepSleepHours: effectiveDeep,
-                      restingHeartRate: hrVal,
-                      spo2: spo2Val,
+                      lightSleepHours: norm.lightSleepHours ?? prev?.vyfithData?.roomMetrics?.lightSleepHours ?? prev?.currentMetrics?.lightSleepHours,
+                      remSleepHours: norm.remSleepHours ?? prev?.vyfithData?.roomMetrics?.remSleepHours ?? prev?.currentMetrics?.remSleepHours,
+                      awakeMinutes: norm.awakeMinutes ?? prev?.vyfithData?.roomMetrics?.awakeMinutes ?? prev?.currentMetrics?.awakeMinutes,
+                      awakeningsCount: norm.awakeningsCount ?? prev?.vyfithData?.roomMetrics?.awakeningsCount ?? prev?.currentMetrics?.awakeningsCount,
+                      sleepEfficiency: norm.sleepEfficiency ?? prev?.vyfithData?.roomMetrics?.sleepEfficiency ?? prev?.currentMetrics?.sleepEfficiency,
+                      sleepStartTime: norm.sleepStartTime ?? prev?.vyfithData?.roomMetrics?.sleepStartTime ?? prev?.currentMetrics?.sleepStartTime,
+                      sleepEndTime: norm.sleepEndTime ?? prev?.vyfithData?.roomMetrics?.sleepEndTime ?? prev?.currentMetrics?.sleepEndTime,
+                      avgHeartRate: norm.avgHeartRate ?? prev?.vyfithData?.roomMetrics?.avgHeartRate,
+                      minHeartRate: norm.minHeartRate ?? prev?.vyfithData?.roomMetrics?.minHeartRate,
+                      maxHeartRate: norm.maxHeartRate ?? prev?.vyfithData?.roomMetrics?.maxHeartRate,
+                      respiratoryRateBpm: norm.respiratoryRateBpm ?? prev?.vyfithData?.roomMetrics?.respiratoryRateBpm,
+                      restingHeartRate: effectiveHr,
+                      spo2: effectiveSpo2,
                       steps: stepsVal || prev?.vyfithData?.roomMetrics?.steps || 0,
                     },
                   },

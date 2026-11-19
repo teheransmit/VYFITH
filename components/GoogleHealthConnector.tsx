@@ -19,6 +19,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { SyncSessionState, HealthObservation } from '@/lib/healthStore';
+import { normalizeIncomingVyfithPayload } from '@/lib/vyfithHealthNormalizer';
 import { getFirestoreDb, getFirebaseAuth } from '@/lib/firebaseClient';
 import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
@@ -111,54 +112,57 @@ export default function GoogleHealthConnector({
 
     const processDocData = (docData: any, sourceTag = 'Cloud Firestore') => {
       if (!docData) return;
+      const norm = normalizeIncomingVyfithPayload(docData);
+      if (norm.isBlankEmulator) {
+        return; // Ignorar paquetes en blanco de emuladores Android
+      }
+
       const nowIso = new Date().toISOString();
       const snapshotIso = docData.updatedAt?.toDate
         ? docData.updatedAt.toDate().toISOString()
         : docData.updatedAt || nowIso;
 
-      const rm = docData.roomMetrics || {};
-      const ext = docData.hydrationState?.extendedHealthConnect || {};
-      const stepsVal = Number(rm.steps ?? ext.steps ?? docData.steps ?? docData.stepCount ?? 0);
-      const hrVal = Number(rm.restingHeartRate ?? ext.restingHeartRate ?? docData.restingHeartRate ?? docData.heartRate ?? 62);
-      const sleepVal = Number(rm.totalSleepHours ?? ext.totalSleepHours ?? docData.totalSleepHours ?? docData.sleepHours ?? docData.sleepTotalHours ?? 0);
-      const deepSleepVal = Number(rm.deepSleepHours ?? ext.deepSleepHours ?? docData.deepSleepHours ?? 0);
-      const lightSleepVal = (rm.lightSleepHours ?? ext.lightSleepHours) !== undefined ? Number(rm.lightSleepHours ?? ext.lightSleepHours) : undefined;
-      const remSleepVal = (rm.remSleepHours ?? ext.remSleepHours) !== undefined ? Number(rm.remSleepHours ?? ext.remSleepHours) : undefined;
-      const awakeMinVal = (rm.awakeMinutes ?? ext.awakeMinutes) !== undefined ? Number(rm.awakeMinutes ?? ext.awakeMinutes) : undefined;
-      const awakeningsVal = (rm.awakeningsCount ?? ext.awakeningsCount) !== undefined ? Number(rm.awakeningsCount ?? ext.awakeningsCount) : undefined;
-      const sleepEfficiencyVal = (rm.sleepEfficiency ?? ext.sleepEfficiency) !== undefined ? Number(rm.sleepEfficiency ?? ext.sleepEfficiency) : undefined;
-      const sleepStartStr = rm.sleepStartTime ?? ext.sleepStartTime ?? docData.sleepStartTime ?? null;
-      const sleepEndStr = rm.sleepEndTime ?? ext.sleepEndTime ?? docData.sleepEndTime ?? null;
-      const isFallbackRecentSleep = Boolean(rm.isFallbackRecentSleep ?? ext.isFallbackRecentSleep ?? docData.isFallbackRecentSleep);
-      const sleepDateStr = rm.sleepDate ?? ext.sleepDate ?? docData.sleepDate ?? null;
+      const stepsVal = norm.steps;
+      const hrVal = norm.restingHeartRate ?? 0;
+      const sleepVal = norm.totalSleepHours;
+      const deepSleepVal = norm.deepSleepHours;
+      const lightSleepVal = norm.lightSleepHours;
+      const remSleepVal = norm.remSleepHours;
+      const awakeMinVal = norm.awakeMinutes;
+      const awakeningsVal = norm.awakeningsCount;
+      const sleepEfficiencyVal = norm.sleepEfficiency;
+      const sleepStartStr = norm.sleepStartTime;
+      const sleepEndStr = norm.sleepEndTime;
+      const isFallbackRecentSleep = norm.isFallbackRecentSleep;
+      const sleepDateStr = norm.sleepDate;
 
-      const readinessVal = Number(docData.readinessScore ?? 85);
-      const spo2Val = Number(rm.spo2 ?? ext.spo2 ?? docData.spo2 ?? 97);
-      const calVal = Number(rm.caloriesBurned ?? ext.caloriesBurned ?? docData.caloriesBurned ?? 0);
-      const avgHrVal = (rm.avgHeartRate ?? ext.avgHeartRate) !== undefined ? Number(rm.avgHeartRate ?? ext.avgHeartRate) : undefined;
-      const minHrVal = (rm.minHeartRate ?? ext.minHeartRate) !== undefined ? Number(rm.minHeartRate ?? ext.minHeartRate) : undefined;
-      const maxHrVal = (rm.maxHeartRate ?? ext.maxHeartRate) !== undefined ? Number(rm.maxHeartRate ?? ext.maxHeartRate) : undefined;
-      const hrvVal = Number(rm.hrv ?? ext.hrv ?? docData.hrv ?? 76);
-      const distanceVal = (rm.distanceMeters ?? ext.distanceMeters) !== undefined ? Number(rm.distanceMeters ?? ext.distanceMeters) : undefined;
-      const activeCalVal = (rm.activeCaloriesBurned ?? ext.activeCaloriesBurned) !== undefined ? Number(rm.activeCaloriesBurned ?? ext.activeCaloriesBurned) : undefined;
-      const totalCalVal = (rm.totalCaloriesBurned ?? ext.totalCaloriesBurned) !== undefined ? Number(rm.totalCaloriesBurned ?? ext.totalCaloriesBurned) : undefined;
-      const bmrVal = (rm.basalMetabolicRateKcal ?? ext.basalMetabolicRateKcal) !== undefined ? Number(rm.basalMetabolicRateKcal ?? ext.basalMetabolicRateKcal) : undefined;
-      const activityMinVal = (rm.activityMinutes ?? ext.activityMinutes) !== undefined ? Number(rm.activityMinutes ?? ext.activityMinutes) : undefined;
-      const respRateVal = (rm.respiratoryRateBpm ?? ext.respiratoryRateBpm) !== undefined ? Number(rm.respiratoryRateBpm ?? ext.respiratoryRateBpm) : undefined;
-      const bpSysVal = (rm.bloodPressureSystolic ?? ext.bloodPressureSystolic) !== undefined ? Number(rm.bloodPressureSystolic ?? ext.bloodPressureSystolic) : undefined;
-      const bpDiaVal = (rm.bloodPressureDiastolic ?? ext.bloodPressureDiastolic) !== undefined ? Number(rm.bloodPressureDiastolic ?? ext.bloodPressureDiastolic) : undefined;
-      const glucoseVal = (rm.bloodGlucoseMgDl ?? ext.bloodGlucoseMgDl) !== undefined ? Number(rm.bloodGlucoseMgDl ?? ext.bloodGlucoseMgDl) : undefined;
-      const elevationVal = (rm.elevationGainedMeters ?? ext.elevationGainedMeters) !== undefined ? Number(rm.elevationGainedMeters ?? ext.elevationGainedMeters) : undefined;
-      const avgSpeedVal = (rm.avgSpeedMps ?? ext.avgSpeedMps) !== undefined ? Number(rm.avgSpeedMps ?? ext.avgSpeedMps) : undefined;
-      const powerVal = (rm.powerWatts ?? ext.powerWatts) !== undefined ? Number(rm.powerWatts ?? ext.powerWatts) : undefined;
-      const hydrationLitersVal = (rm.hydrationLiters ?? ext.hydrationLiters) !== undefined ? Number(rm.hydrationLiters ?? ext.hydrationLiters) : undefined;
+      const readinessVal = norm.readinessScore ?? 75;
+      const spo2Val = norm.spo2 ?? 0;
+      const calVal = norm.caloriesBurned ?? 0;
+      const avgHrVal = norm.avgHeartRate;
+      const minHrVal = norm.minHeartRate;
+      const maxHrVal = norm.maxHeartRate;
+      const hrvVal = norm.hrv ?? 0;
+      const distanceVal = norm.distanceMeters;
+      const activeCalVal = norm.activeCaloriesBurned;
+      const totalCalVal = norm.totalCaloriesBurned;
+      const bmrVal = norm.basalMetabolicRateKcal;
+      const activityMinVal = norm.activityMinutes;
+      const respRateVal = norm.respiratoryRateBpm;
+      const bpSysVal = norm.bloodPressureSystolic;
+      const bpDiaVal = norm.bloodPressureDiastolic;
+      const glucoseVal = norm.bloodGlucoseMgDl;
+      const elevationVal = norm.elevationGainedMeters;
+      const avgSpeedVal = norm.avgSpeedMps;
+      const powerVal = norm.powerWatts;
+      const hydrationLitersVal = norm.hydrationLiters;
 
-      const incomingHydration = docData.hydrationState || null;
-      const incomingNutrition = docData.nutritionState || docData.hydrationState?.nutritionCurrent || null;
-      const incomingMeasurement = docData.latestMeasurement || docData.hydrationState?.latestMeasurement || null;
-      const incomingFinance = docData.financeModule || docData.hydrationState?.financeModule || null;
-      const incomingCloset = docData.closetModule || docData.hydrationState?.closetModule || null;
-      const incomingNotes = docData.notesModule || docData.hydrationState?.notesModule || null;
+      const incomingHydration = norm.hydrationState;
+      const incomingNutrition = norm.nutritionState;
+      const incomingMeasurement = norm.latestMeasurement;
+      const incomingFinance = norm.financeSummary;
+      const incomingCloset = norm.closetSummary;
+      const incomingNotes = norm.notesSummary;
 
       const dynamicObservations: HealthObservation[] = [
         {
@@ -293,8 +297,8 @@ export default function GoogleHealthConnector({
           currentMetrics: {
             ...(prev?.currentMetrics || {}),
             steps: stepsVal || prev?.currentMetrics?.steps || 0,
-            hrv: hrvVal || prev?.currentMetrics?.hrv || 76,
-            heartRate: hrVal,
+            hrv: hrvVal > 0 ? hrvVal : (prev?.currentMetrics?.hrv || 0),
+            heartRate: hrVal > 0 ? hrVal : (prev?.currentMetrics?.heartRate || 0),
             avgHeartRate: avgHrVal ?? prev?.currentMetrics?.avgHeartRate,
             minHeartRate: minHrVal ?? prev?.currentMetrics?.minHeartRate,
             maxHeartRate: maxHrVal ?? prev?.currentMetrics?.maxHeartRate,
@@ -307,16 +311,26 @@ export default function GoogleHealthConnector({
             sleepEfficiency: sleepEfficiencyVal ?? prev?.currentMetrics?.sleepEfficiency,
             sleepStartTime: sleepStartStr ?? prev?.currentMetrics?.sleepStartTime,
             sleepEndTime: sleepEndStr ?? prev?.currentMetrics?.sleepEndTime,
-            spo2: spo2Val,
+            spo2: spo2Val > 0 ? spo2Val : (prev?.currentMetrics?.spo2 || 0),
             distanceMeters: distanceVal ?? prev?.currentMetrics?.distanceMeters,
             activeCaloriesBurned: activeCalVal ?? prev?.currentMetrics?.activeCaloriesBurned,
             totalCaloriesBurned: totalCalVal ?? prev?.currentMetrics?.totalCaloriesBurned,
             basalMetabolicRateKcal: bmrVal ?? prev?.currentMetrics?.basalMetabolicRateKcal,
             activityMinutes: activityMinVal ?? prev?.currentMetrics?.activityMinutes,
             respiratoryRateBpm: respRateVal ?? prev?.currentMetrics?.respiratoryRateBpm,
+            bloodPressureSystolic: bpSysVal ?? prev?.currentMetrics?.bloodPressureSystolic,
+            bloodPressureDiastolic: bpDiaVal ?? prev?.currentMetrics?.bloodPressureDiastolic,
+            bloodGlucoseMgDl: glucoseVal ?? prev?.currentMetrics?.bloodGlucoseMgDl,
+            elevationGainedMeters: elevationVal ?? prev?.currentMetrics?.elevationGainedMeters,
+            avgSpeedMps: avgSpeedVal ?? prev?.currentMetrics?.avgSpeedMps,
+            powerWatts: powerVal ?? prev?.currentMetrics?.powerWatts,
             hydrationLiters: hydrationLitersVal ?? prev?.currentMetrics?.hydrationLiters,
-            weightKg: Number(incomingMeasurement?.weightKg || prev?.currentMetrics?.weightKg || 55.7),
-            bodyFatPct: Number(incomingMeasurement?.bodyFatPct || prev?.currentMetrics?.bodyFatPct || 10.6),
+            leanBodyMassKg: norm.leanBodyMassKg ?? prev?.currentMetrics?.leanBodyMassKg,
+            boneMassKg: norm.boneMassKg ?? prev?.currentMetrics?.boneMassKg,
+            heightCm: norm.heightCm ?? prev?.currentMetrics?.heightCm,
+            watchActivitySummary: norm.watchActivitySummary ?? prev?.currentMetrics?.watchActivitySummary,
+            weightKg: Number(norm.weightKg || incomingMeasurement?.weightKg || prev?.currentMetrics?.weightKg || 55.7),
+            bodyFatPct: Number(norm.bodyFatPct || incomingMeasurement?.bodyFatPct || prev?.currentMetrics?.bodyFatPct || 10.6),
           },
           recentObservations: dynamicObservations,
           syncEvents: prev?.syncEvents || [],
@@ -353,20 +367,23 @@ export default function GoogleHealthConnector({
                 docData.geminiAnalysis?.tiempoRecuperacionHoras || 0,
             },
             roomMetrics: {
-              ...extendedRoomPayload,
+              ...(prev?.vyfithData?.roomMetrics || {}),
+              ...Object.fromEntries(
+                Object.entries(extendedRoomPayload).filter(([, v]) => v !== undefined && v !== null)
+              ),
+              steps: stepsVal || prev?.vyfithData?.roomMetrics?.steps || 0,
+              caloriesBurned: calVal || prev?.vyfithData?.roomMetrics?.caloriesBurned || 0,
               totalSleepHours: effectiveSleep,
               deepSleepHours: effectiveDeep,
+              restingHeartRate: hrVal > 0 ? hrVal : (prev?.vyfithData?.roomMetrics?.restingHeartRate ?? prev?.currentMetrics?.heartRate ?? 0),
+              spo2: spo2Val > 0 ? spo2Val : (prev?.vyfithData?.roomMetrics?.spo2 ?? prev?.currentMetrics?.spo2 ?? 0),
+              watchActivitySummary: norm.watchActivitySummary ?? prev?.vyfithData?.roomMetrics?.watchActivitySummary ?? null,
             },
-            hevySummary: {
-              lastWorkoutName:
-                docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || 'Horizontal Torso (Chest & Back)',
-              totalVolumeKg: Number(
-                docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 4484
-              ),
-              setsCompleted: Number(
-                docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 20
-              ),
-              date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
+            hevySummary: prev?.vyfithData?.hevySummary || {
+              lastWorkoutName: 'Horizontal Torso (Chest & Back)',
+              totalVolumeKg: 5940,
+              setsCompleted: 25,
+              date: '17 nov 2026',
             },
           },
         };
@@ -385,28 +402,20 @@ export default function GoogleHealthConnector({
       setNotificationMsg(`☁️ Datos recibidos en vivo vía Firestore (${sleepVal > 0 ? `${sleepVal}h sueño • ` : ''}${stepsVal} pasos)`);
       setTimeout(() => setNotificationMsg(null), 5000);
 
-      // Replicar en el endpoint local para guardar TODO en disco (Salud + Super-App 4 módulos)
+      // Replicar en el endpoint local para guardar TODO en disco (Salud + 24 métricas + Super-App 4 módulos)
       void fetch('/api/sync/health', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           source: 'VYFITH_APP',
-          deviceId: docData.deviceId || 'Vivo Y20',
+          deviceId: norm.deviceId || 'V2027',
           readinessScore: readinessVal,
-          readinessCategory: docData.readinessCategory || 'Vitalidad Óptima',
-          geminiAnalysis: docData.geminiAnalysis || {
-            diagnostico: docData.dailyCoachAiReport || docData.diagnostico,
-            recomendacionMuscular: docData.recomendacionMuscular,
-            gruposPriorizar: docData.gruposPriorizar,
-            gruposDescanso: docData.gruposDescanso,
-          },
+          readinessCategory: norm.readinessCategory || 'Recuperación Adecuada',
+          geminiAnalysis: norm.geminiAnalysis,
           roomMetrics: extendedRoomPayload,
-          hevyWorkouts: {
-            lastWorkoutName: docData.hevyWorkouts?.lastWorkoutName || docData.lastWorkoutName || 'Horizontal Torso (Chest & Back)',
-            totalVolumeKg: Number(docData.hevyWorkouts?.totalVolumeKg ?? docData.totalVolumeKg ?? 4484),
-            setsCompleted: Number(docData.hevyWorkouts?.setsCompleted ?? docData.setsCompleted ?? 20),
-            date: docData.hevyWorkouts?.date || docData.workoutDate || nowIso.slice(0, 10),
-          },
+          extendedBiometrics: docData.extendedBiometrics || undefined,
+          superAppSummary: docData.superAppSummary || undefined,
+          hevyWorkouts: docData.hevyWorkouts || undefined,
           hydrationState: incomingHydration,
           nutritionState: incomingNutrition,
           latestMeasurement: incomingMeasurement,
@@ -414,7 +423,15 @@ export default function GoogleHealthConnector({
           closetModule: incomingCloset,
           notesModule: incomingNotes,
         }),
-      }).catch(() => {});
+      })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((res) => {
+          if (res?.success && res?.data) {
+            setSyncState(res.data);
+            onSyncStateChange?.(res.data);
+          }
+        })
+        .catch(() => {});
     };
 
     // 4.A Suscripción directa al canal global (health_sync_stream/latest)

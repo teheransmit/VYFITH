@@ -110,6 +110,8 @@ export interface FullEcosystemTelemetry {
     skeletalMuscleKg: number;
     bmi: number;
     waterL: number;
+    dailyWaterMl?: number;
+    dailyWaterGoalMl?: number;
     targetWeightKg: number;
   };
   hevyDetailed: {
@@ -174,21 +176,29 @@ export function gatherFullEcosystemTelemetry(): FullEcosystemTelemetry {
   if (!healthRes.ok) {
     auditErrors.push(`real_health_state.json: ${healthRes.error}`);
   }
+  const waterRes = readJsonSafe<Record<string, any>>(
+    path.join(cwd, 'data', 'real_water_log.json')
+  );
+  const waterTodayIso = getBogotaIsoDate(0);
+  const waterToday = waterRes.data?.days?.[waterTodayIso] || healthRes.data?.superAppSync?.hydrationState;
+
   const metrics = healthRes.data?.currentMetrics || {};
   const room = healthRes.data?.vyfithData?.roomMetrics || {};
   const healthDetailed = {
-    steps: Number(metrics.steps ?? room.steps ?? 2354),
-    sleepHours: Number(metrics.sleepHours ?? room.totalSleepHours ?? 10.2),
-    sleepEfficiencyPct: 94,
-    restingHeartRate: Number(metrics.heartRate ?? room.restingHeartRate ?? 62),
-    spo2: Number(room.spo2 ?? 96.7),
+    steps: Number(metrics.steps ?? room.steps ?? 0),
+    sleepHours: Number(metrics.sleepHours ?? room.totalSleepHours ?? 0),
+    sleepEfficiencyPct: Math.round(Number(metrics.sleepEfficiency ?? room.sleepEfficiency ?? 94)),
+    restingHeartRate: Number(metrics.heartRate ?? room.restingHeartRate ?? 0),
+    spo2: Number(metrics.spo2 ?? room.spo2 ?? 0),
     stressScore: 20,
-    readinessScore: Number(healthRes.data?.vyfithData?.readinessScore ?? 67),
+    readinessScore: Number(healthRes.data?.vyfithData?.readinessScore ?? 74),
     weightKg: Number(metrics.weightKg ?? 55.7),
     bodyFatPct: Number(metrics.bodyFatPct ?? 10.6),
     skeletalMuscleKg: Number(metrics.skeletalMuscleKg ?? 25.1),
     bmi: Number(metrics.bmi ?? 18.8),
     waterL: Number(metrics.waterL ?? 32.8),
+    dailyWaterMl: Number(waterToday?.totalMl ?? waterToday?.totalIntakeMl ?? 0),
+    dailyWaterGoalMl: Number(waterToday?.goalMl ?? waterToday?.dailyGoalMl ?? 2900),
     targetWeightKg: 60,
   };
 
@@ -224,7 +234,7 @@ export function gatherFullEcosystemTelemetry(): FullEcosystemTelemetry {
         hevyMetaRes.data?.lastWorkoutDate ??
         '17 nov 2026, 17:11'
     ),
-    setsCompleted: Number(lastWorkout.setsCompleted ?? 24),
+    setsCompleted: Number(lastWorkout.totalSets ?? lastWorkout.setsCompleted ?? 0),
   };
 
   // 3. Finanzas Reales (Nequi, Nu, Efectivo, Cobros, Yessid)

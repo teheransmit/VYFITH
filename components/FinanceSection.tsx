@@ -93,6 +93,34 @@ export default function FinanceSection() {
     }
   };
 
+  const [serverAccounts, setServerAccounts] = useState<Array<{ id?: number; name: string; balance: number; type?: string }> | null>(null);
+
+  const loadServerFinanceAccounts = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/finance?t=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        const accs = json?.data?.accounts;
+        if (Array.isArray(accs) && accs.length > 0) {
+          setServerAccounts(accs);
+        }
+      }
+    } catch {
+      // fallback local
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadServerFinanceAccounts();
+    const onSync = () => void loadServerFinanceAccounts();
+    window.addEventListener('vyfith-superapp-sync', onSync);
+    window.addEventListener('vyfith-finance-updated', onSync);
+    return () => {
+      window.removeEventListener('vyfith-superapp-sync', onSync);
+      window.removeEventListener('vyfith-finance-updated', onSync);
+    };
+  }, [loadServerFinanceAccounts]);
+
   const [fridaTransferredToNu, setFridaTransferredToNu] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('vyfith_frida_to_nu') === 'true';
@@ -100,12 +128,43 @@ export default function FinanceSection() {
     return false;
   });
 
+  const syncTransferToServer = async (transferred: boolean) => {
+    try {
+      const curRes = await fetch(`/api/finance?t=${Date.now()}`, { cache: 'no-store' });
+      if (!curRes.ok) return;
+      const curJson = await curRes.json();
+      const state = curJson?.data;
+      if (!state || !Array.isArray(state.accounts)) return;
+      const nextAccounts = state.accounts.map((a: any) => {
+        if (String(a.name).toLowerCase().includes('nequi')) {
+          return { ...a, balance: transferred ? 20724.27 : 45724.27 };
+        }
+        if (String(a.name).toLowerCase().includes('nu')) {
+          return { ...a, balance: transferred ? 25000 : 0 };
+        }
+        return a;
+      });
+      await fetch('/api/finance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync', state: { ...state, accounts: nextAccounts } }),
+      });
+      setServerAccounts(nextAccounts);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('vyfith-finance-updated'));
+      }
+    } catch {
+      // ignore offline
+    }
+  };
+
   const handleTransferFridaToNu = () => {
     setFridaTransferredToNu(true);
     if (typeof window !== 'undefined') {
       localStorage.setItem('vyfith_frida_to_nu', 'true');
     }
-    setQuickNotice('💜 ¡$25.000 COP de Frida transferidos exitosamente a la Cajita Nu al 9.30% E.A.!');
+    void syncTransferToServer(true);
+    setQuickNotice('💜 ¡$25.000 COP de Frida transferidos exitosamente a la Cajita Nu al 9.30% E.A. (sincronizado en toda la plataforma)!');
   };
 
   const handleUndoTransferFrida = () => {
@@ -113,11 +172,14 @@ export default function FinanceSection() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('vyfith_frida_to_nu', 'false');
     }
-    setQuickNotice('🟣 $25.000 COP devueltos al saldo de Nequi.');
+    void syncTransferToServer(false);
+    setQuickNotice('🟣 $25.000 COP devueltos al saldo de Nequi (sincronizado en toda la plataforma).');
   };
 
-  const nequiLiquidBalance = fridaTransferredToNu ? 20724.27 : 45724.27;
-  const nuBoxBalance = fridaTransferredToNu ? 25000 : 0;
+  const nequiServerVal = serverAccounts?.find((a) => String(a.name).toLowerCase().includes('nequi'))?.balance;
+  const nuServerVal = serverAccounts?.find((a) => String(a.name).toLowerCase().includes('nu'))?.balance;
+  const nequiLiquidBalance = nequiServerVal !== undefined ? nequiServerVal : (fridaTransferredToNu ? 20724.27 : 45724.27);
+  const nuBoxBalance = nuServerVal !== undefined ? nuServerVal : (fridaTransferredToNu ? 25000 : 0);
 
   const loadCalendarWalkEvents = useCallback(async (forceRefresh = false) => {
     if (forceRefresh) {

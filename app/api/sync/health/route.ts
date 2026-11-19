@@ -5,8 +5,36 @@ import { applyWaterPayload } from '@/lib/waterStore';
 import { getDailyNutritionState, saveDailyNutritionState } from '@/lib/nutritionStore';
 import { saveBodyMeasurement } from '@/lib/bodyMeasurementsStore';
 import { readStoredFinanceState, writeStoredFinanceState } from '@/lib/financeServerStore';
+import { readStoredWorkouts } from '@/lib/hevySyncService';
+import { normalizeIncomingVyfithPayload, isWatchCardioLabel } from '@/lib/vyfithHealthNormalizer';
 import fs from 'fs';
 import path from 'path';
+
+function resolveRealHevySummary(prevSummary?: any) {
+  try {
+    const stored = readStoredWorkouts();
+    if (Array.isArray(stored) && stored.length > 0) {
+      const latest = stored[0];
+      return {
+        lastWorkoutName: latest.name,
+        totalVolumeKg: Math.round(latest.totalVolumeKg || 0),
+        setsCompleted: Number(latest.totalSets || 0),
+        date: latest.date || '',
+      };
+    }
+  } catch {
+    // fallback below
+  }
+  if (prevSummary && prevSummary.lastWorkoutName && !isWatchCardioLabel(prevSummary.lastWorkoutName)) {
+    return prevSummary;
+  }
+  return {
+    lastWorkoutName: 'Sin sincronizar',
+    totalVolumeKg: 0,
+    setsCompleted: 0,
+    date: '',
+  };
+}
 
 function persistJsonModuleFile(filename: string, payload: any) {
   try {
@@ -76,6 +104,43 @@ export async function GET() {
   if (diskData && diskData.currentMetrics) {
     state = updateHealthSyncState((s) => {
       Object.assign(s, diskData);
+      // Correlación automática: si vyfithData.hevySummary tenía actividad cardio del reloj o dato viejo, sincronizarlo con Hevy real
+      const realHevy = resolveRealHevySummary(s.vyfithData?.hevySummary);
+      if (realHevy.totalVolumeKg > 0 && s.vyfithData) {
+        if (
+          !s.vyfithData.hevySummary?.lastWorkoutName ||
+          isWatchCardioLabel(s.vyfithData.hevySummary.lastWorkoutName) ||
+          s.vyfithData.hevySummary.totalVolumeKg !== realHevy.totalVolumeKg
+        ) {
+          if (
+            s.vyfithData.hevySummary?.lastWorkoutName &&
+            isWatchCardioLabel(s.vyfithData.hevySummary.lastWorkoutName) &&
+            !s.vyfithData.roomMetrics?.watchActivitySummary
+          ) {
+            s.vyfithData.roomMetrics.watchActivitySummary = s.vyfithData.hevySummary.lastWorkoutName;
+            s.currentMetrics.watchActivitySummary = s.vyfithData.hevySummary.lastWorkoutName;
+          }
+          s.vyfithData.hevySummary = realHevy;
+        }
+      }
+      // Preservar fases de sueño en roomMetrics si existen en currentMetrics
+      if (s.vyfithData?.roomMetrics && s.currentMetrics) {
+        if (!s.vyfithData.roomMetrics.lightSleepHours && s.currentMetrics.lightSleepHours) {
+          s.vyfithData.roomMetrics.lightSleepHours = s.currentMetrics.lightSleepHours;
+        }
+        if (!s.vyfithData.roomMetrics.remSleepHours && s.currentMetrics.remSleepHours) {
+          s.vyfithData.roomMetrics.remSleepHours = s.currentMetrics.remSleepHours;
+        }
+        if (s.vyfithData.roomMetrics.awakeMinutes === undefined && s.currentMetrics.awakeMinutes !== undefined) {
+          s.vyfithData.roomMetrics.awakeMinutes = s.currentMetrics.awakeMinutes;
+        }
+        if (s.vyfithData.roomMetrics.awakeningsCount === undefined && s.currentMetrics.awakeningsCount !== undefined) {
+          s.vyfithData.roomMetrics.awakeningsCount = s.currentMetrics.awakeningsCount;
+        }
+        if (s.vyfithData.roomMetrics.sleepEfficiency === undefined && s.currentMetrics.sleepEfficiency !== undefined) {
+          s.vyfithData.roomMetrics.sleepEfficiency = s.currentMetrics.sleepEfficiency;
+        }
+      }
     });
   }
 
@@ -229,35 +294,21 @@ export async function POST(req: NextRequest) {
       const prevRoom: any = prevDisk?.vyfithData?.roomMetrics || {};
       const prevCur: any = prevDisk?.currentMetrics || {};
 
-      const incomingSleepHours = isSimulated
-        ? 8.2
-        : Number(
-            body.roomMetrics?.totalSleepHours ??
-              body.totalSleepHours ??
-              body.sleepHours ??
-              body.sleepTotalHours ??
-              0
-          );
-      const incomingSteps = isSimulated
-        ? Math.floor(Math.random() * 4000) + 9000
-        : Number(body.roomMetrics?.steps ?? body.steps ?? body.stepCount ?? 0);
+      // Normalizador unificado (roomMetrics + extendedBiometrics + superAppSummary + legacy)
+      const norm = normalizeIncomingVyfithPayload(body);
 
-      const deviceIdStr = String(body.deviceId || prevDisk?.deviceId || '');
-      const isBlankEmulator =
-        !isSimulated &&
-        (deviceIdStr.includes('sdk_gphone') ||
-          deviceIdStr.includes('Emulator') ||
-          deviceIdStr.includes('x86')) &&
-        incomingSteps === 0 &&
-        incomingSleepHours === 0;
+      const incomingSleepHours = isSimulated ? 8.2 : norm.totalSleepHours;
+      const incomingSteps = isSimulated ? Math.floor(Math.random() * 4000) + 9000 : norm.steps;
+      const isBlankEmulator = !isSimulated && norm.isBlankEmulator;
 
-      const preservePriorSleep = incomingSleepHours <= 0 && Number(prevCur?.sleepHours || prevRoom?.totalSleepHours || 0) > 0;
+      const preservePriorSleep =
+        incomingSleepHours <= 0 && Number(prevCur?.sleepHours || prevRoom?.totalSleepHours || 0) > 0;
 
       const readinessScore = isSimulated
         ? Math.floor(Math.random() * 25) + 75 // 75 - 99
         : isBlankEmulator && Number(prevDisk?.vyfithData?.readinessScore || 0) > 0
         ? Number(prevDisk.vyfithData.readinessScore)
-        : Number(body.readinessScore || prevDisk?.vyfithData?.readinessScore || 85);
+        : Number(norm.readinessScore ?? prevDisk?.vyfithData?.readinessScore ?? 75);
 
       const readinessCategory =
         readinessScore >= 80
@@ -267,19 +318,23 @@ export async function POST(req: NextRequest) {
           : 'Necesita Descanso';
 
       const prevGemini = prevDisk?.vyfithData?.geminiAnalysis;
-      const geminiAnalysis = isBlankEmulator && prevGemini?.diagnostico
-        ? prevGemini
-        : {
-            diagnostico: isSimulated
-              ? 'Análisis Gemini AI: El atleta presenta una variabilidad cardíaca (HRV) alta de 78 ms y descanso reparador (2.2 h de sueño profundo). Fatiga del SNC mínima.'
-              : body.geminiAnalysis?.diagnostico || body.diagnostico || prevGemini?.diagnostico || 'Evaluación médica deportiva completada.',
-            recomendacionMuscular: isSimulated
-              ? 'Día óptimo para levantamiento pesado de hipertrofia. Carga recomendada: RPE 8.5 en ejercicios básicos multiarticulares.'
-              : body.geminiAnalysis?.recomendacionMuscular || body.recomendacionMuscular || prevGemini?.recomendacionMuscular || 'Continuar progresión planificada.',
-            gruposPriorizar: body.geminiAnalysis?.gruposPriorizar || body.gruposPriorizar || prevGemini?.gruposPriorizar || ['Espalda / Dorsales', 'Bíceps', 'Core'],
-            gruposDescanso: body.geminiAnalysis?.gruposDescanso || body.gruposDescanso || prevGemini?.gruposDescanso || ['Piernas / Cuádriceps'],
-            tiempoRecuperacionHoras: body.geminiAnalysis?.tiempoRecuperacionHoras || body.tiempoRecuperacionHoras || prevGemini?.tiempoRecuperacionHoras || 0,
-          };
+      const geminiAnalysis =
+        isBlankEmulator && prevGemini?.diagnostico
+          ? prevGemini
+          : {
+              diagnostico: isSimulated
+                ? 'Análisis Gemini AI: El atleta presenta una variabilidad cardíaca (HRV) alta de 78 ms y descanso reparador (2.2 h de sueño profundo). Fatiga del SNC mínima.'
+                : norm.geminiAnalysis.diagnostico || prevGemini?.diagnostico || 'Evaluación médica deportiva completada.',
+              recomendacionMuscular: isSimulated
+                ? 'Día óptimo para levantamiento pesado de hipertrofia. Carga recomendada: RPE 8.5 en ejercicios básicos multiarticulares.'
+                : norm.geminiAnalysis.recomendacionMuscular || prevGemini?.recomendacionMuscular || 'Continuar progresión planificada.',
+              gruposPriorizar:
+                norm.geminiAnalysis.gruposPriorizar || prevGemini?.gruposPriorizar || ['Espalda / Dorsales', 'Bíceps', 'Core'],
+              gruposDescanso:
+                norm.geminiAnalysis.gruposDescanso || prevGemini?.gruposDescanso || ['Piernas / Cuádriceps'],
+              tiempoRecuperacionHoras:
+                norm.geminiAnalysis.tiempoRecuperacionHoras ?? prevGemini?.tiempoRecuperacionHoras ?? 0,
+            };
 
       const totalSleepHours = preservePriorSleep
         ? Number(prevRoom?.totalSleepHours ?? prevCur?.sleepHours ?? 0)
@@ -288,46 +343,53 @@ export async function POST(req: NextRequest) {
       const deepSleepHours = preservePriorSleep
         ? Number(prevRoom?.deepSleepHours ?? prevCur?.deepSleepHours ?? 0)
         : Number(
-            body.roomMetrics?.deepSleepHours ??
-              body.deepSleepHours ??
-              (isSimulated ? 2.3 : Number((totalSleepHours * 0.22).toFixed(2)))
+            positiveOrFallback(
+              norm.deepSleepHours,
+              isSimulated ? 2.3 : prevRoom?.deepSleepHours ?? prevCur?.deepSleepHours ?? 0
+            ) ?? 0
           );
 
-      const lightSleepHours = preservePriorSleep
-        ? finiteOrUndefined(prevRoom?.lightSleepHours ?? prevCur?.lightSleepHours)
-        : finiteOrUndefined(body.roomMetrics?.lightSleepHours ?? body.lightSleepHours);
+      // Siempre preservar fases de sueño previas válidas si el payload entrante no trae ese detalle
+      const lightSleepHours = positiveOrFallback(
+        preservePriorSleep ? undefined : norm.lightSleepHours,
+        prevRoom?.lightSleepHours ?? prevCur?.lightSleepHours
+      );
 
-      const remSleepHours = preservePriorSleep
-        ? finiteOrUndefined(prevRoom?.remSleepHours ?? prevCur?.remSleepHours)
-        : finiteOrUndefined(body.roomMetrics?.remSleepHours ?? body.remSleepHours);
+      const remSleepHours = positiveOrFallback(
+        preservePriorSleep ? undefined : norm.remSleepHours,
+        prevRoom?.remSleepHours ?? prevCur?.remSleepHours
+      );
 
-      const awakeMinutes = preservePriorSleep
-        ? finiteOrUndefined(prevRoom?.awakeMinutes ?? prevCur?.awakeMinutes)
-        : finiteOrUndefined(body.roomMetrics?.awakeMinutes ?? body.awakeMinutes);
+      const awakeMinutes = positiveOrFallback(
+        preservePriorSleep ? undefined : norm.awakeMinutes,
+        prevRoom?.awakeMinutes ?? prevCur?.awakeMinutes
+      );
 
-      const awakeningsCount = preservePriorSleep
-        ? finiteOrUndefined(prevRoom?.awakeningsCount ?? prevCur?.awakeningsCount)
-        : finiteOrUndefined(body.roomMetrics?.awakeningsCount ?? body.awakeningsCount);
+      const awakeningsCount = positiveOrFallback(
+        preservePriorSleep ? undefined : norm.awakeningsCount,
+        prevRoom?.awakeningsCount ?? prevCur?.awakeningsCount
+      );
 
-      const sleepEfficiency = preservePriorSleep
-        ? finiteOrUndefined(prevRoom?.sleepEfficiency ?? prevCur?.sleepEfficiency)
-        : finiteOrUndefined(body.roomMetrics?.sleepEfficiency ?? body.sleepEfficiency);
+      const sleepEfficiency = positiveOrFallback(
+        preservePriorSleep ? undefined : norm.sleepEfficiency,
+        prevRoom?.sleepEfficiency ?? prevCur?.sleepEfficiency
+      );
 
       const sleepStartTime = preservePriorSleep
         ? prevRoom?.sleepStartTime ?? prevCur?.sleepStartTime ?? null
-        : body.roomMetrics?.sleepStartTime ?? body.sleepStartTime ?? prevRoom?.sleepStartTime ?? null;
+        : norm.sleepStartTime ?? prevRoom?.sleepStartTime ?? prevCur?.sleepStartTime ?? null;
 
       const sleepEndTime = preservePriorSleep
         ? prevRoom?.sleepEndTime ?? prevCur?.sleepEndTime ?? null
-        : body.roomMetrics?.sleepEndTime ?? body.sleepEndTime ?? prevRoom?.sleepEndTime ?? null;
+        : norm.sleepEndTime ?? prevRoom?.sleepEndTime ?? prevCur?.sleepEndTime ?? null;
 
       const isFallbackRecentSleep = preservePriorSleep
         ? Boolean(prevRoom?.isFallbackRecentSleep)
-        : Boolean(body.roomMetrics?.isFallbackRecentSleep ?? body.isFallbackRecentSleep);
+        : Boolean(norm.isFallbackRecentSleep);
 
       const sleepDate = preservePriorSleep
         ? prevRoom?.sleepDate ?? null
-        : body.roomMetrics?.sleepDate ?? body.sleepDate ?? null;
+        : norm.sleepDate ?? prevRoom?.sleepDate ?? null;
 
       const steps =
         isBlankEmulator && Number(prevRoom?.steps ?? prevCur?.steps ?? 0) > 0
@@ -336,44 +398,91 @@ export async function POST(req: NextRequest) {
 
       const restingHeartRate = Number(
         positiveOrFallback(
-          body.roomMetrics?.restingHeartRate ?? body.restingHeartRate,
+          norm.restingHeartRate,
           prevRoom?.restingHeartRate ?? prevCur?.heartRate ?? (isSimulated ? Math.floor(Math.random() * 8) + 56 : 62)
         )
       );
 
-      const spo2 = Number(
-        positiveOrFallback(body.roomMetrics?.spo2 ?? body.spo2, prevRoom?.spo2 ?? prevCur?.spo2 ?? 97)
-      );
+      const spo2 = Number(positiveOrFallback(norm.spo2, prevRoom?.spo2 ?? prevCur?.spo2 ?? 97));
 
       const caloriesBurned =
         isBlankEmulator && Number(prevRoom?.caloriesBurned ?? 0) > 0
           ? Number(prevRoom.caloriesBurned)
-          : Number(body.roomMetrics?.caloriesBurned ?? body.caloriesBurned ?? (isSimulated ? 2450 : steps * 0.04));
+          : Number(norm.caloriesBurned ?? (isSimulated ? 2450 : steps * 0.04));
 
-      const avgHeartRate = positiveOrFallback(body.roomMetrics?.avgHeartRate ?? body.avgHeartRate, prevRoom?.avgHeartRate ?? prevCur?.avgHeartRate);
-      const minHeartRate = positiveOrFallback(body.roomMetrics?.minHeartRate ?? body.minHeartRate, prevRoom?.minHeartRate ?? prevCur?.minHeartRate);
-      const maxHeartRate = positiveOrFallback(body.roomMetrics?.maxHeartRate ?? body.maxHeartRate, prevRoom?.maxHeartRate ?? prevCur?.maxHeartRate);
-      const hrvVal = positiveOrFallback(body.roomMetrics?.hrv ?? body.hrv ?? body.hrvRmssdMs, prevRoom?.hrv ?? prevCur?.hrv);
-      const activeCaloriesBurned = positiveOrFallback(body.roomMetrics?.activeCaloriesBurned ?? body.activeCaloriesBurned, prevRoom?.activeCaloriesBurned ?? prevCur?.activeCaloriesBurned);
-      const totalCaloriesBurned = positiveOrFallback(body.roomMetrics?.totalCaloriesBurned ?? body.totalCaloriesBurned, prevRoom?.totalCaloriesBurned ?? prevCur?.totalCaloriesBurned);
-      const basalMetabolicRateKcal = positiveOrFallback(body.roomMetrics?.basalMetabolicRateKcal ?? body.basalMetabolicRateKcal, prevRoom?.basalMetabolicRateKcal ?? prevCur?.basalMetabolicRateKcal);
-      const distanceMeters = positiveOrFallback(body.roomMetrics?.distanceMeters ?? body.distanceMeters, prevRoom?.distanceMeters ?? prevCur?.distanceMeters);
-      const activityMinutes = positiveOrFallback(body.roomMetrics?.activityMinutes ?? body.activityMinutes, prevRoom?.activityMinutes ?? prevCur?.activityMinutes);
-      const elevationGainedMeters = positiveOrFallback(body.roomMetrics?.elevationGainedMeters ?? body.elevationGainedMeters, prevRoom?.elevationGainedMeters ?? prevCur?.elevationGainedMeters);
-      const avgSpeedMps = positiveOrFallback(body.roomMetrics?.avgSpeedMps ?? body.avgSpeedMps, prevRoom?.avgSpeedMps ?? prevCur?.avgSpeedMps);
-      const powerWatts = positiveOrFallback(body.roomMetrics?.powerWatts ?? body.powerWatts, prevRoom?.powerWatts ?? prevCur?.powerWatts);
-      const respiratoryRateBpm = positiveOrFallback(body.roomMetrics?.respiratoryRateBpm ?? body.respiratoryRateBpm, prevRoom?.respiratoryRateBpm ?? prevCur?.respiratoryRateBpm);
-      const bloodPressureSystolic = positiveOrFallback(body.roomMetrics?.bloodPressureSystolic ?? body.bloodPressureSystolic, prevRoom?.bloodPressureSystolic ?? prevCur?.bloodPressureSystolic);
-      const bloodPressureDiastolic = positiveOrFallback(body.roomMetrics?.bloodPressureDiastolic ?? body.bloodPressureDiastolic, prevRoom?.bloodPressureDiastolic ?? prevCur?.bloodPressureDiastolic);
-      const bloodGlucoseMgDl = positiveOrFallback(body.roomMetrics?.bloodGlucoseMgDl ?? body.bloodGlucoseMgDl, prevRoom?.bloodGlucoseMgDl ?? prevCur?.bloodGlucoseMgDl);
-      const weightKgVal = positiveOrFallback(body.roomMetrics?.weightKg ?? body.weightKg, prevCur?.weightKg);
-      const bodyFatPctVal = positiveOrFallback(body.roomMetrics?.bodyFatPct ?? body.bodyFatPct, prevCur?.bodyFatPct);
-      const boneMassKgVal = positiveOrFallback(body.roomMetrics?.boneMassKg ?? body.boneMassKg, prevRoom?.boneMassKg ?? prevCur?.boneMassKg);
-      const leanBodyMassKgVal = positiveOrFallback(body.roomMetrics?.leanBodyMassKg ?? body.leanBodyMassKg, prevRoom?.leanBodyMassKg ?? prevCur?.leanBodyMassKg);
-      const heightCmVal = positiveOrFallback(body.roomMetrics?.heightCm ?? body.heightCm, prevRoom?.heightCm ?? prevCur?.heightCm);
-      const hydrationLitersVal = positiveOrFallback(body.roomMetrics?.hydrationLiters ?? body.hydrationLiters, prevRoom?.hydrationLiters ?? prevCur?.hydrationLiters);
-      const nutritionCaloriesKcal = positiveOrFallback(body.roomMetrics?.nutritionCaloriesKcal ?? body.nutritionCaloriesKcal, prevRoom?.nutritionCaloriesKcal);
-      const nutritionProteinGrams = positiveOrFallback(body.roomMetrics?.nutritionProteinGrams ?? body.nutritionProteinGrams, prevRoom?.nutritionProteinGrams);
+      const avgHeartRate = positiveOrFallback(norm.avgHeartRate, prevRoom?.avgHeartRate ?? prevCur?.avgHeartRate);
+      const minHeartRate = positiveOrFallback(norm.minHeartRate, prevRoom?.minHeartRate ?? prevCur?.minHeartRate);
+      const maxHeartRate = positiveOrFallback(norm.maxHeartRate, prevRoom?.maxHeartRate ?? prevCur?.maxHeartRate);
+      const hrvVal = positiveOrFallback(norm.hrv, prevRoom?.hrv ?? prevCur?.hrv);
+      const activeCaloriesBurned = positiveOrFallback(
+        norm.activeCaloriesBurned,
+        prevRoom?.activeCaloriesBurned ?? prevCur?.activeCaloriesBurned
+      );
+      const totalCaloriesBurned = positiveOrFallback(
+        norm.totalCaloriesBurned,
+        prevRoom?.totalCaloriesBurned ?? prevCur?.totalCaloriesBurned
+      );
+      const basalMetabolicRateKcal = positiveOrFallback(
+        norm.basalMetabolicRateKcal,
+        prevRoom?.basalMetabolicRateKcal ?? prevCur?.basalMetabolicRateKcal
+      );
+      const distanceMeters = positiveOrFallback(
+        norm.distanceMeters,
+        prevRoom?.distanceMeters ?? prevCur?.distanceMeters
+      );
+      const activityMinutes = positiveOrFallback(
+        norm.activityMinutes,
+        prevRoom?.activityMinutes ?? prevCur?.activityMinutes
+      );
+      const elevationGainedMeters = positiveOrFallback(
+        norm.elevationGainedMeters,
+        prevRoom?.elevationGainedMeters ?? prevCur?.elevationGainedMeters
+      );
+      const avgSpeedMps = positiveOrFallback(norm.avgSpeedMps, prevRoom?.avgSpeedMps ?? prevCur?.avgSpeedMps);
+      const powerWatts = positiveOrFallback(norm.powerWatts, prevRoom?.powerWatts ?? prevCur?.powerWatts);
+      const respiratoryRateBpm = positiveOrFallback(
+        norm.respiratoryRateBpm,
+        prevRoom?.respiratoryRateBpm ?? prevCur?.respiratoryRateBpm
+      );
+      const bloodPressureSystolic = positiveOrFallback(
+        norm.bloodPressureSystolic,
+        prevRoom?.bloodPressureSystolic ?? prevCur?.bloodPressureSystolic
+      );
+      const bloodPressureDiastolic = positiveOrFallback(
+        norm.bloodPressureDiastolic,
+        prevRoom?.bloodPressureDiastolic ?? prevCur?.bloodPressureDiastolic
+      );
+      const bloodGlucoseMgDl = positiveOrFallback(
+        norm.bloodGlucoseMgDl,
+        prevRoom?.bloodGlucoseMgDl ?? prevCur?.bloodGlucoseMgDl
+      );
+      const weightKgVal = positiveOrFallback(norm.weightKg, prevCur?.weightKg);
+      const bodyFatPctVal = positiveOrFallback(norm.bodyFatPct, prevCur?.bodyFatPct);
+      const boneMassKgVal = positiveOrFallback(norm.boneMassKg, prevRoom?.boneMassKg ?? prevCur?.boneMassKg);
+      const leanBodyMassKgVal = positiveOrFallback(
+        norm.leanBodyMassKg,
+        prevRoom?.leanBodyMassKg ?? prevCur?.leanBodyMassKg
+      );
+      const heightCmVal = positiveOrFallback(norm.heightCm, prevRoom?.heightCm ?? prevCur?.heightCm);
+      const hydrationLitersVal = positiveOrFallback(
+        norm.hydrationLiters,
+        prevRoom?.hydrationLiters ?? prevCur?.hydrationLiters
+      );
+      const nutritionCaloriesKcal = positiveOrFallback(
+        norm.nutritionCaloriesKcal,
+        prevRoom?.nutritionCaloriesKcal
+      );
+      const nutritionProteinGrams = positiveOrFallback(
+        norm.nutritionProteinGrams,
+        prevRoom?.nutritionProteinGrams
+      );
+      const nutritionCarbsGrams = positiveOrFallback(
+        norm.nutritionCarbsGrams,
+        prevRoom?.nutritionCarbsGrams
+      );
+      const nutritionFatGrams = positiveOrFallback(norm.nutritionFatGrams, prevRoom?.nutritionFatGrams);
+      const watchActivitySummary =
+        norm.watchActivitySummary ?? prevRoom?.watchActivitySummary ?? prevCur?.watchActivitySummary ?? null;
 
       const roomMetrics = {
         steps,
@@ -413,25 +522,24 @@ export async function POST(req: NextRequest) {
         hydrationLiters: hydrationLitersVal,
         nutritionCaloriesKcal,
         nutritionProteinGrams,
+        nutritionCarbsGrams,
+        nutritionFatGrams,
+        watchActivitySummary,
       };
 
-      const hevySummary = {
-        lastWorkoutName: body.hevyWorkouts?.lastWorkoutName || body.lastWorkoutName || prevDisk?.vyfithData?.hevySummary?.lastWorkoutName || 'Horizontal Torso (Chest & Back)',
-        totalVolumeKg: Number(body.hevyWorkouts?.totalVolumeKg ?? body.totalVolumeKg ?? prevDisk?.vyfithData?.hevySummary?.totalVolumeKg ?? 4484),
-        setsCompleted: Number(body.hevyWorkouts?.setsCompleted ?? body.setsCompleted ?? prevDisk?.vyfithData?.hevySummary?.setsCompleted ?? 20),
-        date: body.hevyWorkouts?.date || body.workoutDate || prevDisk?.vyfithData?.hevySummary?.date || nowIso.slice(0, 10),
-      };
+      // Correlación estricta: Hevy real viene de real_hevy_workouts.json; cardio del reloj va a watchActivitySummary
+      const hevySummary = resolveRealHevySummary(prevDisk?.vyfithData?.hevySummary);
 
-      // Persistir módulos adicionales de la Super-App si llegan en el paquete
-      let superAppSyncNext: any = prevDisk?.superAppSync ? { ...prevDisk.superAppSync } : {};
+      // Persistir módulos adicionales de la Super-App si llegan en el paquete (soporta superAppSummary y *Module)
+      const superAppSyncNext: any = prevDisk?.superAppSync ? { ...prevDisk.superAppSync } : {};
       superAppSyncNext.lastSyncedAt = nowIso;
 
-      if (body.hydrationState && typeof body.hydrationState === 'object') {
-        const h = body.hydrationState;
-        superAppSyncNext.hydrationState = h;
+      if (norm.hydrationState && typeof norm.hydrationState === 'object') {
+        const h = norm.hydrationState;
         const totalMlVal = Number(h.totalIntakeMl ?? h.totalMl ?? 0);
-        const goalMlVal = Number(h.dailyGoalMl ?? h.goalMl ?? 3000);
+        const goalMlVal = Number(h.dailyGoalMl ?? h.goalMl ?? 2900);
         if (totalMlVal > 0 || (Array.isArray(h.entries) && h.entries.length > 0)) {
+          superAppSyncNext.hydrationState = h;
           applyWaterPayload({
             date: h.date,
             totalMl: totalMlVal,
@@ -441,39 +549,49 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const incomingNut = body.nutritionState || body.hydrationState?.nutritionCurrent;
-      if (incomingNut && typeof incomingNut === 'object') {
+      if (norm.nutritionState && typeof norm.nutritionState === 'object') {
+        const incomingNut = norm.nutritionState;
         superAppSyncNext.nutritionState = incomingNut;
         if (incomingNut.meals && typeof incomingNut.meals === 'object') {
           saveDailyNutritionState(incomingNut);
-        } else if (Number(incomingNut.calories || 0) > 0) {
+        } else if (Number(incomingNut.calories || 0) > 0 || Number(incomingNut.waterMl || 0) > 0) {
           const curNut = getDailyNutritionState();
           saveDailyNutritionState({
             ...curNut,
             date: incomingNut.date || curNut.date,
             current: {
               ...curNut.current,
-              calories: Number(incomingNut.calories ?? curNut.current.calories),
-              protein: Number(incomingNut.protein ?? curNut.current.protein),
-              carbs: Number(incomingNut.carbs ?? curNut.current.carbs),
-              fat: Number(incomingNut.fat ?? curNut.current.fat),
-              waterMl: Number(incomingNut.waterMl ?? curNut.current.waterMl),
+              calories:
+                Number(incomingNut.calories || 0) > 0
+                  ? Number(incomingNut.calories)
+                  : curNut.current.calories,
+              protein:
+                Number(incomingNut.protein || 0) > 0
+                  ? Number(incomingNut.protein)
+                  : curNut.current.protein,
+              carbs:
+                Number(incomingNut.carbs || 0) > 0 ? Number(incomingNut.carbs) : curNut.current.carbs,
+              fat: Number(incomingNut.fat || 0) > 0 ? Number(incomingNut.fat) : curNut.current.fat,
+              waterMl:
+                Number(incomingNut.waterMl || 0) > 0
+                  ? Number(incomingNut.waterMl)
+                  : curNut.current.waterMl,
             },
           });
         }
       }
 
-      const incomingMeas = body.latestMeasurement || body.hydrationState?.latestMeasurement;
-      if (incomingMeas && typeof incomingMeas === 'object' && Number(incomingMeas.weightKg || 0) > 0) {
-        superAppSyncNext.latestMeasurement = incomingMeas;
-        if (Number(incomingMeas.waistCm || 0) > 0 && body.persistMeasurement !== false) {
-          saveBodyMeasurement(incomingMeas);
+      if (norm.latestMeasurement && typeof norm.latestMeasurement === 'object' && Number(norm.latestMeasurement.weightKg || 0) > 0) {
+        superAppSyncNext.latestMeasurement = norm.latestMeasurement;
+        if (Number(norm.latestMeasurement.waistCm || 0) > 0 && body.persistMeasurement !== false) {
+          saveBodyMeasurement(norm.latestMeasurement);
         }
       }
 
-      if (body.financeModule && typeof body.financeModule === 'object') {
+      if (norm.financeSummary && !isBlankEmulator) {
         superAppSyncNext.financeSummary = {
-          ...body.financeModule,
+          ...(superAppSyncNext.financeSummary || {}),
+          ...norm.financeSummary,
           lastUpdated: nowIso,
         };
         try {
@@ -481,7 +599,7 @@ export async function POST(req: NextRequest) {
           const mergedFinance = {
             ...currentFinance,
             androidFinanceSync: {
-              ...body.financeModule,
+              ...norm.financeSummary,
               syncedAt: nowIso,
             },
           } as any;
@@ -491,24 +609,26 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      if (body.closetModule && typeof body.closetModule === 'object') {
+      if (norm.closetSummary && !isBlankEmulator) {
         superAppSyncNext.closetSummary = {
-          ...body.closetModule,
+          ...(superAppSyncNext.closetSummary || {}),
+          ...norm.closetSummary,
           lastUpdated: nowIso,
         };
         persistJsonModuleFile('real_closet_state.json', {
-          ...body.closetModule,
+          ...superAppSyncNext.closetSummary,
           lastSyncedAt: nowIso,
         });
       }
 
-      if (body.notesModule && typeof body.notesModule === 'object') {
+      if (norm.notesSummary && !isBlankEmulator) {
         superAppSyncNext.notesSummary = {
-          ...body.notesModule,
+          ...(superAppSyncNext.notesSummary || {}),
+          ...norm.notesSummary,
           lastUpdated: nowIso,
         };
         persistJsonModuleFile('real_notes_state.json', {
-          ...body.notesModule,
+          ...superAppSyncNext.notesSummary,
           lastSyncedAt: nowIso,
         });
       }
@@ -592,8 +712,15 @@ export async function POST(req: NextRequest) {
         state.lastSyncTime = nowIso;
         state.syncCount += 1;
         state.changesToken = nextToken;
-        state.deviceId = isBlankEmulator && prevDisk?.deviceId ? prevDisk.deviceId : body.deviceId || 'VYFITH-Android-Mobile';
-        state.deviceName = body.deviceName || prevDisk?.deviceName || 'VYFITH_APP (Google Health Connect)';
+        const incomingIsEmu = /sdk_gphone|emulator|x86|generic/i.test(String(body.deviceId || ''));
+        const prevRealDevice =
+          prevDisk?.deviceId && !/sdk_gphone|emulator|x86|generic/i.test(String(prevDisk.deviceId))
+            ? prevDisk.deviceId
+            : 'V2027';
+        state.deviceId = incomingIsEmu ? prevRealDevice : body.deviceId || prevRealDevice;
+        state.deviceName = incomingIsEmu
+          ? 'VYFITH_APP (Vivo Y20 + Cloud)'
+          : body.deviceName || prevDisk?.deviceName || 'VYFITH_APP (Google Health Connect)';
         state.isPaired = true;
 
         state.currentMetrics.steps = roomMetrics.steps;
@@ -627,8 +754,12 @@ export async function POST(req: NextRequest) {
         if (avgSpeedMps !== undefined) state.currentMetrics.avgSpeedMps = avgSpeedMps;
         if (powerWatts !== undefined) state.currentMetrics.powerWatts = powerWatts;
         if (hydrationLitersVal !== undefined) state.currentMetrics.hydrationLiters = hydrationLitersVal;
+        if (weightKgVal !== undefined) state.currentMetrics.weightKg = weightKgVal;
+        if (bodyFatPctVal !== undefined) state.currentMetrics.bodyFatPct = bodyFatPctVal;
+        if (leanBodyMassKgVal !== undefined) state.currentMetrics.leanBodyMassKg = leanBodyMassKgVal;
         if (boneMassKgVal !== undefined) state.currentMetrics.boneMassKg = boneMassKgVal;
         if (heightCmVal !== undefined) state.currentMetrics.heightCm = heightCmVal;
+        if (watchActivitySummary) state.currentMetrics.watchActivitySummary = watchActivitySummary;
 
         state.vyfithData = {
           connected: true,

@@ -213,7 +213,20 @@ export default function CognitivePulseSentinel({
     const interval = setInterval(() => {
       fetchInitialState();
     }, 60000);
-    return () => clearInterval(interval);
+    const onAnyEcosystemUpdate = () => {
+      void fetchInitialState();
+    };
+    window.addEventListener('vyfith-health-sync', onAnyEcosystemUpdate);
+    window.addEventListener('vyfith-hevy-updated', onAnyEcosystemUpdate);
+    window.addEventListener('vyfith-superapp-sync', onAnyEcosystemUpdate);
+    window.addEventListener('vyfith-finance-updated', onAnyEcosystemUpdate);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('vyfith-health-sync', onAnyEcosystemUpdate);
+      window.removeEventListener('vyfith-hevy-updated', onAnyEcosystemUpdate);
+      window.removeEventListener('vyfith-superapp-sync', onAnyEcosystemUpdate);
+      window.removeEventListener('vyfith-finance-updated', onAnyEcosystemUpdate);
+    };
   }, [fetchInitialState]);
 
   const handleActivateServerKeys = async () => {

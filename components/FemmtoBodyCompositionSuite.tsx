@@ -106,6 +106,13 @@ export default function FemmtoBodyCompositionSuite({
 
   useEffect(() => {
     refreshFemmtoData(true);
+    const onSync = () => refreshFemmtoData(true);
+    window.addEventListener('vyfith-health-sync', onSync);
+    window.addEventListener('vyfith-superapp-sync', onSync);
+    return () => {
+      window.removeEventListener('vyfith-health-sync', onSync);
+      window.removeEventListener('vyfith-superapp-sync', onSync);
+    };
   }, []);
 
   // Enviar nuevo pesaje al endpoint y persistir

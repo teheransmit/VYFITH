@@ -104,14 +104,84 @@
       "note": "Pago recibido de Laura por Frida ($25.000 en Nequi para pasar a Nu) | Abonos a Yessid: $4.500 helado + $26.500 trago ($31.000 total abonados recientemente)"
     }
   ],
-  "lastSynced": "2026-11-19T18:15:34.879Z",
+  "lastSynced": "2026-11-19T21:27:38.633Z",
   "androidFinanceSync": {
-    "totalLiquidityCop": 45724.27,
+    "totalLiquidityCop": 70724.27,
     "accountsCount": 3,
-    "medellinEstimatedCostCop": 584549,
-    "medellinAvailableFundCop": 45724.27,
-    "dailyLogsCount": 1,
-    "pendingWalksWeeklyCop": 0,
-    "syncedAt": "2026-11-19T18:15:34.878Z"
+    "dailyLogsCount": 6,
+    "accounts": [
+      {
+        "balance": 0,
+        "name": "Efectivo",
+        "type": "CASH"
+      },
+      {
+        "type": "NU",
+        "balance": 25000,
+        "name": "Cuenta Nu"
+      },
+      {
+        "balance": 45724.27,
+        "name": "Nequi",
+        "type": "NEQUI"
+      }
+    ],
+    "recentLogs": [
+      {
+        "rappiIncome": 0,
+        "walksIncome": 14000,
+        "netChange": 14000,
+        "dateDisplay": "31 de agosto, 2026",
+        "targetAccountName": "Efectivo",
+        "dailyExpense": 0,
+        "note": "Paseos de Sienna y Molly"
+      },
+      {
+        "rappiIncome": 22000,
+        "walksIncome": 19850,
+        "dateDisplay": "30 de agosto, 2026",
+        "dailyExpense": 0,
+        "targetAccountName": "Cuenta Nu",
+        "netChange": 41850,
+        "note": "Día completo de 3 paseos + Rappi domingo"
+      },
+      {
+        "note": "Turno Rappi noche de sábado",
+        "dailyExpense": 6000,
+        "dateDisplay": "29 de agosto, 2026",
+        "targetAccountName": "Nequi",
+        "rappiIncome": 32000,
+        "netChange": 26000,
+        "walksIncome": 0
+      },
+      {
+        "dateDisplay": "28 de agosto, 2026",
+        "rappiIncome": 18000,
+        "note": "Sienna + Frida + Turno Rappi viernes",
+        "walksIncome": 14850,
+        "targetAccountName": "Cuenta Nu",
+        "netChange": 32850,
+        "dailyExpense": 0
+      },
+      {
+        "targetAccountName": "Efectivo",
+        "dailyExpense": 3500,
+        "note": "Paseos Frida y Molly",
+        "rappiIncome": 0,
+        "walksIncome": 10850,
+        "netChange": 7350,
+        "dateDisplay": "27 de agosto, 2026"
+      },
+      {
+        "rappiIncome": 25000,
+        "walksIncome": 9000,
+        "dateDisplay": "26 de agosto, 2026",
+        "note": "Paseo Sienna mañana + 2 horas Rappi tarde",
+        "targetAccountName": "Nequi",
+        "dailyExpense": 0,
+        "netChange": 34000
+      }
+    ],
+    "syncedAt": "2026-11-19T21:27:38.615Z"
   }
 }

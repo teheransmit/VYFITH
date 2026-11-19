@@ -30,10 +30,12 @@ import FitiaNutritionSuite from './FitiaNutritionSuite';
 import WaterIntakeSuite from './WaterIntakeSuite';
 import { getUpbGymLiveStatus, GymLiveStatus } from '@/lib/upbGymStore';
 import { SyncSessionState } from '@/lib/healthStore';
+import { computeLiveHevyCorrelation } from '@/lib/hevyAnalyticsBridge';
 
 export default function UnifiedHealthFitnessSection() {
   const [activeSubView, setActiveSubView] = useState<'combined' | 'biometrics' | 'femmto' | 'mifitness' | 'gym' | 'hevy' | 'hevypro' | 'measurements' | 'fitia'>('combined');
   const [sharedHealthState, setSharedHealthState] = useState<SyncSessionState | null>(null);
+  const [hevyBadge, setHevyBadge] = useState<{ volumeKg: number; rpe: number; count: number } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -51,8 +53,47 @@ export default function UnifiedHealthFitnessSection() {
     const timer = setInterval(() => {
       setLiveGymStatus(getUpbGymLiveStatus());
     }, 30000);
-    return () => clearInterval(timer);
+
+    const loadHeroLive = () => {
+      fetch(`/api/sync/hevy?t=${Date.now()}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (Array.isArray(d?.workouts) && d.workouts.length > 0) {
+            const corr = computeLiveHevyCorrelation(d.workouts);
+            setHevyBadge({
+              volumeKg: corr.acute7dVolumeKg > 0 ? corr.acute7dVolumeKg : corr.activeMicrocycleVolumeKg,
+              rpe: corr.rpeAverage,
+              count: corr.totalSessionsAllTime,
+            });
+          }
+        })
+        .catch(() => {});
+    };
+
+    const onHealthSync = (e: any) => {
+      if (e?.detail) setSharedHealthState(e.detail);
+    };
+
+    loadHeroLive();
+    window.addEventListener('vyfith-hevy-updated', loadHeroLive);
+    window.addEventListener('vyfith-health-sync', onHealthSync);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('vyfith-hevy-updated', loadHeroLive);
+      window.removeEventListener('vyfith-health-sync', onHealthSync);
+    };
   }, []);
+
+  const liveWeight =
+    sharedHealthState?.currentMetrics?.weightKg ??
+    sharedHealthState?.superAppSync?.latestMeasurement?.weightKg ??
+    55.7;
+  const liveBodyFat =
+    sharedHealthState?.currentMetrics?.bodyFatPct ??
+    sharedHealthState?.superAppSync?.latestMeasurement?.bodyFatPct ??
+    10.6;
+  const liveMme = sharedHealthState?.currentMetrics?.skeletalMuscleKg ?? 25.1;
+  const liveDevice = sharedHealthState?.deviceId || 'V2027';
 
   return (
     <section id="unified-health-fitness-section" className="space-y-6 animate-fadeIn">
@@ -75,17 +116,17 @@ export default function UnifiedHealthFitnessSection() {
               el estado de apertura del <strong>Gimnasio UPB Montería</strong> y la sobrecarga progresiva de <strong>Hevy Workouts</strong>.
             </p>
 
-            {/* Badges Rápidos de Ecosistema */}
+            {/* Badges Rápidos de Ecosistema (100% En Vivo) */}
             <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
               <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-emerald-300 flex items-center gap-1.5 font-mono">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Vivo Y20 (V2027) • LAN 192.168.1.8</span>
+                <span>Vivo Y20 ({liveDevice}) • Cloud + LAN</span>
               </span>
 
               <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-emerald-300 flex items-center gap-1.5 font-mono">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Membresía Pagada (27/Oct) • 4:00 p.m.</span>
+                <span>Gym UPB Pagado (Vence 27/Nov)</span>
               </span>
 
               <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-rose-500/30 text-rose-300 flex items-center gap-1.5 font-mono">
@@ -98,11 +139,17 @@ export default function UnifiedHealthFitnessSection() {
 
               <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-indigo-500/30 text-indigo-300 flex items-center gap-1.5 font-mono">
                 <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
-                <span>14.280 kg / sem • RPE 8.4</span>
+                <span>
+                  {hevyBadge
+                    ? `${hevyBadge.volumeKg.toLocaleString()} kg / ciclo • RPE ${hevyBadge.rpe > 0 ? hevyBadge.rpe.toFixed(1) : '—'} (${hevyBadge.count} ses.)`
+                    : 'Sincronizando Hevy...'}
+                </span>
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-teal-500/30 text-teal-300 flex items-center gap-1.5 font-mono">
                 <Scale className="w-3.5 h-3.5 text-teal-400" />
-                <span>Femmto: 55.7 kg • 10.6% Grasa • 25.1 kg MME</span>
+                <span>
+                  Peso: {Number(liveWeight).toFixed(1)} kg • {Number(liveBodyFat).toFixed(1)}% Grasa • {Number(liveMme).toFixed(1)} kg MME
+                </span>
               </span>
             </div>
           </div>

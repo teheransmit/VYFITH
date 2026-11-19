@@ -49,7 +49,13 @@ export default function BodyMeasurementsSuite() {
   useEffect(() => {
     load();
     const id = setInterval(load, 15000);
-    return () => clearInterval(id);
+    window.addEventListener('vyfith-health-sync', load);
+    window.addEventListener('vyfith-superapp-sync', load);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('vyfith-health-sync', load);
+      window.removeEventListener('vyfith-superapp-sync', load);
+    };
   }, []);
 
   const oldest = measurements[0];

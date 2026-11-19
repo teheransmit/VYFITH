@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useSyncExternalStore, useMemo } from 'react';
+import React, { useState, useSyncExternalStore, useMemo, useEffect, useCallback } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import DateRangePicker, { DateRangeDays } from './DateRangePicker';
 import { useAcademicReactiveState } from '@/lib/useAcademicReactiveState';
+import { computeLiveHevyCorrelation } from '@/lib/hevyAnalyticsBridge';
+import type { HevyWorkoutSession } from '@/lib/hevyStore';
 
 // Hook para verificar montaje de Recharts sin mismatch de hidratación
 function subscribeNoop() {
@@ -205,21 +207,132 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
   const [selectedRange, setSelectedRange] = useState<DateRangeDays>(7);
   const [viewMode, setViewMode] = useState<'combined' | 'correlation' | 'wellness'>('combined');
 
+  const [liveHealth, setLiveHealth] = useState<any>(null);
+  const [liveWorkouts, setLiveWorkouts] = useState<HevyWorkoutSession[]>([]);
+  const [liveFinance, setLiveFinance] = useState<any>(null);
+  const [liveWater, setLiveWater] = useState<any>(null);
+
+  const loadAllLiveOverview = useCallback(async () => {
+    try {
+      const [hRes, hevyRes, finRes, watRes] = await Promise.all([
+        fetch(`/api/sync/health?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch(`/api/sync/hevy?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch(`/api/finance?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+        fetch(`/api/water?t=${Date.now()}`, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
+      ]);
+      if (hRes?.success && hRes?.data) setLiveHealth(hRes.data);
+      if (Array.isArray(hevyRes?.workouts)) setLiveWorkouts(hevyRes.workouts);
+      if (finRes) setLiveFinance(finRes.data || finRes);
+      if (watRes?.success) setLiveWater(watRes);
+    } catch (err) {
+      console.warn('Error cargando telemetría viva en DashboardOverview:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadAllLiveOverview();
+    const onUpdate = () => void loadAllLiveOverview();
+    window.addEventListener('vyfith-health-sync', onUpdate);
+    window.addEventListener('vyfith-hevy-updated', onUpdate);
+    window.addEventListener('vyfith-superapp-sync', onUpdate);
+    window.addEventListener('vyfith-finance-updated', onUpdate);
+    return () => {
+      window.removeEventListener('vyfith-health-sync', onUpdate);
+      window.removeEventListener('vyfith-hevy-updated', onUpdate);
+      window.removeEventListener('vyfith-superapp-sync', onUpdate);
+      window.removeEventListener('vyfith-finance-updated', onUpdate);
+    };
+  }, [loadAllLiveOverview]);
+
+  const hevyCorr = useMemo(() => computeLiveHevyCorrelation(liveWorkouts), [liveWorkouts]);
+
+  // Métricas en vivo desde la única fuente de verdad
+  const todaySteps = Number(liveHealth?.currentMetrics?.steps ?? liveHealth?.vyfithData?.roomMetrics?.steps ?? 0);
+  const todayRhr = Number(liveHealth?.currentMetrics?.heartRate ?? liveHealth?.vyfithData?.roomMetrics?.restingHeartRate ?? 0);
+  const todayHrv = Number(liveHealth?.currentMetrics?.hrv ?? liveHealth?.vyfithData?.roomMetrics?.hrv ?? 76);
+  const todaySleep = Number(liveHealth?.currentMetrics?.sleepHours ?? liveHealth?.vyfithData?.roomMetrics?.totalSleepHours ?? 0);
+  const sleepH = Math.floor(todaySleep);
+  const sleepM = Math.round((todaySleep - sleepH) * 60);
+  const sleepEff = Math.round(Number(liveHealth?.currentMetrics?.sleepEfficiency ?? liveHealth?.vyfithData?.roomMetrics?.sleepEfficiency ?? 94));
+  const todaySpo2 = Number(liveHealth?.currentMetrics?.spo2 ?? liveHealth?.vyfithData?.roomMetrics?.spo2 ?? 96.8);
+  const todayWeight = Number(liveHealth?.currentMetrics?.weightKg ?? liveHealth?.superAppSync?.latestMeasurement?.weightKg ?? 55.7);
+  const todayFat = Number(liveHealth?.currentMetrics?.bodyFatPct ?? liveHealth?.superAppSync?.latestMeasurement?.bodyFatPct ?? 10.6);
+  const todayMme = Number(liveHealth?.currentMetrics?.skeletalMuscleKg ?? 25.1);
+  const todayReadiness = Number(liveHealth?.vyfithData?.readinessScore ?? 75);
+  const todayWaterMl = Number(liveWater?.today?.totalMl ?? liveHealth?.superAppSync?.hydrationState?.totalIntakeMl ?? 0);
+  const todayWaterGoal = Number(liveWater?.today?.goalMl ?? liveHealth?.superAppSync?.hydrationState?.dailyGoalMl ?? 2900);
+
+  const accounts: any[] = Array.isArray(liveFinance?.accounts) ? liveFinance.accounts : [];
+  const nequiBal = Number(accounts.find((a) => String(a.name).toLowerCase().includes('nequi'))?.balance ?? 45724.27);
+  const cashBal = Number(accounts.find((a) => String(a.name).toLowerCase().includes('efectivo'))?.balance ?? 0);
+  const nuBal = Number(accounts.find((a) => String(a.name).toLowerCase().includes('nu'))?.balance ?? 0);
+
+  // Construir serie de 90 días anclada a HOY integrando los volúmenes REALES diarios de Hevy y telemetría de hoy
+  const liveSeries90 = useMemo(() => {
+    const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const now = new Date();
+    const baseMs = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const hasHevyMap = Object.keys(hevyCorr.dailyVolumeMapIso).length > 0;
+
+    return Array.from({ length: 90 }, (_, idx) => {
+      const i = 89 - idx;
+      const d = new Date(baseMs - i * oneDayMs);
+      const iso = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+      const dayName = dayNames[d.getUTCDay()];
+      const dateStr = `${d.getUTCDate()} ${monthNames[d.getUTCMonth()]}`;
+      const fullDateStr = `${d.getUTCDate()} ${monthNames[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      const baseFallback = ALL_DATA_90_DAYS[idx] || ALL_DATA_90_DAYS[ALL_DATA_90_DAYS.length - 1];
+
+      const realWorkoutVol = hasHevyMap ? (hevyCorr.dailyVolumeMapIso[iso] || 0) : baseFallback.workoutVolume;
+      const isToday = i === 0;
+
+      return {
+        day: dayName,
+        date: dateStr,
+        fullDate: fullDateStr,
+        steps: isToday && liveHealth ? todaySteps : baseFallback.steps,
+        hrv: isToday && liveHealth ? todayHrv : baseFallback.hrv,
+        workoutVolume: realWorkoutVol,
+        expense: isToday ? 0 : baseFallback.expense,
+        wellnessSpend: isToday ? 0 : baseFallback.wellnessSpend,
+      };
+    });
+  }, [hevyCorr.dailyVolumeMapIso, liveHealth, todaySteps, todayHrv]);
+
   // Filtrar los datos reactivamente según el rango seleccionado (7, 30 o 90 días)
   const chartData = useMemo(() => {
-    return ALL_DATA_90_DAYS.slice(-selectedRange);
-  }, [selectedRange]);
+    return liveSeries90.slice(-selectedRange);
+  }, [liveSeries90, selectedRange]);
 
   const startDateStr = chartData[0]?.fullDate;
   const endDateStr = chartData[chartData.length - 1]?.fullDate;
 
   // Totales y promedios calculados dinámicamente según el rango activo
   const totalSteps = useMemo(() => chartData.reduce((acc, curr) => acc + curr.steps, 0), [chartData]);
-  const avgSteps = Math.round(totalSteps / chartData.length);
+  const avgSteps = Math.round(totalSteps / Math.max(1, chartData.length));
   const totalExpense = useMemo(() => chartData.reduce((acc, curr) => acc + curr.expense, 0), [chartData]);
-  const avgHrv = Math.round(chartData.reduce((acc, curr) => acc + curr.hrv, 0) / chartData.length);
+  const avgHrv = Math.round(chartData.reduce((acc, curr) => acc + curr.hrv, 0) / Math.max(1, chartData.length));
   const totalVolumeKg = useMemo(() => chartData.reduce((acc, curr) => acc + curr.workoutVolume, 0), [chartData]);
   const workoutSessions = useMemo(() => chartData.filter((d) => d.workoutVolume > 0).length, [chartData]);
+
+  // Z-Score real de HRV respecto a la ventana activa y riesgo de lesión por ACWR
+  const hrvZScore = useMemo(() => {
+    const vals = chartData.map((d) => d.hrv);
+    const mean = vals.reduce((a, b) => a + b, 0) / Math.max(1, vals.length);
+    const variance = vals.reduce((a, b) => a + (b - mean) ** 2, 0) / Math.max(1, vals.length);
+    const std = Math.sqrt(variance) || 5;
+    return Number(((todayHrv - mean) / std).toFixed(2));
+  }, [chartData, todayHrv]);
+
+  const injuryRiskPct = hevyCorr.acwr > 1.5 ? 28.5 : hevyCorr.acwr > 1.3 ? 12.0 : hevyCorr.acwr < 0.7 ? 8.5 : 0.0;
+  const acwrZoneLabel =
+    hevyCorr.acwr >= 0.8 && hevyCorr.acwr <= 1.3
+      ? 'Zona Óptima'
+      : hevyCorr.acwr > 1.3
+      ? 'Sobrecarga Alta'
+      : 'Carga Baja / Recuperación';
 
   // Intervalo y dataKey dinámicos para el eje X según el rango temporal
   const xAxisKey = selectedRange === 7 ? 'day' : 'date';
@@ -333,55 +446,73 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
         </div>
       </div>
 
-      {/* KPI Cards Dinámicas Unslop (El Dato Manda) */}
+      {/* KPI Cards Dinámicas Unslop (100% Telemetría Viva Correlacionada) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 my-6">
         {/* Pasos */}
-        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+        <div
+          onClick={() => onNavigate?.('health')}
+          className="cursor-pointer bg-zinc-50/70 dark:bg-[#0b0d10] hover:bg-zinc-100/80 dark:hover:bg-white/[0.04] transition-colors p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Pasos Promedio</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider">Pasos Hoy (Vivo)</span>
             <Activity className="w-4 h-4 text-sky-500" />
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
-              {formatInteger(avgSteps)}
+              {formatInteger(liveHealth ? todaySteps : avgSteps)}
             </span>
           </div>
-          <span className="text-[11px] font-mono text-zinc-400 mt-1.5">Hoy: 2,354 • Meta: 10k/día</span>
+          <span className="text-[11px] font-mono text-zinc-400 mt-1.5" suppressHydrationWarning>
+            Agua: {todayWaterMl}/{todayWaterGoal} ml • Prom: {formatInteger(avgSteps)}
+          </span>
         </div>
 
-        {/* Gasto Total Filtrado */}
-        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+        {/* Liquidez Real & Egresos */}
+        <div
+          onClick={() => onNavigate?.('finance')}
+          className="cursor-pointer bg-zinc-50/70 dark:bg-[#0b0d10] hover:bg-zinc-100/80 dark:hover:bg-white/[0.04] transition-colors p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Egresos ({selectedRange} D)</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider">Liquidez Viva</span>
             <DollarSign className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
-              ${formatMoney(totalExpense)}
+              ${(nequiBal + cashBal + nuBal).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
             </span>
           </div>
-          <span className="text-[11px] font-mono text-zinc-400 mt-1.5">Nequi: $45.724,27 • Efectivo $0</span>
+          <span className="text-[11px] font-mono text-zinc-400 mt-1.5" suppressHydrationWarning>
+            Nequi: ${nequiBal.toLocaleString('es-CO', { maximumFractionDigits: 2 })} • Efectivo ${formatMoney(cashBal)}
+          </span>
         </div>
 
-        {/* VFC / HRV */}
-        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+        {/* VFC / HRV & FC Reposo */}
+        <div
+          onClick={() => onNavigate?.('health')}
+          className="cursor-pointer bg-zinc-50/70 dark:bg-[#0b0d10] hover:bg-zinc-100/80 dark:hover:bg-white/[0.04] transition-colors p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
             <span className="text-[11px] font-medium uppercase tracking-wider">HRV / Recuperación</span>
             <Heart className="w-4 h-4 text-rose-500" />
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
-              {avgHrv}
+              {todayHrv}
             </span>
             <span className="text-xs font-mono text-zinc-400">ms</span>
           </div>
-          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-1.5">FC Reposo: 62 bpm • Óptimo</span>
+          <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-1.5" suppressHydrationWarning>
+            FC Reposo: {todayRhr > 0 ? `${todayRhr} bpm` : '—'} • Score {todayReadiness}/100
+          </span>
         </div>
 
         {/* Volumen Hevy */}
-        <div className="bg-zinc-50/70 dark:bg-[#0b0d10] p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between">
+        <div
+          onClick={() => onNavigate?.('health')}
+          className="cursor-pointer bg-zinc-50/70 dark:bg-[#0b0d10] hover:bg-zinc-100/80 dark:hover:bg-white/[0.04] transition-colors p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between"
+        >
           <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Volumen Hevy</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider">Volumen Hevy ({selectedRange}D)</span>
             <Dumbbell className="w-4 h-4 text-indigo-500" />
           </div>
           <div className="flex items-baseline gap-1.5">
@@ -390,8 +521,8 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
             </span>
             <span className="text-xs font-mono text-zinc-400">kg</span>
           </div>
-          <span className="text-[11px] font-mono text-zinc-400 mt-1.5" suppressHydrationWarning>
-            202 sesiones • Full Legs 4,484 kg
+          <span className="text-[11px] font-mono text-zinc-400 mt-1.5 truncate" suppressHydrationWarning>
+            {hevyCorr.totalSessionsAllTime || 204} ses. • {hevyCorr.latestSession ? `${hevyCorr.latestSession.name.split('(')[0].trim()} ${formatInteger(hevyCorr.latestSession.totalVolumeKg)} kg` : `${workoutSessions} ses. en ${selectedRange}d`}
           </span>
         </div>
 
@@ -401,54 +532,64 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
           className="cursor-pointer bg-zinc-50/70 dark:bg-[#0b0d10] hover:bg-zinc-100/80 dark:hover:bg-white/[0.04] transition-colors p-4 rounded-2xl border border-zinc-200/80 dark:border-white/[0.07] flex flex-col justify-between col-span-2 sm:col-span-1"
         >
           <div className="flex items-center justify-between text-zinc-500 dark:text-zinc-400 mb-2">
-            <span className="text-[11px] font-medium uppercase tracking-wider">Peso (Femmto)</span>
+            <span className="text-[11px] font-medium uppercase tracking-wider">Peso (Vivo / Femmto)</span>
             <Scale className="w-4 h-4 text-teal-500" />
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-2xl sm:text-3xl font-bold font-mono tabular-nums tracking-tight text-zinc-950 dark:text-white" suppressHydrationWarning>
-              55.7
+              {todayWeight.toFixed(1)}
             </span>
-            <span className="text-xs font-mono text-zinc-400">kg • 10.6%</span>
+            <span className="text-xs font-mono text-zinc-400">kg • {todayFat.toFixed(1)}%</span>
           </div>
           <span className="text-[11px] font-mono text-teal-600 dark:text-teal-400 mt-1.5">
-            25.1 kg MME → Meta 60 kg
+            {todayMme.toFixed(1)} kg MME → Meta 60 kg
           </span>
         </div>
       </div>
 
-      {/* Telemetría ACWR & Z-Score (Unslop Carbón) */}
+      {/* Telemetría ACWR & Z-Score (100% Correlacionada en Vivo) */}
       <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-zinc-900 dark:bg-[#0b0d10] border border-zinc-800 dark:border-white/[0.08] text-white">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-white/[0.06] text-zinc-300 border border-white/10">
               <Sparkles className="w-3 h-3 text-emerald-400" />
-              <span>Modelado de Fatiga & Telemetría Z-Score</span>
+              <span>Modelado de Fatiga &amp; Telemetría Z-Score (Vivo)</span>
             </div>
             <h4 className="text-xs sm:text-sm font-bold text-white">
-              Ratio de Carga Aguda:Crónica (ACWR) & Desviación Z de Recuperación
+              Ratio de Carga Aguda:Crónica (ACWR) &amp; Desviación Z de Recuperación
             </h4>
-            <p className="text-[11px] text-zinc-400 max-w-xl">
-              Carga semanal en Hevy frente a recuperación nocturna (10h 12m, 94% eficiencia, SpO2 96.7%).
+            <p className="text-[11px] text-zinc-400 max-w-xl" suppressHydrationWarning>
+              Carga real Hevy ({formatInteger(hevyCorr.acute7dVolumeKg > 0 ? hevyCorr.acute7dVolumeKg : hevyCorr.activeMicrocycleVolumeKg)} kg / crónica {formatInteger(hevyCorr.chronicWeeklyAvgKg)} kg) frente a recuperación nocturna ({todaySleep > 0 ? `${sleepH}h ${sleepM}m` : 'Sin sueño hoy'}, {sleepEff}% eficiencia, SpO2 {todaySpo2.toFixed(1)}%).
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
             <div className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
               <span className="text-[10px] uppercase font-semibold text-zinc-400 block font-mono">Ratio ACWR</span>
-              <span className="text-base font-bold text-emerald-400 font-mono tabular-nums">1.03</span>
-              <span className="text-[9px] text-emerald-300/80 block font-mono">Zona Óptima</span>
+              <span className={`text-base font-bold font-mono tabular-nums ${hevyCorr.acwr > 1.5 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                {hevyCorr.acwr.toFixed(2)}
+              </span>
+              <span className="text-[9px] text-emerald-300/80 block font-mono">{acwrZoneLabel}</span>
             </div>
 
             <div className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
               <span className="text-[10px] uppercase font-semibold text-zinc-400 block font-mono">HRV Z-Score</span>
-              <span className="text-base font-bold text-cyan-400 font-mono tabular-nums">+0.58σ</span>
-              <span className="text-[9px] text-zinc-400 block font-mono">SNC Despejado</span>
+              <span className="text-base font-bold text-cyan-400 font-mono tabular-nums">
+                {hrvZScore >= 0 ? `+${hrvZScore}` : hrvZScore}σ
+              </span>
+              <span className="text-[9px] text-zinc-400 block font-mono">
+                {hrvZScore >= -0.5 ? 'SNC Despejado' : 'Fatiga SNC'}
+              </span>
             </div>
 
             <div className="px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-center">
               <span className="text-[10px] uppercase font-semibold text-zinc-400 block font-mono">Riesgo Lesión</span>
-              <span className="text-base font-bold text-emerald-400 font-mono tabular-nums">0.0%</span>
-              <span className="text-[9px] text-zinc-400 block font-mono">Carga Controlada</span>
+              <span className={`text-base font-bold font-mono tabular-nums ${injuryRiskPct > 15 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                {injuryRiskPct.toFixed(1)}%
+              </span>
+              <span className="text-[9px] text-zinc-400 block font-mono">
+                {injuryRiskPct === 0 ? 'Carga Controlada' : 'Vigilar Volumen'}
+              </span>
             </div>
           </div>
         </div>
@@ -649,7 +790,7 @@ export default function DashboardOverview({ onNavigate }: DashboardOverviewProps
           </p>
           {selectedRange === 7 && (
             <p suppressHydrationWarning>
-              Con <strong>10h 12m de sueño</strong> (94% eficiencia, FC reposo 62 bpm) y <strong>202 sesiones en Hevy</strong> (última carga: <strong>4,484 kg</strong> en Full Legs), tu recuperación sistémica es óptima hacia la meta de 60 kg (actual: 55.7 kg Femmto, 10.6% PGC). En caja tienes <strong>$45.724,27 COP en Nequi</strong> ($0 efectivo; $25k de Frida listos para Cajita Nu) y <strong>$295.000 COP por cobrar</strong> en calle (Richard David $180k + Maba $115k) frente a $519.000 COP restantes con Yessid.
+              Con <strong>{todaySleep > 0 ? `${sleepH}h ${sleepM}m de sueño` : 'sueño pendiente'}</strong> ({sleepEff}% eficiencia, FC reposo {todayRhr > 0 ? `${todayRhr} bpm` : '—'}, SpO2 {todaySpo2.toFixed(1)}%, agua {todayWaterMl}/{todayWaterGoal} ml) y <strong>{hevyCorr.totalSessionsAllTime || 204} sesiones en Hevy</strong> (última carga: <strong>{formatInteger(hevyCorr.latestSession?.totalVolumeKg || 5940)} kg</strong> en {hevyCorr.latestSession?.name || 'Horizontal Torso'}), tu ACWR vivo es <strong>{hevyCorr.acwr.toFixed(2)}</strong> hacia tu meta de 60 kg (actual: {todayWeight.toFixed(1)} kg, {todayFat.toFixed(1)}% PGC). En caja tienes <strong>${nequiBal.toLocaleString('es-CO', { maximumFractionDigits: 2 })} COP en Nequi</strong> (${formatMoney(cashBal)} efectivo, ${formatMoney(nuBal)} Nu) y <strong>$295.000 COP por cobrar</strong> (Richard David $180k + Maba $115k) frente a $519.000 COP restantes con Yessid.
             </p>
           )}
           {selectedRange === 30 && (

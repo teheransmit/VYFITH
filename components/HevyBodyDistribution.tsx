@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Flame, Dumbbell, Calendar, Info, Sparkles, Check, ChevronRight, Activity } from 'lucide-react';
+import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
+import { computeLiveHevyCorrelation } from '@/lib/hevyAnalyticsBridge';
 
 export interface MuscleWorkload {
   id: string;
@@ -21,53 +23,71 @@ interface HevyBodyDistributionProps {
 
 export default function HevyBodyDistribution({
   className = '',
-  initialMode = 'chest_back',
+  initialMode = 'week',
   onSelectMuscle,
 }: HevyBodyDistributionProps) {
   const [selectedMuscle, setSelectedMuscle] = useState<string>('chest');
-  const [activeDayIndex, setActiveDayIndex] = useState<number>(5); // Viernes 27 por defecto
+  const [activeDayIndex, setActiveDayIndex] = useState<number>(5);
   const [activePreset, setActivePreset] = useState<'week' | 'chest_back' | 'legs' | 'shoulders_arms'>(initialMode);
+  const [liveSessions, setLiveSessions] = useState<HevyWorkoutSession[]>(initialHevySessions);
 
-  // Días de la semana estilo Hevy
-  const weekDays = [
-    { label: 'D', day: 22, hasWorkout: false, title: 'Descanso' },
-    { label: 'L', day: 23, hasWorkout: true, title: 'Pierna & Femorales (UPB)' },
-    { label: 'M', day: 24, hasWorkout: false, title: 'Descanso / Paseos' },
-    { label: 'M', day: 25, hasWorkout: true, title: 'Vertical Torso & Hombros' },
-    { label: 'J', day: 26, hasWorkout: false, title: 'Descanso activo' },
-    { label: 'V', day: 27, hasWorkout: true, title: 'Horizontal Torso (Chest & Back)' },
-    { label: 'S', day: 28, hasWorkout: false, title: 'Recuperación' },
-  ];
+  useEffect(() => {
+    const loadHevy = () => {
+      fetch(`/api/sync/hevy?t=${Date.now()}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (Array.isArray(d?.workouts) && d.workouts.length > 0) {
+            setLiveSessions(d.workouts);
+          }
+        })
+        .catch(() => {});
+    };
+    loadHevy();
+    window.addEventListener('vyfith-hevy-updated', loadHevy);
+    return () => window.removeEventListener('vyfith-hevy-updated', loadHevy);
+  }, []);
 
-  // Presets de activación muscular basados en los entrenamientos reales de Hevy de Santiago
+  const liveCorr = useMemo(() => computeLiveHevyCorrelation(liveSessions), [liveSessions]);
+
+  // Días de la semana dinámicos anclados a la fecha real de hoy
+  const weekDays = useMemo(() => {
+    const dayLabels = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay());
+    return Array.from({ length: 7 }, (_, idx) => {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + idx);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const vol = liveCorr.dailyVolumeMapIso[iso] || 0;
+      return {
+        label: dayLabels[idx],
+        day: d.getDate(),
+        hasWorkout: vol > 0,
+        title: vol > 0 ? `${vol.toLocaleString()} kg en Hevy` : 'Descanso / Recuperación',
+      };
+    });
+  }, [liveCorr.dailyVolumeMapIso]);
+
+  // Distribución muscular 100% viva calculada desde real_hevy_workouts.json
   const muscleData = useMemo(() => {
+    const mv = liveCorr.muscleVolumes;
     const base: Record<string, MuscleWorkload> = {
-      // Pectorales
-      chest: { id: 'chest', name: 'Pectorales (Pecho)', category: 'chest', sets: 16, volumeKg: 2850, lastExercise: 'Press Banca con Barra 65 kg', view: 'front' },
-      
-      // Espalda
-      lats: { id: 'lats', name: 'Dorsales (V-Taper)', category: 'back', sets: 14, volumeKg: 2420, lastExercise: 'Jalón al Pecho Polea 75 kg', view: 'back' },
-      traps: { id: 'traps', name: 'Trapecios (Espalda Alta)', category: 'back', sets: 8, volumeKg: 1350, lastExercise: 'Remo con Barra 60 kg', view: 'back' },
-      lower_back: { id: 'lower_back', name: 'Erectores Espinales (Lumbar)', category: 'back', sets: 6, volumeKg: 1100, lastExercise: 'Hiperextensiones Lumbar', view: 'back' },
-
-      // Hombros
-      deltoids_front: { id: 'deltoids_front', name: 'Deltoides Anterior', category: 'shoulders', sets: 10, volumeKg: 1200, lastExercise: 'Press Militar Mancuernas 22 kg', view: 'front' },
-      deltoids_lateral: { id: 'deltoids_lateral', name: 'Deltoides Lateral', category: 'shoulders', sets: 12, volumeKg: 950, lastExercise: 'Elevaciones Laterales en Polea', view: 'both' },
-      deltoids_rear: { id: 'deltoids_rear', name: 'Deltoides Posterior', category: 'shoulders', sets: 8, volumeKg: 780, lastExercise: 'Face Pulls en Cuerda', view: 'back' },
-
-      // Brazos
-      biceps: { id: 'biceps', name: 'Bíceps (Braquial)', category: 'arms', sets: 10, volumeKg: 1150, lastExercise: 'Curl Inclinado Mancuernas 14 kg', view: 'front' },
-      triceps: { id: 'triceps', name: 'Tríceps (Lateral & Larga)', category: 'arms', sets: 14, volumeKg: 1680, lastExercise: 'Press Francés 30 kg', view: 'back' },
-      forearms: { id: 'forearms', name: 'Antebrazos & Agarre', category: 'arms', sets: 8, volumeKg: 890, lastExercise: 'Paseo del Granjero con Mancuernas', view: 'both' },
-
-      // Core
-      abs: { id: 'abs', name: 'Recto Abdominal & Oblicuos', category: 'core', sets: 10, volumeKg: 650, lastExercise: 'Elevaciones de Piernas Colgado', view: 'front' },
-
-      // Piernas
-      quads: { id: 'quads', name: 'Cuádriceps', category: 'legs', sets: 14, volumeKg: 3200, lastExercise: 'Sentadilla Profunda 80 kg & Prensa 45°', view: 'front' },
-      hamstrings: { id: 'hamstrings', name: 'Isquiotibiales (Femorales)', category: 'legs', sets: 10, volumeKg: 2100, lastExercise: 'Peso Muerto Rumano 70 kg', view: 'back' },
-      glutes: { id: 'glutes', name: 'Glúteos', category: 'legs', sets: 8, volumeKg: 1800, lastExercise: 'Hip Thrust con Barra 90 kg', view: 'back' },
-      calves: { id: 'calves', name: 'Pantorrillas (Gemelos)', category: 'legs', sets: 8, volumeKg: 950, lastExercise: 'Elevación de Talones en Máquina 60 kg', view: 'both' },
+      chest: { id: 'chest', name: 'Pectorales (Pecho)', category: 'chest', sets: mv.chest.sets, volumeKg: mv.chest.volumeKg, lastExercise: mv.chest.lastExercise, view: 'front' },
+      lats: { id: 'lats', name: 'Dorsales (V-Taper)', category: 'back', sets: mv.back.sets, volumeKg: mv.back.volumeKg, lastExercise: mv.back.lastExercise, view: 'back' },
+      traps: { id: 'traps', name: 'Trapecios (Espalda Alta)', category: 'back', sets: Math.round(mv.back.sets * 0.5), volumeKg: Math.round(mv.back.volumeKg * 0.4), lastExercise: mv.back.lastExercise, view: 'back' },
+      lower_back: { id: 'lower_back', name: 'Erectores Espinales (Lumbar)', category: 'back', sets: Math.round(mv.back.sets * 0.3), volumeKg: Math.round(mv.back.volumeKg * 0.25), lastExercise: mv.back.lastExercise, view: 'back' },
+      deltoids_front: { id: 'deltoids_front', name: 'Deltoides Anterior', category: 'shoulders', sets: mv.shoulders.sets, volumeKg: mv.shoulders.volumeKg, lastExercise: mv.shoulders.lastExercise, view: 'front' },
+      deltoids_lateral: { id: 'deltoids_lateral', name: 'Deltoides Lateral', category: 'shoulders', sets: mv.shoulders.sets, volumeKg: mv.shoulders.volumeKg, lastExercise: mv.shoulders.lastExercise, view: 'both' },
+      deltoids_rear: { id: 'deltoids_rear', name: 'Deltoides Posterior', category: 'shoulders', sets: Math.round(mv.shoulders.sets * 0.6), volumeKg: Math.round(mv.shoulders.volumeKg * 0.5), lastExercise: mv.shoulders.lastExercise, view: 'back' },
+      biceps: { id: 'biceps', name: 'Bíceps (Braquial)', category: 'arms', sets: mv.biceps.sets, volumeKg: mv.biceps.volumeKg, lastExercise: mv.biceps.lastExercise, view: 'front' },
+      triceps: { id: 'triceps', name: 'Tríceps (Lateral & Larga)', category: 'arms', sets: mv.triceps.sets, volumeKg: mv.triceps.volumeKg, lastExercise: mv.triceps.lastExercise, view: 'back' },
+      forearms: { id: 'forearms', name: 'Antebrazos & Agarre', category: 'arms', sets: Math.max(2, Math.round(mv.biceps.sets * 0.5)), volumeKg: Math.round(mv.biceps.volumeKg * 0.4), lastExercise: mv.biceps.lastExercise, view: 'both' },
+      abs: { id: 'abs', name: 'Recto Abdominal & Oblicuos', category: 'core', sets: Math.max(4, Math.round((mv.chest.sets + mv.quads.sets) * 0.2)), volumeKg: 0, lastExercise: 'Estabilización en compuestos', view: 'front' },
+      quads: { id: 'quads', name: 'Cuádriceps', category: 'legs', sets: mv.quads.sets, volumeKg: mv.quads.volumeKg, lastExercise: mv.quads.lastExercise, view: 'front' },
+      hamstrings: { id: 'hamstrings', name: 'Isquiotibiales (Femorales)', category: 'legs', sets: mv.hamstrings.sets, volumeKg: mv.hamstrings.volumeKg, lastExercise: mv.hamstrings.lastExercise, view: 'back' },
+      glutes: { id: 'glutes', name: 'Glúteos', category: 'legs', sets: Math.round((mv.quads.sets + mv.hamstrings.sets) * 0.4), volumeKg: Math.round((mv.quads.volumeKg + mv.hamstrings.volumeKg) * 0.35), lastExercise: mv.hamstrings.lastExercise, view: 'back' },
+      calves: { id: 'calves', name: 'Pantorrillas (Gemelos)', category: 'legs', sets: mv.calves.sets, volumeKg: mv.calves.volumeKg, lastExercise: mv.calves.lastExercise, view: 'both' },
     };
 
     if (activePreset === 'chest_back') {
@@ -104,7 +124,7 @@ export default function HevyBodyDistribution({
     }
 
     return base;
-  }, [activePreset]);
+  }, [activePreset, liveCorr]);
 
   const isWorked = (id: string) => {
     return (muscleData[id]?.sets || 0) > 0;
