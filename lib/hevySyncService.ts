@@ -692,14 +692,32 @@ export const HEVY_LOGIN_LAUNCHER_PATH = path.join(process.cwd(), 'Conectar_Hevy_
 type BridgeGlobalState = {
   promise: Promise<any> | null;
   cmd: string | null;
+  startedAt: number;
 };
 
 function getGlobalBridgeState(): BridgeGlobalState {
   const g = globalThis as unknown as { __vyfithHevyBridge?: BridgeGlobalState };
   if (!g.__vyfithHevyBridge) {
-    g.__vyfithHevyBridge = { promise: null, cmd: null };
+    g.__vyfithHevyBridge = { promise: null, cmd: null, startedAt: 0 };
   }
   return g.__vyfithHevyBridge;
+}
+
+function hasActiveBridgeLockFile(): boolean {
+  try {
+    const lockPath = path.join(process.cwd(), '.hevy-chrome-profile', 'bridge.lock');
+    if (!fs.existsSync(lockPath)) return false;
+    const raw = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    if (!raw?.pid) return false;
+    try {
+      process.kill(Number(raw.pid), 0);
+      return true;
+    } catch {
+      return false;
+    }
+  } catch {
+    return false;
+  }
 }
 
 export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000): Promise<any> {
@@ -711,6 +729,18 @@ export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000)
   const isForceLogin = cmd === 'login' && args.includes('--force');
   const gState = getGlobalBridgeState();
 
+  // Limpiar estado obsoleto si el proceso previo ya murió o si el usuario ya se autenticó externamente
+  if (gState.promise) {
+    const ageMs = Date.now() - (gState.startedAt || 0);
+    const lockAlive = hasActiveBridgeLockFile();
+    const alreadyAuth = readHevyBridgeAuthStatus().authenticated;
+    if (ageMs > 180000 || (!lockAlive && ageMs > 4000) || (gState.cmd === 'login' && alreadyAuth)) {
+      gState.promise = null;
+      gState.cmd = null;
+      gState.startedAt = 0;
+    }
+  }
+
   // Si hay una sesión de login interactivo abierta y entra un export-csv o status concurrente, no lanzar un 2do Chrome sobre el mismo perfil
   if (gState.promise) {
     if (gState.cmd === 'login' && cmd !== 'login') {
@@ -721,13 +751,12 @@ export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000)
       };
     }
     if (isForceLogin) {
-      // Permitir reiniciar limpiamente una ventana de login atascada u oculta
       gState.promise = null;
       gState.cmd = null;
+      gState.startedAt = 0;
     } else if (gState.cmd === cmd) {
       return gState.promise;
     } else {
-      // Esperar a que termine la operación previa antes de abrir el perfil .hevy-chrome-profile
       await gState.promise.catch(() => {});
     }
   }
@@ -766,10 +795,12 @@ export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000)
     });
 
   gState.cmd = cmd;
+  gState.startedAt = Date.now();
   gState.promise = execPromise.finally(() => {
     if (gState.promise === execPromise) {
       gState.promise = null;
       gState.cmd = null;
+      gState.startedAt = 0;
     }
   });
 
@@ -889,6 +920,12 @@ export async function syncAllWorkoutsReal(options?: {
         addedCount += merged.addedCount;
         updatedCount += merged.updatedCount;
         sourceUsed = 'hevy_web_live_export';
+
+        // Refrescar también las 4 rutinas vivas en data/real_hevy_routines.json si hubo entrenamientos nuevos o no existen aún
+        const routinesFile = path.join(process.cwd(), 'data', 'real_hevy_routines.json');
+        if (options?.liveBrowser || merged.addedCount > 0 || !fs.existsSync(routinesFile)) {
+          await runHevyWebBridgeCommand(['export-routines'], 95000).catch(() => {});
+        }
       } else if (bridgeRes?.requiresLogin) {
         requiresBrowserAuth = true;
         browserBridgeAuthenticated = false;
@@ -1043,5 +1080,180 @@ export async function pushPrescriptionToHevyExternal(params: {
     message: bridgeRes?.requiresLogin
       ? 'Prescripción guardada SOLO en VYFITH local. NO se modificó Hevy todavía porque tu cuenta es Free (sin API PRO) y falta iniciar sesión 1 vez en el puente Chrome Hevy Web.'
       : `Prescripción guardada SOLO en VYFITH local. No se pudo confirmar edición en Hevy Web: ${bridgeRes?.error || 'puente no conectado'}.`,
+  };
+}
+
+export function readHevyBridgeAuthStatus(): {
+  authenticated: boolean;
+  accountName: string | null;
+  checkedAt: string | null;
+} {
+  try {
+    const sessionStatePath = path.join(process.cwd(), '.hevy-chrome-profile', 'session_state.json');
+    if (fs.existsSync(sessionStatePath)) {
+      const st = JSON.parse(fs.readFileSync(sessionStatePath, 'utf8'));
+      return {
+        authenticated: Boolean(st?.authenticated),
+        accountName: st?.accountName || null,
+        checkedAt: st?.checkedAt || null,
+      };
+    }
+  } catch {
+    // ignore
+  }
+  return { authenticated: false, accountName: null, checkedAt: null };
+}
+
+export async function exportLiveRoutinesFromHevy(): Promise<{
+  ok: boolean;
+  requiresLogin?: boolean;
+  routineCount?: number;
+  error?: string;
+}> {
+  const res = await runHevyWebBridgeCommand(['export-routines'], 95000);
+  if (res?.ok) {
+    return { ok: true, routineCount: res.routineCount || 0 };
+  }
+  return {
+    ok: false,
+    requiresLogin: Boolean(res?.requiresLogin),
+    error: res?.error || 'No se pudieron exportar las rutinas desde Hevy Web.',
+  };
+}
+
+export async function applyRoutinePlanToHevyExternal(params: {
+  routineTitle: string;
+  routineShortId?: string;
+  routineUuid?: string;
+  applyOptions: {
+    weightsAndReps: boolean;
+    restTimers: boolean;
+    notes: boolean;
+    reorder: boolean;
+    removeMarked: boolean;
+  };
+  exercises: Array<{
+    exerciseName: string;
+    esTitle?: string;
+    keepExercise?: boolean;
+    suggestedOrderIndex?: number;
+    suggestedRestSeconds?: number;
+    pinnedNote?: string;
+    targetWeightKg?: number;
+    targetWeightLbs?: number;
+    setSuggestions?: Array<{
+      setNumber: number;
+      isWarmup?: boolean;
+      suggestedWeightKg: number;
+      suggestedWeightLbs?: number;
+      suggestedReps: number;
+      suggestedRepRange?: string;
+    }>;
+  }>;
+}): Promise<{
+  syncedToHevy: boolean;
+  verifiedHttp200: boolean;
+  httpStatus?: number;
+  method: 'hevy_web_playwright' | 'local_plan_only';
+  requiresLogin?: boolean;
+  backupSaved?: boolean;
+  backupFile?: string | null;
+  routineUrl?: string;
+  editUrl?: string;
+  modifiedExercises: any[];
+  restTimersUpdated: any[];
+  notesUpdated: string[];
+  removedExercises: string[];
+  reorderedCount: number;
+  finalOrderTitles: string[];
+  notFound: string[];
+  verifiedExerciseCount?: number | null;
+  message: string;
+}> {
+  const known = findKnownRoutine(params.routineShortId || params.routineTitle);
+  const shortId = params.routineShortId || known?.routineId || '';
+  const uuid = params.routineUuid || known?.routineUuid || '';
+
+  fs.mkdirSync(IMPORTS_DIR, { recursive: true });
+  const tempPayloadPath = path.join(IMPORTS_DIR, 'pending_routine_plan.json');
+  const fullPayload = {
+    routineTitle: params.routineTitle,
+    routineShortId: shortId,
+    routineUuid: uuid,
+    applyOptions: params.applyOptions,
+    exercises: params.exercises.map((ex) => ({
+      ...ex,
+      esTitle: ex.esTitle || translateExerciseTitle(ex.exerciseName),
+    })),
+  };
+  fs.writeFileSync(tempPayloadPath, JSON.stringify(fullPayload, null, 2), 'utf8');
+
+  const args = [
+    'apply-routine-plan',
+    '--routine-name',
+    params.routineTitle,
+    ...(shortId ? ['--routine-id', shortId] : []),
+    ...(uuid ? ['--routine-uuid', uuid] : []),
+    '--payload-file',
+    tempPayloadPath,
+  ];
+
+  const bridgeRes = await runHevyWebBridgeCommand(args, 120000);
+
+  if (bridgeRes?.ok && bridgeRes?.verifiedHttp200) {
+    const modCount = Array.isArray(bridgeRes.modifiedExercises) ? bridgeRes.modifiedExercises.length : 0;
+    const restCount = Array.isArray(bridgeRes.restTimersUpdated) ? bridgeRes.restTimersUpdated.length : 0;
+    const notesCount = Array.isArray(bridgeRes.notesUpdated) ? bridgeRes.notesUpdated.length : 0;
+    const remCount = Array.isArray(bridgeRes.removedExercises) ? bridgeRes.removedExercises.length : 0;
+    const reordCount = Number(bridgeRes.reorderedCount || 0);
+
+    const summaryParts = [
+      modCount > 0 ? `${modCount} ejercicios actualizados` : null,
+      restCount > 0 ? `${restCount} descansos ajustados` : null,
+      notesCount > 0 ? `${notesCount} notas fijadas` : null,
+      reordCount > 0 ? `${reordCount} reordenamientos` : null,
+      remCount > 0 ? `${remCount} ejercicios eliminados` : null,
+    ].filter(Boolean);
+
+    return {
+      syncedToHevy: true,
+      verifiedHttp200: true,
+      httpStatus: bridgeRes.httpStatus,
+      method: 'hevy_web_playwright',
+      backupSaved: Boolean(bridgeRes.backupSaved),
+      backupFile: bridgeRes.backupFile || null,
+      routineUrl: bridgeRes.routineUrl || known?.routineUrl,
+      editUrl: bridgeRes.editUrl || known?.editUrl,
+      modifiedExercises: bridgeRes.modifiedExercises || [],
+      restTimersUpdated: bridgeRes.restTimersUpdated || [],
+      notesUpdated: bridgeRes.notesUpdated || [],
+      removedExercises: bridgeRes.removedExercises || [],
+      reorderedCount: reordCount,
+      finalOrderTitles: bridgeRes.finalOrderTitles || [],
+      notFound: bridgeRes.notFound || [],
+      verifiedExerciseCount: bridgeRes.verifiedExerciseCount ?? null,
+      message: `Verificado en Hevy Web (HTTP ${bridgeRes.httpStatus}): ${summaryParts.join(' • ')}. Ya se sincroniza en tu Hevy App del celular.`,
+    };
+  }
+
+  return {
+    syncedToHevy: false,
+    verifiedHttp200: false,
+    httpStatus: bridgeRes?.httpStatus,
+    method: 'local_plan_only',
+    requiresLogin: Boolean(bridgeRes?.requiresLogin),
+    backupSaved: Boolean(bridgeRes?.backupSaved),
+    routineUrl: known?.routineUrl,
+    editUrl: bridgeRes?.editUrl || known?.editUrl,
+    modifiedExercises: [],
+    restTimersUpdated: [],
+    notesUpdated: [],
+    removedExercises: [],
+    reorderedCount: 0,
+    finalOrderTitles: [],
+    notFound: bridgeRes?.notFound || [],
+    message: bridgeRes?.requiresLogin
+      ? 'Plan guardado SOLO en VYFITH local. Falta iniciar sesión 1 vez en Hevy Web (Conectar_Hevy_Web.bat).'
+      : `Plan guardado SOLO en VYFITH local. Hevy Web no confirmó guardado HTTP 200: ${bridgeRes?.error || 'error desconocido'}.`,
   };
 }

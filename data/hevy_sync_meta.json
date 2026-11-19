@@ -1,7 +1,7 @@
 {
-  "lastSyncAt": "2026-11-19T22:27:53.106Z",
-  "lastLivePullAt": "2026-11-19T22:27:53.048Z",
-  "lastSource": "hevy_webhook_json",
+  "lastSyncAt": "2026-11-19T22:36:05.285Z",
+  "lastLivePullAt": "2026-11-19T22:36:05.161Z",
+  "lastSource": "hevy_web_live_export",
   "totalWorkouts": 204,
   "processedFiles": {
     "G:\\Mi unidad\\Panel_de_Vida\\Hevy\\2026-10-05_hevy_workouts.csv": {
@@ -20,9 +20,14 @@
       "processedAt": "2026-11-19T20:22:43.923Z"
     },
     "C:\\Proyectos\\VYFITH\\data\\imports\\workouts_live_export.csv": {
-      "mtimeMs": 1795119344088.0059,
+      "mtimeMs": 1795127760902.6768,
       "hash": "48b566b60468c6e4a28e80a14b7c171372a8c08d3722bf37b23311733c21ee9f",
       "processedAt": "2026-11-19T20:22:44.016Z"
+    },
+    "G:\\Mi unidad\\Panel_de_Vida\\Hevy\\hevy_workouts_latest.csv": {
+      "mtimeMs": 1795127760902,
+      "hash": "48b566b60468c6e4a28e80a14b7c171372a8c08d3722bf37b23311733c21ee9f",
+      "processedAt": "2026-11-19T22:33:40.943Z"
     }
   },
   "hevyPlanDetected": "free",

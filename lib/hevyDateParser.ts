@@ -7,6 +7,7 @@ export interface KnownHevyRoutine {
   name: string;
   folder: 'upper body' | 'lower body';
   routineId: string;
+  routineUuid?: string;
   routineUrl: string;
   editUrl?: string;
 }
@@ -16,6 +17,7 @@ export const KNOWN_HEVY_ROUTINES: KnownHevyRoutine[] = [
     name: 'Horizontal Torso (Chest & Back)',
     folder: 'upper body',
     routineId: 'DsaJ9O9Ed4U',
+    routineUuid: 'b0f00c93-41ba-41b3-91dd-06b503028635',
     routineUrl: 'https://hevy.com/routine/DsaJ9O9Ed4U',
     editUrl: 'https://hevy.com/edit-routine/b0f00c93-41ba-41b3-91dd-06b503028635',
   },
@@ -23,19 +25,25 @@ export const KNOWN_HEVY_ROUTINES: KnownHevyRoutine[] = [
     name: 'Vertical & Incline Torso (Chest & Back)',
     folder: 'upper body',
     routineId: 'xEaFx8bgFGw',
+    routineUuid: '7b393ba1-625d-465d-8478-8126cc7a8db1',
     routineUrl: 'https://hevy.com/routine/xEaFx8bgFGw',
+    editUrl: 'https://hevy.com/edit-routine/7b393ba1-625d-465d-8478-8126cc7a8db1',
   },
   {
     name: 'Arms & Shoulders',
     folder: 'upper body',
     routineId: 'EqZ9Xs9vRnO',
+    routineUuid: '11929d35-c80b-417f-9b60-fe18b99a98c7',
     routineUrl: 'https://hevy.com/routine/EqZ9Xs9vRnO',
+    editUrl: 'https://hevy.com/edit-routine/11929d35-c80b-417f-9b60-fe18b99a98c7',
   },
   {
     name: 'Full Legs',
     folder: 'lower body',
     routineId: 'LZhgyR0nGZB',
+    routineUuid: '7e2e1b53-9b71-4df6-8d2f-88e34681ddf0',
     routineUrl: 'https://hevy.com/routine/LZhgyR0nGZB',
+    editUrl: 'https://hevy.com/edit-routine/7e2e1b53-9b71-4df6-8d2f-88e34681ddf0',
   },
 ];
 

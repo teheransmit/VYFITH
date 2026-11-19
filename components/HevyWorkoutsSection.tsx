@@ -32,18 +32,27 @@ import {
   Link2,
   Unlink,
   Zap,
+  ArrowRight,
+  Scissors,
+  ArrowUpDown,
+  Timer,
+  SlidersHorizontal,
+  StickyNote,
+  ChevronUp,
 } from 'lucide-react';
 import {
   initialHevySessions,
   HevyWorkoutSession,
   WatchExerciseSession,
 } from '@/lib/hevyStore';
-import {
-  generateAiCoachPrescription,
-  WorkoutRoutinePrescription,
-  ExercisePrescription,
-} from '@/lib/aiCoachPeriodizationEngine';
 import { findKnownRoutine, translateExerciseTitle } from '@/lib/hevyDateParser';
+import {
+  LiveAiRoutineAudit,
+  LiveHevyRoutine,
+  ExerciseAiRecommendation,
+  HevyApplyOptions,
+  formatSecondsToMmSs,
+} from '@/lib/realAiCoachTypes';
 
 export default function HevyWorkoutsSection() {
   const [sessions, setSessions] = useState<HevyWorkoutSession[]>(initialHevySessions);
@@ -59,9 +68,27 @@ export default function HevyWorkoutsSection() {
   const [likesCount, setLikesCount] = useState(3);
   const [isSyncingHevy, setIsSyncingHevy] = useState(false);
   const [isConnectingBrowser, setIsConnectingBrowser] = useState(false);
+  const [liveAudit, setLiveAudit] = useState<LiveAiRoutineAudit | null>(null);
+  const [liveRoutine, setLiveRoutine] = useState<LiveHevyRoutine | null>(null);
+  const [isLoadingCoach, setIsLoadingCoach] = useState(false);
+  const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [applyOptions, setApplyOptions] = useState<HevyApplyOptions>({
+    weightsAndReps: true,
+    restTimers: true,
+    notes: true,
+    reorder: false,
+    removeMarked: false,
+  });
+  const [showOrderPreview, setShowOrderPreview] = useState(false);
+  const [expandVerdict, setExpandVerdict] = useState(false);
+  const [showExtraRoutineExercises, setShowExtraRoutineExercises] = useState(false);
   const [syncActionResult, setSyncActionResult] = useState<{
     syncedToHevy: boolean;
+    verifiedHttp200?: boolean;
+    httpStatus?: number;
     savedLocally?: boolean;
+    backupSaved?: boolean;
     method?: string;
     requiresLogin?: boolean;
     sandboxedDesktop?: boolean;
@@ -70,6 +97,10 @@ export default function HevyWorkoutsSection() {
     editUrl?: string;
     message: string;
     modifiedCount?: number;
+    restTimersCount?: number;
+    notesCount?: number;
+    reorderedCount?: number;
+    removedCount?: number;
   } | null>(null);
   const [copiedLauncher, setCopiedLauncher] = useState(false);
   const [syncStatusInfo, setSyncStatusInfo] = useState<{
@@ -162,6 +193,12 @@ export default function HevyWorkoutsSection() {
           lastSyncAt: data.syncMeta?.lastSyncAt || null,
           warning: cleanHevyWarning(data.warning),
         });
+        if (live && data.workouts && data.workouts.length > 0) {
+          const targetRoutine = data.addedCount > 0 ? data.workouts[0].name : selectedSession?.name;
+          if (targetRoutine) {
+            fetchCoachForRoutine(targetRoutine);
+          }
+        }
       }
     } catch (e) {
       console.warn('Error consultando /api/sync/hevy:', e);
@@ -326,14 +363,116 @@ export default function HevyWorkoutsSection() {
   const selectedSession =
     sessions.find((s) => s.id === selectedSessionId) || sessions[0] || initialHevySessions[0];
 
-  // Prescripción y análisis del Entrenador Personal IA calculada sobre las sesiones VIVAS
-  const coachPrescription = useMemo(() => {
+  const fetchCoachForRoutine = async (routineName: string) => {
+    if (!routineName) return;
+    setIsLoadingCoach(true);
+    setAiError(null);
     try {
-      return generateAiCoachPrescription(selectedSession.name, { workouts: sessions });
-    } catch (e) {
-      return null;
+      const res = await fetch(
+        `/api/hevy/ai-coach?routine=${encodeURIComponent(routineName)}`,
+        { cache: 'no-store' }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setLiveAudit(data.liveAudit || null);
+        setLiveRoutine(data.liveRoutine || null);
+      }
+    } catch (e: any) {
+      console.warn('Error cargando auditoría Coach IA:', e);
+    } finally {
+      setIsLoadingCoach(false);
     }
-  }, [selectedSession.name, sessions]);
+  };
+
+  useEffect(() => {
+    if (selectedSession?.name) {
+      setSyncActionResult(null);
+      setShowOrderPreview(false);
+      setExpandVerdict(false);
+      fetchCoachForRoutine(selectedSession.name);
+    }
+  }, [selectedSession?.name]);
+
+  const handleAnalyzeWithAi = async (refreshRoutines = false) => {
+    if (!selectedSession?.name || isAnalyzingAi) return;
+    setIsAnalyzingAi(true);
+    setAiError(null);
+    setSyncActionResult(null);
+    try {
+      const res = await fetch('/api/hevy/ai-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze_with_ai',
+          routineName: selectedSession.name,
+          refreshRoutines,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.liveAudit) {
+        setLiveAudit(data.liveAudit);
+        if (data.liveRoutine) setLiveRoutine(data.liveRoutine);
+      } else {
+        setAiError(
+          `HTTP ${res.status}: ${data.error || 'El Consejo Multi-IA no devolvió análisis.'}`
+        );
+      }
+    } catch (err: any) {
+      setAiError(`Error de red llamando al Consejo Multi-IA: ${err?.message || 'desconocido'}`);
+    } finally {
+      setIsAnalyzingAi(false);
+    }
+  };
+
+  const findAiRecommendation = (exerciseName: string): ExerciseAiRecommendation | null => {
+    if (!liveAudit?.exerciseRecommendations) return null;
+    const norm = (s: string) =>
+      (s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    const target = norm(exerciseName);
+    return (
+      liveAudit.exerciseRecommendations.find(
+        (r) => norm(r.exerciseName) === target || norm(r.esTitle) === target
+      ) ||
+      liveAudit.exerciseRecommendations.find(
+        (r) => target.length >= 6 && (norm(r.exerciseName).includes(target) || target.includes(norm(r.exerciseName)))
+      ) ||
+      null
+    );
+  };
+
+  const planStats = useMemo(() => {
+    const recs = liveAudit?.exerciseRecommendations || [];
+    const restChanges = recs.filter((r) => r.keepExercise && r.restDeltaSeconds !== 0).length;
+    const orderChanges = recs.filter((r) => r.keepExercise && r.suggestedOrderIndex !== r.currentOrderIndex).length;
+    const removeCandidates = recs.filter((r) => !r.keepExercise);
+    const notesCount = recs.filter((r) => r.keepExercise && Boolean(r.pinnedNoteForHevy)).length;
+    const weightOrRepChanges = recs.filter(
+      (r) =>
+        r.keepExercise &&
+        r.setSuggestions.some((s) => !s.isWarmup && (s.repsDelta !== 0 || Math.abs(s.weightDeltaKg) >= 0.4))
+    ).length;
+    return {
+      restChanges,
+      orderChanges,
+      removeCandidates,
+      notesCount,
+      weightOrRepChanges,
+    };
+  }, [liveAudit]);
+
+  const extraRoutineRecommendations = useMemo(() => {
+    if (!liveAudit?.exerciseRecommendations) return [];
+    const executedNames = new Set(
+      selectedSession.exercises.map((e) => e.name.toLowerCase().trim())
+    );
+    return liveAudit.exerciseRecommendations.filter(
+      (r) => !executedNames.has(r.exerciseName.toLowerCase().trim())
+    );
+  }, [liveAudit, selectedSession.exercises]);
 
   const handleCopyLauncherPath = (customPath?: string) => {
     const p = customPath || syncStatusInfo?.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat';
@@ -490,45 +629,51 @@ export default function HevyWorkoutsSection() {
   };
 
   const handleApplyToHevy = async () => {
-    if (!coachPrescription) return;
+    if (!liveAudit) {
+      setAiError('Primero pulsa «Analizar Rutina con IA» para generar el plan antes de aplicarlo a Hevy.');
+      return;
+    }
     setIsSyncingHevy(true);
     setSyncActionResult(null);
     try {
-      const payload = coachPrescription.prescriptions.map((p) => ({
-        exerciseName: p.exerciseName,
-        esTitle: translateExerciseTitle(p.exerciseName),
-        suggestedWeightKg: p.prescribedWeightKg,
-        suggestedWeightLbs: Math.round((p.prescribedWeightKg / 0.45359237) * 10) / 10,
-        targetReps: p.prescribedRepsSummary,
-        note: `VYFITH AI Coach: ${p.prescribedWeightKg} kg (${p.prescribedRepsSummary}) • RIR ${p.targetRir}`,
-      }));
-
       const res = await fetch('/api/hevy/ai-coach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          routineTitle: coachPrescription.routineName,
-          hevySyncPayload: payload,
-          prescriptions: coachPrescription.prescriptions,
+          action: 'apply_to_hevy',
+          routineName: liveAudit.routineName || selectedSession.name,
+          applyOptions,
+          selectedExercises: liveAudit.exerciseRecommendations,
         }),
       });
       const data = await res.json();
+      if (data.updatedRoutine) {
+        setLiveRoutine(data.updatedRoutine);
+      }
       setSyncActionResult({
         syncedToHevy: Boolean(data.syncedToHevy),
+        verifiedHttp200: Boolean(data.verifiedHttp200),
+        httpStatus: data.httpStatus,
         savedLocally: Boolean(data.savedLocally),
+        backupSaved: Boolean(data.backupSaved),
         method: data.method,
         requiresLogin: Boolean(data.requiresLogin),
         sandboxedDesktop: Boolean(data.sandboxedDesktop || syncStatusInfo?.sandboxedDesktop),
-        launcherScript: data.launcherScript || syncStatusInfo?.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat',
-        routineUrl: data.routineUrl || findKnownRoutine(coachPrescription.routineName)?.routineUrl,
-        editUrl: data.editUrl || findKnownRoutine(coachPrescription.routineName)?.editUrl,
+        launcherScript:
+          data.launcherScript || syncStatusInfo?.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat',
+        routineUrl: data.routineUrl || liveAudit.routineUrl || findKnownRoutine(selectedSession.name)?.routineUrl,
+        editUrl: data.editUrl || liveAudit.editUrl || findKnownRoutine(selectedSession.name)?.editUrl,
         message: data.message || data.error || 'Respuesta sin confirmación de Hevy.',
         modifiedCount: Array.isArray(data.modifiedExercises) ? data.modifiedExercises.length : 0,
+        restTimersCount: Array.isArray(data.restTimersUpdated) ? data.restTimersUpdated.length : 0,
+        notesCount: Array.isArray(data.notesUpdated) ? data.notesUpdated.length : 0,
+        reorderedCount: Number(data.reorderedCount || 0),
+        removedCount: Array.isArray(data.removedExercises) ? data.removedExercises.length : 0,
       });
     } catch (err: any) {
       setSyncActionResult({
         syncedToHevy: false,
-        message: `Error de red al aplicar cargas: ${err?.message || 'desconocido'}`,
+        message: `Error de red al aplicar cambios en Hevy: ${err?.message || 'desconocido'}`,
       });
     } finally {
       setIsSyncingHevy(false);
@@ -1227,338 +1372,744 @@ export default function HevyWorkoutsSection() {
           </div>
         )}
 
-        {/* 3.1. ENTRENADOR PERSONAL IA INTEGRADO EN HEVY APP (JEFF NIPPARD SCIENCE) */}
-        {coachPrescription && (
-          <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-950/70 via-[#18181b] to-purple-950/40 border border-indigo-500/30 shadow-xl space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-500/20">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
-                  <Bot className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm sm:text-base font-black text-white tracking-tight flex items-center gap-1.5">
-                      <span>Entrenador Personal IA • Análisis de Rutina</span>
-                      <Sparkles className="w-4 h-4 text-cyan-400" />
-                    </h3>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono">
-                      Jeff Nippard Science
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    Recomendaciones de sobrecarga progresiva y táctica calculadas para {selectedSession.name}
-                  </p>
-                </div>
+        {/* 3.1. ENTRENADOR PERSONAL MULTI-IA VIVO (GEMINI + NVIDIA NIM + ESCRITURA REAL HEVY) */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-indigo-950/75 via-[#141418] to-purple-950/40 border border-indigo-500/35 shadow-xl space-y-4">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3.5 border-b border-indigo-500/20">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/40 flex items-center justify-center text-indigo-300 shrink-0">
+                <Bot className="w-5 h-5" />
               </div>
-
-              <div className="flex items-center gap-2">
-                <a
-                  href="https://notebook.google.com/notebook/57126469-ac46-4b0d-a370-6270c887c26b"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#09090b]/80 hover:bg-slate-800 text-slate-300 text-xs font-semibold border border-slate-700 transition-all"
-                  title="Abrir cuaderno MegaProyecto en NotebookLM"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>NotebookLM</span>
-                  <ExternalLink className="w-3 h-3 text-slate-500" />
-                </a>
-                <button
-                  onClick={handleApplyToHevy}
-                  disabled={isSyncingHevy}
-                  className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all disabled:opacity-50"
-                  title="Aplica los nuevos pesos y repeticiones a tu Hevy App"
-                >
-                  {isSyncingHevy ? (
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm sm:text-base font-black text-white tracking-tight flex items-center gap-1.5">
+                    <span>Entrenador Personal Multi-IA • Auditoría Viva</span>
+                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                  </h3>
+                  {liveAudit ? (
                     <>
-                      <RotateCcw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Sincronizando...</span>
+                      <span
+                        className={`text-[11px] font-black px-2.5 py-0.5 rounded-full border font-mono ${
+                          liveAudit.structureScore >= 80
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                            : liveAudit.structureScore >= 60
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                        }`}
+                      >
+                        Estructura: {liveAudit.structureScore}/100
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                        {liveAudit.modelsUsed.join(' + ')} • {(liveAudit.totalLatencyMs / 1000).toFixed(1)}s
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                      {isLoadingCoach ? 'Cargando auditoría...' : 'Pendiente de análisis IA real'}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  {liveAudit ? (
+                    <>
+                      Rutina viva: <strong className="text-slate-200">{liveAudit.routineName}</strong> (
+                      {liveRoutine?.exerciseCount ?? liveAudit.exerciseRecommendations.length} ejercicios en Hevy) • Analizado:{' '}
+                      <span className="font-mono text-slate-300">
+                        {new Date(liveAudit.analyzedAt).toLocaleString('es-CO', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
                     </>
                   ) : (
                     <>
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Aplicar Cargas a Hevy App</span>
+                      Pulsa <strong>«Analizar Rutina con IA»</strong> para que Gemini + NVIDIA NIM auditen tu estructura real en Hevy (orden, descansos, RPE, notas y deltas +1/-1 serie por serie).
                     </>
                   )}
-                </button>
+                </p>
               </div>
             </div>
 
-            {syncActionResult && (
-              <div
-                className={`p-3.5 rounded-xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                  syncActionResult.syncedToHevy
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
-                    : 'bg-amber-500/10 border-amber-500/35 text-amber-200'
-                }`}
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                onClick={() => handleAnalyzeWithAi(false)}
+                disabled={isAnalyzingAi || isSyncingHevy}
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-200 text-xs font-bold border border-cyan-500/40 transition-all disabled:opacity-50"
+                title="Consulta al Consejo Multi-IA (Gemini + NVIDIA NIM) sobre tu rutina viva en Hevy y tus últimas 4 sesiones"
               >
-                <div className="flex items-start gap-2.5">
-                  {syncActionResult.syncedToHevy ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzingAi ? 'animate-spin text-cyan-300' : ''}`} />
+                <span>{isAnalyzingAi ? 'Consultando Multi-IA...' : liveAudit ? 'Re-Analizar con IA' : 'Analizar Rutina con IA'}</span>
+              </button>
+
+              <button
+                onClick={handleApplyToHevy}
+                disabled={isSyncingHevy || isAnalyzingAi || !liveAudit}
+                className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-md shadow-indigo-600/30 transition-all disabled:opacity-45"
+                title="Edita realmente tu rutina en hevy.com/edit-routine, verifica HTTP 200 y guarda respaldo local antes"
+              >
+                {isSyncingHevy ? (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Aplicando en Hevy Web...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Aplicar Cambios a Hevy App</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {aiError && (
+            <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">Error real del Consejo Multi-IA (sin relleno falso):</p>
+                  <p className="text-[11px] font-mono text-rose-200/90 mt-0.5 break-words">{aiError}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setAiError(null)}
+                className="cursor-pointer px-2 py-0.5 rounded bg-black/30 hover:bg-black/50 text-xs font-bold shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {syncActionResult && (
+            <div
+              className={`p-3.5 rounded-xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                syncActionResult.syncedToHevy
+                  ? 'bg-emerald-500/12 border-emerald-500/40 text-emerald-100'
+                  : 'bg-amber-500/10 border-amber-500/35 text-amber-200'
+              }`}
+            >
+              <div className="flex items-start gap-2.5">
+                {syncActionResult.syncedToHevy ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                )}
+                <div className="space-y-1">
+                  <p className="font-bold">{syncActionResult.message}</p>
+                  {syncActionResult.syncedToHevy && (
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono text-emerald-300/90">
+                      {syncActionResult.verifiedHttp200 && (
+                        <span className="px-2 py-0.5 rounded bg-emerald-950/70 border border-emerald-500/40">
+                          HTTP {syncActionResult.httpStatus || 200} Confirmado
+                        </span>
+                      )}
+                      {syncActionResult.backupSaved && (
+                        <span className="px-2 py-0.5 rounded bg-slate-900/80 border border-slate-700 text-slate-300">
+                          Respaldo: hevy_routines_backup.json
+                        </span>
+                      )}
+                      {typeof syncActionResult.restTimersCount === 'number' && syncActionResult.restTimersCount > 0 && (
+                        <span>⏱ {syncActionResult.restTimersCount} descansos</span>
+                      )}
+                      {typeof syncActionResult.notesCount === 'number' && syncActionResult.notesCount > 0 && (
+                        <span>📌 {syncActionResult.notesCount} notas</span>
+                      )}
+                      {typeof syncActionResult.reorderedCount === 'number' && syncActionResult.reorderedCount > 0 && (
+                        <span>🔀 {syncActionResult.reorderedCount} reordenados</span>
+                      )}
+                      {typeof syncActionResult.removedCount === 'number' && syncActionResult.removedCount > 0 && (
+                        <span>✂️ {syncActionResult.removedCount} depurados</span>
+                      )}
+                    </div>
                   )}
-                  <div className="space-y-1">
-                    <p className="font-semibold">{syncActionResult.message}</p>
-                    {!syncActionResult.syncedToHevy && syncActionResult.sandboxedDesktop ? (
-                      <div className="text-[11px] text-amber-200/90 space-y-1 pt-1">
-                        <p>
-                          <strong>Cómo conectarlo en 15 segundos (1 sola vez):</strong> presiona{' '}
-                          <kbd className="px-1.5 py-0.5 rounded bg-black/50 border border-amber-500/40 font-mono text-[10px]">
-                            Win + R
-                          </kbd>
-                          , pega{' '}
-                          <code className="px-1.5 py-0.5 rounded bg-black/50 text-amber-300 font-mono">
-                            {syncActionResult.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat'}
-                          </code>{' '}
-                          y dale Enter. Inicia sesión en la ventana de Chromium que se abrirá y luego pulsa{' '}
-                          <strong>«Ya inicié sesión — Aplicar»</strong>.
-                        </p>
+                  {!syncActionResult.syncedToHevy && syncActionResult.requiresLogin && syncActionResult.sandboxedDesktop && (
+                    <p className="text-[11px] text-amber-200/90 pt-1">
+                      Ejecuta <code className="px-1.5 py-0.5 rounded bg-black/50 text-amber-300 font-mono">{syncActionResult.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat'}</code> vía Win+R, inicia sesión y pulsa <strong>«Ya inicié sesión — Aplicar»</strong>.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {syncActionResult.requiresLogin && syncActionResult.sandboxedDesktop && (
+                  <button
+                    onClick={() => handleCopyLauncherPath(syncActionResult.launcherScript)}
+                    className="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-[11px] border border-amber-500/40"
+                  >
+                    {copiedLauncher ? '✓ Copiado' : 'Copiar ruta (Win+R)'}
+                  </button>
+                )}
+                {syncActionResult.requiresLogin && (
+                  <button
+                    onClick={() => handleConnectHevyBrowser(true)}
+                    disabled={isConnectingBrowser}
+                    className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px]"
+                  >
+                    {isConnectingBrowser ? 'Verificando...' : 'Ya inicié sesión — Aplicar'}
+                  </button>
+                )}
+                {(syncActionResult.routineUrl || syncActionResult.editUrl) && (
+                  <a
+                    href={syncActionResult.routineUrl || syncActionResult.editUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-[11px] border border-slate-600"
+                  >
+                    <span>{syncActionResult.syncedToHevy ? 'Ver en Hevy' : 'Abrir en Hevy Web'}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {liveAudit && (
+            <>
+              {/* VEREDICTO EJECUTIVO REAL + TELEMETRÍA CRUZADA */}
+              <div className="p-4 rounded-xl bg-[#09090b]/85 border border-slate-800 text-xs leading-relaxed space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-bold text-slate-100 flex items-center gap-1.5">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <span>Veredicto Real de tu Rutina y Progresión:</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-cyan-300/90">
+                    {liveAudit.biometricContextSummary}
+                  </span>
+                </div>
+                <p className="text-slate-300 leading-relaxed">
+                  {liveAudit.executiveVerdict.length > 340 && !expandVerdict
+                    ? `${liveAudit.executiveVerdict.slice(0, 340)}…`
+                    : liveAudit.executiveVerdict}
+                  {liveAudit.executiveVerdict.length > 340 && (
+                    <button
+                      onClick={() => setExpandVerdict((v) => !v)}
+                      className="cursor-pointer ml-2 text-cyan-400 hover:text-cyan-300 font-bold underline"
+                    >
+                      {expandVerdict ? 'Contraer' : 'Leer completo'}
+                    </button>
+                  )}
+                </p>
+              </div>
+
+              {/* HALLAZGOS ESTRUCTURALES REALES (ORDEN, DESCANSOS, VOLUMEN, RPE, NOTAS) */}
+              {liveAudit.structuralIssues.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Hallazgos Estructurales Detectados ({liveAudit.structuralIssues.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    {liveAudit.structuralIssues.map((issue, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-3 rounded-xl border text-xs space-y-1 ${
+                          issue.severity === 'critical'
+                            ? 'bg-rose-950/35 border-rose-500/35 text-rose-100'
+                            : issue.severity === 'warning'
+                            ? 'bg-amber-950/30 border-amber-500/35 text-amber-100'
+                            : 'bg-sky-950/30 border-sky-500/30 text-sky-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-extrabold">{issue.title}</span>
+                          <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-black/40 border border-white/10 shrink-0">
+                            {issue.category.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-snug">{issue.detail}</p>
                       </div>
-                    ) : !syncActionResult.syncedToHevy ? (
-                      <p className="text-[11px] text-amber-300/80">
-                        Sin API Key de Hevy PRO ni sesión web en Chrome conectada, VYFITH no puede modificar tus rutinas en los servidores de Hevy de forma remota sin mentirte.
-                      </p>
-                    ) : null}
+                    ))}
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  {syncActionResult.requiresLogin && syncActionResult.sandboxedDesktop && (
-                    <button
-                      onClick={() => handleCopyLauncherPath(syncActionResult.launcherScript)}
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-[11px] border border-amber-500/40 transition-colors"
-                    >
-                      {copiedLauncher ? '✓ Ruta copiada (Win+R)' : 'Copiar ruta (Win+R)'}
-                    </button>
-                  )}
-                  {syncActionResult.requiresLogin && (
-                    <button
-                      onClick={() => handleConnectHevyBrowser(true)}
-                      disabled={isConnectingBrowser}
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition-colors disabled:opacity-60"
-                    >
-                      {isConnectingBrowser
-                        ? 'Verificando sesión...'
-                        : syncActionResult.sandboxedDesktop
-                        ? 'Ya inicié sesión — Aplicar'
-                        : 'Conectar Chrome Hevy'}
-                    </button>
-                  )}
-                  {(syncActionResult.editUrl || syncActionResult.routineUrl) && (
+              )}
+
+              {/* PANEL DE CONTROL ANTES -> DESPUÉS CON CHECKBOXES ANTES DE APLICAR A HEVY */}
+              <div className="p-4 rounded-xl bg-[#09090b]/90 border border-indigo-500/30 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-extrabold text-white">
+                    <SlidersHorizontal className="w-4 h-4 text-indigo-400" />
+                    <span>Plan de Mejora para Hevy App (elige qué aplicar)</span>
+                  </div>
+                  <button
+                    onClick={() => setShowOrderPreview((v) => !v)}
+                    className="cursor-pointer inline-flex items-center gap-1 text-[11px] font-bold text-cyan-300 hover:text-cyan-200 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30"
+                  >
+                    <ArrowUpDown className="w-3 h-3" />
+                    <span>{showOrderPreview ? 'Ocultar Antes → Después' : 'Ver Antes → Después'}</span>
+                    {showOrderPreview ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-xs">
+                  <label className="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-indigo-500/40">
+                    <input
+                      type="checkbox"
+                      checked={applyOptions.weightsAndReps}
+                      onChange={(e) => setApplyOptions((o) => ({ ...o, weightsAndReps: e.target.checked }))}
+                      className="accent-indigo-500 w-4 h-4"
+                    />
+                    <span className="text-slate-200 font-semibold leading-tight">
+                      Pesos y Reps (+/-)
+                      <span className="block text-[10px] font-mono text-emerald-400">{planStats.weightOrRepChanges} ejercicios</span>
+                    </span>
+                  </label>
+
+                  <label className="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-indigo-500/40">
+                    <input
+                      type="checkbox"
+                      checked={applyOptions.restTimers}
+                      onChange={(e) => setApplyOptions((o) => ({ ...o, restTimers: e.target.checked }))}
+                      className="accent-indigo-500 w-4 h-4"
+                    />
+                    <span className="text-slate-200 font-semibold leading-tight">
+                      Descansos Hevy
+                      <span className="block text-[10px] font-mono text-amber-400">{planStats.restChanges} ajustes ⏱</span>
+                    </span>
+                  </label>
+
+                  <label className="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-indigo-500/40">
+                    <input
+                      type="checkbox"
+                      checked={applyOptions.notes}
+                      onChange={(e) => setApplyOptions((o) => ({ ...o, notes: e.target.checked }))}
+                      className="accent-indigo-500 w-4 h-4"
+                    />
+                    <span className="text-slate-200 font-semibold leading-tight">
+                      Notas Fijadas
+                      <span className="block text-[10px] font-mono text-cyan-400">{planStats.notesCount} cues 📌</span>
+                    </span>
+                  </label>
+
+                  <label className="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-cyan-500/40">
+                    <input
+                      type="checkbox"
+                      checked={applyOptions.reorder}
+                      onChange={(e) => setApplyOptions((o) => ({ ...o, reorder: e.target.checked }))}
+                      className="accent-cyan-500 w-4 h-4"
+                    />
+                    <span className="text-slate-200 font-semibold leading-tight">
+                      Reordenar Rutina
+                      <span className="block text-[10px] font-mono text-indigo-300">{planStats.orderChanges} movs 🔀</span>
+                    </span>
+                  </label>
+
+                  <label className="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-rose-500/40">
+                    <input
+                      type="checkbox"
+                      checked={applyOptions.removeMarked}
+                      onChange={(e) => setApplyOptions((o) => ({ ...o, removeMarked: e.target.checked }))}
+                      className="accent-rose-500 w-4 h-4"
+                    />
+                    <span className="text-slate-200 font-semibold leading-tight">
+                      Quitar Redundantes
+                      <span className="block text-[10px] font-mono text-rose-400">{planStats.removeCandidates.length} sugeridos ✂️</span>
+                    </span>
+                  </label>
+                </div>
+
+                {showOrderPreview && (
+                  <div className="pt-3 border-t border-[#27272a] grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px]">
+                    <div className="p-3 rounded-xl bg-[#18181b] border border-[#27272a] space-y-1.5">
+                      <div className="font-extrabold text-slate-400 uppercase text-[10px]">
+                        Antes (Tu orden actual en Hevy • {liveAudit.exerciseRecommendations.length})
+                      </div>
+                      <ol className="space-y-1 font-mono text-slate-300">
+                        {[...liveAudit.exerciseRecommendations]
+                          .sort((a, b) => a.currentOrderIndex - b.currentOrderIndex)
+                          .map((r) => (
+                            <li key={r.exerciseName + r.currentOrderIndex} className="flex items-center justify-between gap-2">
+                              <span className={!r.keepExercise ? 'line-through text-rose-400/80' : ''}>
+                                #{r.currentOrderIndex + 1} {r.exerciseName}
+                              </span>
+                              <span className="text-[10px] text-slate-500 shrink-0">
+                                ⏱ {formatSecondsToMmSs(r.currentRestSeconds)}
+                              </span>
+                            </li>
+                          ))}
+                      </ol>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-1.5">
+                      <div className="font-extrabold text-emerald-300 uppercase text-[10px]">
+                        Después (Orden y descansos óptimos sugeridos por IA)
+                      </div>
+                      <ol className="space-y-1 font-mono text-slate-200">
+                        {[...liveAudit.exerciseRecommendations]
+                          .filter((r) => r.keepExercise)
+                          .sort((a, b) => a.suggestedOrderIndex - b.suggestedOrderIndex)
+                          .map((r, i) => (
+                            <li key={r.exerciseName + i} className="flex items-center justify-between gap-2">
+                              <span>
+                                <strong className="text-emerald-400">#{i + 1}</strong> {r.exerciseName}
+                                {r.currentOrderIndex !== i && (
+                                  <span className="ml-1.5 text-[10px] text-cyan-300">(era #{r.currentOrderIndex + 1})</span>
+                                )}
+                              </span>
+                              <span className="text-[10px] text-amber-300 shrink-0">
+                                ⏱ {formatSecondsToMmSs(r.suggestedRestSeconds)}
+                              </span>
+                            </li>
+                          ))}
+                      </ol>
+                      {planStats.removeCandidates.length > 0 && (
+                        <div className="pt-2 mt-2 border-t border-rose-500/25 space-y-1">
+                          <div className="text-[10px] font-bold text-rose-300">
+                            ✂️ Sugeridos para quitar ({planStats.removeCandidates.length}):
+                          </div>
+                          {planStats.removeCandidates.map((r) => (
+                            <div key={r.exerciseName} className="text-[10px] text-rose-200/80">
+                              • {r.exerciseName}: {r.removeReason || 'Volumen redundante'}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-[10px] text-slate-400 flex items-center justify-between flex-wrap gap-2">
+                  <span>🛡️ Antes de editar Hevy, VYFITH guarda respaldo automático en <code className="text-slate-300">data/hevy_routines_backup.json</code> y verifica HTTP 200 real.</span>
+                  {(liveAudit.routineUrl || liveRoutine?.routineUrl) && (
                     <a
-                      href={syncActionResult.editUrl || syncActionResult.routineUrl}
+                      href={liveAudit.routineUrl || liveRoutine?.routineUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-semibold text-[11px] border border-slate-600"
+                      className="text-indigo-300 hover:text-indigo-200 inline-flex items-center gap-1 font-bold"
                     >
-                      <span>{syncActionResult.syncedToHevy ? 'Ver en Hevy' : 'Editar en Hevy Web'}</span>
+                      <span>Abrir rutina en Hevy Web</span>
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
                 </div>
               </div>
-            )}
+            </>
+          )}
+        </div>
 
-            {/* DIAGNÓSTICO EN PROSA PERSONALIZADO PARA SANTIAGO */}
-            <div className="p-4 rounded-xl bg-[#09090b]/80 border border-slate-800 text-xs leading-relaxed space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-slate-200 flex items-center gap-1.5">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                  <span>Cómo mejorar tu entrenamiento en estos días:</span>
-                </span>
-                <div className="flex items-center gap-2 text-[10px] font-mono shrink-0">
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
-                    Readiness: <strong className="text-white">{coachPrescription.readinessScore}%</strong>
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">
-                    Agua: <strong className="text-white">{coachPrescription.hydrationCompliancePct}%</strong>
-                  </span>
-                </div>
-              </div>
-              <p className="text-slate-300 text-xs leading-normal">
-                {coachPrescription.summaryMessage} Para los entrenamientos de estos días, la estrategia es <strong>Doble Progresión</strong>: no aumentes los kilos en la barra hasta que no completes con técnica estricta todas las series en el límite superior de repeticiones con <strong>RIR 1–2</strong> (dejando 1 a 2 repeticiones en reserva para disipar la fatiga central). En los ejercicios con badge <em>«Subir Reps»</em>, enfócate en ganar esa repetición extra en tus dos primeras series.
-              </p>
-            </div>
-          </div>
-        )}
+        {/* GRILLA BENTO 3 COLUMNAS INDEPENDIENTES SIN HUECOS + COLUMNA PRÓXIMA (+1/-1) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2 items-start">
+          {[0, 1, 2].map((colIdx) => (
+            <div key={colIdx} className="space-y-4">
+              {selectedSession.exercises
+                .map((exercise, exIdx) => ({ exercise, exIdx }))
+                .filter(({ exIdx }) => exIdx % 3 === colIdx)
+                .map(({ exercise, exIdx }) => {
+                  const muscleColor = getMuscleBadgeColor(exercise.muscleGroup);
+                  const aiRec = findAiRecommendation(exercise.name);
+                  let workingSetCursor = 0;
 
-        {/* GRILLA RESPONSIVA MULTICOLUMNA DE EJERCICIOS (BENTO GRID 2-3 COLUMNAS) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2 items-start">
-          {selectedSession.exercises.map((exercise, exIdx) => {
-            const muscleColor = getMuscleBadgeColor(exercise.muscleGroup);
-            const exPrescription = coachPrescription?.prescriptions.find(
-              (p) => p.exerciseName.toLowerCase().trim() === exercise.name.toLowerCase().trim()
-            );
+                  const actionStyle = !aiRec
+                    ? ''
+                    : !aiRec.keepExercise || aiRec.action === 'ELIMINAR'
+                    ? 'bg-rose-500/10 border-rose-500/35 text-rose-200'
+                    : aiRec.action === 'SUBIR_PESO'
+                    ? 'bg-emerald-500/10 border-emerald-500/35 text-emerald-200'
+                    : aiRec.action === 'SUBIR_REPS'
+                    ? 'bg-amber-500/10 border-amber-500/35 text-amber-200'
+                    : aiRec.action === 'BAJAR_PESO'
+                    ? 'bg-rose-500/10 border-rose-500/35 text-rose-200'
+                    : aiRec.action === 'REUBICAR'
+                    ? 'bg-cyan-500/10 border-cyan-500/35 text-cyan-200'
+                    : 'bg-indigo-500/10 border-indigo-500/35 text-indigo-200';
 
-            return (
-              <div
-                key={exIdx}
-                className="bg-[#09090b]/90 border border-[#27272a] rounded-2xl p-4 sm:p-5 text-white space-y-3.5 shadow-sm flex flex-col justify-between h-full hover:border-[#3f3f46] transition-all"
-              >
-                <div>
-                  {/* Encabezado del Ejercicio */}
-                  <div className="flex items-start justify-between gap-2.5 mb-2.5">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border ${muscleColor} shadow-inner shrink-0`}>
-                        <Dumbbell className="w-4 h-4" />
+                  const actionLabel = !aiRec
+                    ? ''
+                    : !aiRec.keepExercise || aiRec.action === 'ELIMINAR'
+                    ? '✂️ Sugerido Quitar'
+                    : aiRec.action === 'SUBIR_PESO'
+                    ? '🟢 Subir Peso'
+                    : aiRec.action === 'SUBIR_REPS'
+                    ? '🟡 Subir Reps (+1)'
+                    : aiRec.action === 'BAJAR_PESO'
+                    ? '🔻 Bajar Peso (RIR)'
+                    : aiRec.action === 'REUBICAR'
+                    ? '🔀 Reubicar Orden'
+                    : '🔵 Consolidar Técnica';
+
+                  return (
+                    <div
+                      key={exIdx}
+                      className={`bg-[#09090b]/90 border rounded-2xl p-4 sm:p-5 text-white space-y-3 shadow-sm hover:border-[#3f3f46] transition-all ${
+                        aiRec && !aiRec.keepExercise ? 'border-rose-500/40' : 'border-[#27272a]'
+                      }`}
+                    >
+                      {/* Encabezado del Ejercicio */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold border ${muscleColor} shadow-inner shrink-0`}>
+                            <Dumbbell className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-black text-white tracking-tight truncate" title={exercise.name}>
+                              {exercise.name}
+                            </h4>
+                            {exercise.esTitle && (
+                              <span className="text-[11px] text-slate-400 block font-medium truncate" title={exercise.esTitle}>
+                                {exercise.esTitle}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${muscleColor}`}>
+                          {exercise.muscleGroup}
+                        </span>
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-sm sm:text-base font-black text-white tracking-tight truncate" title={exercise.name}>
-                          {exercise.name}
-                        </h4>
-                        {exercise.esTitle && (
-                          <span className="text-[11px] text-slate-400 block font-medium truncate" title={exercise.esTitle}>
-                            {exercise.esTitle}
+
+                      {/* Chips de Descanso y Orden Real en Hevy */}
+                      {aiRec && (
+                        <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border font-bold ${
+                              aiRec.restDeltaSeconds !== 0
+                                ? 'bg-amber-500/15 text-amber-300 border-amber-500/35'
+                                : 'bg-slate-800/80 text-slate-300 border-slate-700'
+                            }`}
+                          >
+                            <Timer className="w-3 h-3" />
+                            {aiRec.restDeltaSeconds !== 0 ? (
+                              <>
+                                <span>
+                                  {formatSecondsToMmSs(aiRec.currentRestSeconds)} → {formatSecondsToMmSs(aiRec.suggestedRestSeconds)}
+                                </span>
+                                <span className="text-[9px] opacity-85">
+                                  ({aiRec.restDeltaSeconds > 0 ? `+${aiRec.restDeltaSeconds}s` : `${aiRec.restDeltaSeconds}s`})
+                                </span>
+                              </>
+                            ) : (
+                              <span>{formatSecondsToMmSs(aiRec.currentRestSeconds)} ✓</span>
+                            )}
                           </span>
-                        )}
-                      </div>
-                    </div>
 
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${muscleColor}`}>
-                      {exercise.muscleGroup}
-                    </span>
-                  </div>
-
-                  {/* RECOMENDACIÓN IA INDIVIDUAL PARA ESTE EJERCICIO */}
-                  {exPrescription && (
-                    <div className={`p-2.5 rounded-xl border mb-3 text-xs ${
-                      exPrescription.action === 'SUBIR_PESO'
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
-                        : exPrescription.action === 'SUBIR_REPS'
-                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
-                        : exPrescription.action === 'DESCARGA_TECNICA'
-                        ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
-                        : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-200'
-                    }`}>
-                      <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-cyan-400" />
-                          <span>IA Coach: {
-                            exPrescription.action === 'SUBIR_PESO' ? '🟢 Subir Peso' :
-                            exPrescription.action === 'SUBIR_REPS' ? '🟡 Doble Progresión (+1 Rep)' :
-                            exPrescription.action === 'DESCARGA_TECNICA' ? '🟠 Descarga Técnica' :
-                            '🔵 Consolidar Carga'
-                          }</span>
-                        </span>
-                        <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/40 border border-white/10">
-                          RIR {exPrescription.targetRir}
-                        </span>
-                      </div>
-                      <div className="font-bold text-xs text-white">
-                        Próxima sesión: <span className="text-emerald-400 font-extrabold">{exPrescription.prescribedWeightKg} kg</span> ({exPrescription.prescribedRepsSummary})
-                      </div>
-                      <p className="text-[11px] text-slate-300 mt-1 leading-snug">
-                        {exPrescription.reasoning}
-                      </p>
-                      {exPrescription.biomechanicalCues.length > 0 && (
-                        <div className="mt-1.5 pt-1.5 border-t border-white/10 text-[10px] text-slate-400 flex items-center gap-1">
-                          <span className="font-semibold text-cyan-400 shrink-0">Técnica:</span>
-                          <span className="truncate">{exPrescription.biomechanicalCues.slice(0, 2).join(' • ')}</span>
+                          {!aiRec.keepExercise ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/35 font-bold">
+                              <Scissors className="w-3 h-3" />
+                              <span>Quitar (era #{aiRec.currentOrderIndex + 1})</span>
+                            </span>
+                          ) : aiRec.suggestedOrderIndex !== aiRec.currentOrderIndex ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 font-bold"
+                              title={aiRec.orderChangeReason || 'Reubicación sugerida por fatiga/biomecánica'}
+                            >
+                              <ArrowUpDown className="w-3 h-3" />
+                              <span>Mover #{aiRec.currentOrderIndex + 1} → #{aiRec.suggestedOrderIndex + 1}</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-800/80 text-slate-400 border border-slate-700">
+                              Orden #{aiRec.currentOrderIndex + 1} ✓
+                            </span>
+                          )}
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* Nota Personal de Santiago (Callout Idéntico a Hevy) */}
-                  {exercise.notes && (
-                    <div className="p-3 rounded-xl bg-[#18181b] border-l-4 border-amber-500 text-xs text-slate-300 flex items-start gap-2 shadow-inner my-2">
-                      <MessageSquare className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                      <p className="leading-snug italic text-[11px]">
-                        "{exercise.notes}"
-                      </p>
-                    </div>
-                  )}
+                      {/* RECOMENDACIÓN REAL MULTI-IA PARA ESTE EJERCICIO */}
+                      {aiRec && (
+                        <div className={`p-2.5 rounded-xl border text-xs space-y-1.5 ${actionStyle}`}>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-cyan-400" />
+                              <span>{actionLabel}</span>
+                            </span>
+                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/40 border border-white/10">
+                              Unidad Hevy: {aiRec.unit.toUpperCase()}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-200 leading-snug">
+                            {aiRec.coachReasoning}
+                          </p>
+                          {aiRec.orderChangeReason && aiRec.keepExercise && aiRec.suggestedOrderIndex !== aiRec.currentOrderIndex && (
+                            <p className="text-[10px] text-cyan-300/95 leading-snug">
+                              🔀 {aiRec.orderChangeReason}
+                            </p>
+                          )}
+                          {aiRec.removeReason && !aiRec.keepExercise && (
+                            <p className="text-[10px] text-rose-300 leading-snug">
+                              ✂️ {aiRec.removeReason}
+                            </p>
+                          )}
+                          {aiRec.pinnedNoteForHevy && (
+                            <div className="pt-1.5 border-t border-white/10 text-[10px] text-slate-300 flex items-start gap-1">
+                              <StickyNote className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
+                              <span className="leading-snug">{aiRec.pinnedNoteForHevy}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
-                  {/* TABLA DE SERIES OPTIMIZADA PARA GRILLA MULTICOLUMNA */}
-                  <div className="overflow-x-auto pt-1">
-                    <table className="w-full text-left text-xs font-mono">
-                      <thead>
-                        <tr className="text-[10px] text-slate-400 uppercase tracking-wider border-b border-[#27272a] pb-2">
-                          <th className="py-2 px-1.5 w-9 text-center">SET</th>
-                          <th className="py-2 px-2">PESO ({unit.toUpperCase()})</th>
-                          <th className="py-2 px-2">REPS</th>
-                          <th className="py-2 px-1 text-center">RPE</th>
-                          <th className="py-2 px-1 text-right">OK</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#27272a]/70">
-                        {exercise.sets.map((set, sIdx) => {
-                          const isWarmup = set.isWarmup || set.indicator === 'warmup';
-                          const rpeColor = getRpeBadgeColor(set.rpe);
+                      {/* Nota Personal de Santiago (Callout Idéntico a Hevy) */}
+                      {exercise.notes && (
+                        <div className="p-2.5 rounded-xl bg-[#18181b] border-l-4 border-amber-500 text-xs text-slate-300 flex items-start gap-2 shadow-inner">
+                          <MessageSquare className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                          <p className="leading-snug italic text-[11px]">"{exercise.notes}"</p>
+                        </div>
+                      )}
 
-                          return (
-                            <tr
-                              key={sIdx}
-                              className={`transition-colors ${
-                                isWarmup ? 'bg-amber-500/5' : 'hover:bg-[#18181b]/60'
-                              }`}
-                            >
-                              {/* SET BADGE (W para Warmup o 1, 2, 3...) */}
-                              <td className="py-2.5 px-1.5 text-center">
-                                <span
-                                  className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-black shadow-xs ${
-                                    isWarmup
-                                      ? 'bg-amber-500/25 text-amber-400 border border-amber-500/50'
-                                      : 'bg-[#27272a] text-slate-200 border border-[#3f3f46]'
+                      {/* TABLA DE SERIES CON COLUMNA PRÓXIMA (+1/-1, +/-kg) */}
+                      <div className="overflow-x-auto pt-0.5">
+                        <table className="w-full text-left text-xs font-mono">
+                          <thead>
+                            <tr className="text-[10px] text-slate-400 uppercase tracking-wider border-b border-[#27272a]">
+                              <th className="py-1.5 px-1 w-8 text-center">SET</th>
+                              <th className="py-1.5 px-1.5">PESO</th>
+                              <th className="py-1.5 px-1.5">REPS</th>
+                              <th className="py-1.5 px-1 text-center">RPE</th>
+                              <th className="py-1.5 px-1.5 text-right text-cyan-400">PRÓXIMA IA</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#27272a]/70">
+                            {exercise.sets.map((set, sIdx) => {
+                              const isWarmup = set.isWarmup || set.indicator === 'warmup';
+                              const rpeColor = getRpeBadgeColor(set.rpe);
+
+                              // Buscar sugerencia exacta para esta serie
+                              let setDelta = null;
+                              if (aiRec?.setSuggestions) {
+                                if (isWarmup) {
+                                  setDelta = aiRec.setSuggestions.find((s) => s.isWarmup) || null;
+                                } else {
+                                  const nonWarmups = aiRec.setSuggestions.filter((s) => !s.isWarmup);
+                                  setDelta = nonWarmups[workingSetCursor] || nonWarmups[nonWarmups.length - 1] || null;
+                                  workingSetCursor++;
+                                }
+                              }
+
+                              const badgeClass = !setDelta
+                                ? 'bg-slate-800/60 text-slate-500 border-slate-700'
+                                : setDelta.isWarmup
+                                ? 'bg-amber-500/10 text-amber-300/80 border-amber-500/25'
+                                : setDelta.weightDeltaKg < -0.3 || setDelta.repsDelta < 0
+                                ? 'bg-rose-500/15 text-rose-300 border-rose-500/35'
+                                : setDelta.weightDeltaKg > 0.3 || setDelta.repsDelta > 0
+                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/35'
+                                : 'bg-amber-500/15 text-amber-200 border-amber-500/30';
+
+                              return (
+                                <tr
+                                  key={sIdx}
+                                  className={`transition-colors ${
+                                    isWarmup ? 'bg-amber-500/5' : 'hover:bg-[#18181b]/60'
                                   }`}
                                 >
-                                  {isWarmup ? 'W' : set.setNumber}
-                                </span>
-                              </td>
+                                  <td className="py-2 px-1 text-center">
+                                    <span
+                                      className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[11px] font-black ${
+                                        isWarmup
+                                          ? 'bg-amber-500/25 text-amber-400 border border-amber-500/50'
+                                          : 'bg-[#27272a] text-slate-200 border border-[#3f3f46]'
+                                      }`}
+                                    >
+                                      {isWarmup ? 'W' : set.setNumber}
+                                    </span>
+                                  </td>
 
-                              {/* PESO */}
-                              <td className="py-2.5 px-2">
-                                {set.durationSeconds ? (
-                                  <span className="text-slate-300 font-bold text-xs">
-                                    {Math.floor(set.durationSeconds / 60)}m {set.durationSeconds % 60}s
-                                  </span>
-                                ) : (
-                                  <span className="text-white font-extrabold text-xs">
-                                    {formatWeight(set.weightKg, set.weightLbs)}
-                                  </span>
-                                )}
-                              </td>
+                                  <td className="py-2 px-1.5 whitespace-nowrap">
+                                    {set.durationSeconds ? (
+                                      <span className="text-slate-300 font-bold text-[11px]">
+                                        {Math.floor(set.durationSeconds / 60)}m {set.durationSeconds % 60}s
+                                      </span>
+                                    ) : (
+                                      <span className="text-white font-extrabold text-[11px]">
+                                        {formatWeight(set.weightKg, set.weightLbs)}
+                                      </span>
+                                    )}
+                                  </td>
 
-                              {/* REPETICIONES */}
-                              <td className="py-2.5 px-2">
-                                {set.reps > 0 ? (
-                                  <span className="text-white font-extrabold text-xs">
-                                    {set.reps}{' '}
-                                    <span className="text-[10px] text-slate-400 font-normal">reps</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-500 font-normal">—</span>
-                                )}
-                              </td>
+                                  <td className="py-2 px-1.5 whitespace-nowrap">
+                                    {set.reps > 0 ? (
+                                      <span className="text-white font-extrabold text-[11px]">
+                                        {set.reps}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-500">—</span>
+                                    )}
+                                  </td>
 
-                              {/* RPE */}
-                              <td className="py-2.5 px-1 text-center">
-                                {set.rpe ? (
-                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black border ${rpeColor}`}>
-                                    @{set.rpe}
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-600">—</span>
-                                )}
-                              </td>
+                                  <td className="py-2 px-1 text-center">
+                                    {set.rpe ? (
+                                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black border ${rpeColor}`}>
+                                        @{set.rpe}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-600">—</span>
+                                    )}
+                                  </td>
 
-                              {/* CHECK HEVY */}
-                              <td className="py-2.5 px-1 text-right">
-                                <span className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-xs">
-                                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+                                  <td className="py-2 px-1 text-right">
+                                    {setDelta ? (
+                                      <span
+                                        className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-extrabold border whitespace-nowrap ${badgeClass}`}
+                                        title={`Objetivo: ${setDelta.suggestedWeightKg} kg (${setDelta.suggestedWeightLbs ?? ''} lb) × ${setDelta.suggestedReps} reps • RIR ${setDelta.targetRir}`}
+                                      >
+                                        {setDelta.shortBadge}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] text-slate-600">—</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          ))}
         </div>
+
+        {/* EJERCICIOS ADICIONALES EN LA RUTINA DE HEVY NO EJECUTADOS EN LA ÚLTIMA SESIÓN */}
+        {extraRoutineRecommendations.length > 0 && (
+          <div className="p-4 rounded-2xl bg-[#09090b]/80 border border-[#27272a] space-y-3">
+            <button
+              onClick={() => setShowExtraRoutineExercises((v) => !v)}
+              className="cursor-pointer w-full flex items-center justify-between gap-2 text-xs font-bold text-slate-300 hover:text-white"
+            >
+              <span className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-indigo-400" />
+                <span>
+                  Otros {extraRoutineRecommendations.length} ejercicios en tu rutina viva de Hevy (no alcanzaste a hacerlos en esta sesión — auditados por la IA)
+                </span>
+              </span>
+              {showExtraRoutineExercises ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {showExtraRoutineExercises && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 border-t border-[#27272a]">
+                {extraRoutineRecommendations.map((rec) => (
+                  <div
+                    key={rec.exerciseName + rec.currentOrderIndex}
+                    className={`p-3 rounded-xl border text-xs space-y-1.5 ${
+                      !rec.keepExercise
+                        ? 'bg-rose-950/25 border-rose-500/35'
+                        : 'bg-[#18181b] border-[#27272a]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-white truncate">
+                        #{rec.currentOrderIndex + 1} {rec.exerciseName}
+                      </span>
+                      <span className="text-[10px] font-mono text-amber-300 shrink-0">
+                        ⏱ {formatSecondsToMmSs(rec.currentRestSeconds)} → {formatSecondsToMmSs(rec.suggestedRestSeconds)}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
+                      {!rec.keepExercise ? (
+                        <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/35 font-bold">
+                          ✂️ Sugerido quitar
+                        </span>
+                      ) : rec.suggestedOrderIndex !== rec.currentOrderIndex ? (
+                        <span className="px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/35 font-bold">
+                          🔀 Mover a #{rec.suggestedOrderIndex + 1}
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-snug">{rec.coachReasoning}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 4. BARRA SOCIAL INFERIOR DE HEVY (LIKE, COMENTARIOS, COMPARTIR) */}
         <div className="pt-6 border-t border-[#27272a] flex items-center justify-between flex-wrap gap-4 text-xs font-semibold text-slate-400">

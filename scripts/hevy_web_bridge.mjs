@@ -13,8 +13,34 @@ const SESSION_STATE_FILE = path.join(PROFILE_DIR, 'session_state.json');
 const BRIDGE_LOCK_FILE = path.join(PROFILE_DIR, 'bridge.lock');
 const IMPORTS_DIR = path.join(ROOT_DIR, 'data', 'imports');
 const DEFAULT_EXPORT_CSV = path.join(IMPORTS_DIR, 'workouts_live_export.csv');
+const ROUTINES_DATA_FILE = path.join(ROOT_DIR, 'data', 'real_hevy_routines.json');
+const ROUTINES_BACKUP_FILE = path.join(ROOT_DIR, 'data', 'hevy_routines_backup.json');
 const DRIVE_BACKUP_CSV = 'G:\\Mi unidad\\Panel_de_Vida\\Hevy\\hevy_workouts_latest.csv';
 const LOGIN_CDP_PORT = 9229;
+const LBS_TO_KG = 0.45359237;
+
+const KNOWN_ROUTINES = [
+  {
+    name: 'Horizontal Torso (Chest & Back)',
+    shortId: 'DsaJ9O9Ed4U',
+    uuid: 'b0f00c93-41ba-41b3-91dd-06b503028635',
+  },
+  {
+    name: 'Vertical & Incline Torso (Chest & Back)',
+    shortId: 'xEaFx8bgFGw',
+    uuid: '7b393ba1-625d-465d-8478-8126cc7a8db1',
+  },
+  {
+    name: 'Arms & Shoulders',
+    shortId: 'EqZ9Xs9vRnO',
+    uuid: '11929d35-c80b-417f-9b60-fe18b99a98c7',
+  },
+  {
+    name: 'Full Legs',
+    shortId: 'LZhgyR0nGZB',
+    uuid: '7e2e1b53-9b71-4df6-8d2f-88e34681ddf0',
+  },
+];
 
 fs.mkdirSync(PROFILE_DIR, { recursive: true });
 fs.mkdirSync(IMPORTS_DIR, { recursive: true });
@@ -337,11 +363,14 @@ async function openContext(headless = true, cmd = 'status') {
 async function isLoggedIn(page) {
   await page.goto('https://hevy.com/settings?export', { waitUntil: 'domcontentloaded', timeout: 30000 });
   await Promise.race([
-    page.waitForSelector('button:has-text("Export"), button:has-text("Exportar")', { timeout: 8000 }).catch(() => null),
-    page.waitForURL(/\/(login|signup)/, { timeout: 8000 }).catch(() => null),
-    page.waitForTimeout(4500),
+    page
+      .waitForSelector('button:has-text("Export"), button:has-text("Exportar"), a[href="/routines"], a[href*="/user/"]', {
+        timeout: 12000,
+      })
+      .catch(() => null),
+    page.waitForURL(/\/(login|signup)/, { timeout: 12000 }).catch(() => null),
   ]);
-  const url = page.url();
+  let url = page.url();
   if (url.includes('/login') || url.includes('/signup')) {
     try {
       fs.writeFileSync(
@@ -354,9 +383,24 @@ async function isLoggedIn(page) {
     }
     return { authenticated: false, url };
   }
-  const hasExportBtn =
+  let hasExportBtn =
     (await page.getByRole('button', { name: /Exportar datos de entrenamiento|Export workout data|Export/i }).count()) > 0;
-  const hasAuthNav = (await page.locator('a[href*="/user/"], a[href="/routines"]').count()) > 0;
+  let hasAuthNav = (await page.locator('a[href*="/user/"], a[href="/routines"]').count()) > 0;
+
+  // Si la SPA aún estaba hidratando y seguimos en /settings (no redirigió a /login), dar 5s extra
+  if (!hasExportBtn && !hasAuthNav && !url.includes('/login') && !url.includes('/signup')) {
+    await Promise.race([
+      page
+        .waitForSelector('button:has-text("Export"), button:has-text("Exportar"), a[href="/routines"]', { timeout: 5000 })
+        .catch(() => null),
+      page.waitForURL(/\/(login|signup)/, { timeout: 5000 }).catch(() => null),
+    ]);
+    url = page.url();
+    hasExportBtn =
+      (await page.getByRole('button', { name: /Exportar datos de entrenamiento|Export workout data|Export/i }).count()) > 0;
+    hasAuthNav = (await page.locator('a[href*="/user/"], a[href="/routines"]').count()) > 0;
+  }
+
   const userName = await page
     .locator('aside h5, nav h5, h5')
     .first()
@@ -638,15 +682,406 @@ async function handleExportCsv(outPath = DEFAULT_EXPORT_CSV) {
   }
 }
 
-async function handleUpdateRoutine(args) {
-  const routineName = args['routine-name'] || '';
-  const routineUrlArg = args['routine-url'] || '';
-  const payloadFile = args['payload-file'] || '';
-  if (!routineName && !routineUrlArg) {
-    console.log(JSON.stringify({ ok: false, error: 'Se requiere --routine-name o --routine-url' }));
-    process.exitCode = 1;
-    return;
+function normalizeTitle(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function formatRestSecondsLabel(sec) {
+  const n = Number(sec);
+  if (!Number.isFinite(n) || n <= 0) return 'Desactivado';
+  const clamped = Math.max(5, Math.min(300, Math.round(n / 5) * 5));
+  const mm = String(Math.floor(clamped / 60)).padStart(2, '0');
+  const ss = String(clamped % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
+function formatWeightForHevyInput(value, usesCommaDecimal) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num <= 0) return '';
+  const rounded = Math.round(num * 4) / 4; // incrementos limpios de 0.25
+  const raw = Number.isInteger(rounded) ? String(rounded) : String(Number(rounded.toFixed(2)));
+  return usesCommaDecimal ? raw.replace('.', ',') : raw;
+}
+
+function resolveRoutineMeta(args, payload = {}) {
+  const nameQ = normalizeTitle(args['routine-name'] || payload.routineTitle || payload.routineName || '');
+  const shortIdQ = String(args['routine-id'] || payload.routineShortId || '').trim();
+  const uuidQ = String(args['routine-uuid'] || payload.routineUuid || '').trim();
+  const urlQ = String(args['routine-url'] || payload.routineUrl || '').trim();
+  const editUrlQ = String(args['edit-url'] || payload.editUrl || '').trim();
+
+  let matched = KNOWN_ROUTINES.find(
+    (r) =>
+      (shortIdQ && r.shortId === shortIdQ) ||
+      (uuidQ && r.uuid === uuidQ) ||
+      (urlQ && urlQ.includes(r.shortId)) ||
+      (editUrlQ && editUrlQ.includes(r.uuid)) ||
+      (nameQ &&
+        (normalizeTitle(r.name) === nameQ ||
+          normalizeTitle(r.name).includes(nameQ) ||
+          nameQ.includes(normalizeTitle(r.name).split('(')[0].trim())))
+  );
+
+  // También consultar data/real_hevy_routines.json si existe
+  if (!matched && fs.existsSync(ROUTINES_DATA_FILE)) {
+    try {
+      const saved = JSON.parse(fs.readFileSync(ROUTINES_DATA_FILE, 'utf8'));
+      const found = (saved?.routines || []).find(
+        (r) =>
+          (shortIdQ && r.shortId === shortIdQ) ||
+          (uuidQ && r.uuid === uuidQ) ||
+          (nameQ && normalizeTitle(r.title) === nameQ)
+      );
+      if (found) {
+        matched = { name: found.title, shortId: found.shortId, uuid: found.uuid };
+      }
+    } catch {
+      // ignore
+    }
   }
+
+  return {
+    name: args['routine-name'] || payload.routineTitle || matched?.name || '',
+    shortId: shortIdQ || matched?.shortId || '',
+    uuid: uuidQ || matched?.uuid || '',
+    routineUrl: urlQ || (matched?.shortId ? `https://hevy.com/routine/${matched.shortId}` : ''),
+    editUrl: editUrlQ || (matched?.uuid ? `https://hevy.com/edit-routine/${matched.uuid}` : ''),
+  };
+}
+
+function normalizeHevyRoutinePayload(rawRoutine, unitMap = {}) {
+  const r = rawRoutine?.routine || rawRoutine;
+  if (!r || !Array.isArray(r.exercises)) return null;
+  return {
+    uuid: r.id,
+    shortId: r.short_id,
+    title: (r.title || '').trim(),
+    folderId: r.folder_id ?? null,
+    notes: r.notes || '',
+    routineUrl: r.short_id ? `https://hevy.com/routine/${r.short_id}` : '',
+    editUrl: r.id ? `https://hevy.com/edit-routine/${r.id}` : '',
+    updatedAt: r.updated_at || new Date().toISOString(),
+    exerciseCount: r.exercises.length,
+    exercises: r.exercises.map((ex, idx) => {
+      const unit = unitMap[ex.exercise_template_id] || 'kg';
+      return {
+        index: idx,
+        id: ex.id,
+        exerciseTemplateId: ex.exercise_template_id,
+        title: ex.title || '',
+        esTitle: ex.es_title || ex.title || '',
+        muscleGroup: ex.muscle_group || 'other',
+        exerciseType: ex.exercise_type || 'weight_reps',
+        equipmentCategory: ex.equipment_category || 'none',
+        unit,
+        restSeconds: Number.isFinite(Number(ex.rest_seconds)) ? Number(ex.rest_seconds) : 0,
+        inputModifier: ex.input_modifier || 'reps',
+        notes: ex.notes || '',
+        pinnedNotes: Array.isArray(ex.pinned_notes) ? ex.pinned_notes : [],
+        supersetId: ex.superset_id ?? null,
+        sets: (ex.sets || []).map((s, sIdx) => {
+          const wKg = Number(s.weight_kg ?? 0) || 0;
+          return {
+            index: sIdx,
+            type: s.indicator || s.type || 'normal',
+            weightKg: Math.round(wKg * 100) / 100,
+            weightLbs: wKg > 0 ? Math.round((wKg / LBS_TO_KG) * 10) / 10 : 0,
+            reps: s.reps ?? null,
+            repRangeStart: s.rep_range_start ?? s.rep_range?.start ?? null,
+            repRangeEnd: s.rep_range_end ?? s.rep_range?.end ?? null,
+            durationSeconds: s.duration_seconds ?? null,
+            rpe: s.rpe ?? null,
+          };
+        }),
+      };
+    }),
+  };
+}
+
+async function fetchRoutineViaPage(page, shortId) {
+  let captured = null;
+  const onResp = async (res) => {
+    const u = res.url();
+    if (u.includes('routine_with_short_id') && u.includes(shortId) && res.status() === 200) {
+      try {
+        captured = await res.json();
+      } catch {
+        // ignore
+      }
+    }
+  };
+  page.on('response', onResp);
+  try {
+    await page.goto(`https://hevy.com/routine/${shortId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const deadline = Date.now() + 9000;
+    while (!captured && Date.now() < deadline) {
+      await page.waitForTimeout(250);
+    }
+  } finally {
+    page.off('response', onResp);
+  }
+  return captured;
+}
+
+async function fetchTemplateUnitsViaPage(page, sampleEditUrl) {
+  const unitMap = {};
+  let captured = null;
+  const onResp = async (res) => {
+    if (res.url().includes('exercise_template_units') && res.status() === 200) {
+      try {
+        captured = await res.json();
+      } catch {
+        // ignore
+      }
+    }
+  };
+  page.on('response', onResp);
+  try {
+    await page.goto(sampleEditUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const deadline = Date.now() + 8000;
+    while (!captured && Date.now() < deadline) {
+      await page.waitForTimeout(250);
+    }
+    if (Array.isArray(captured)) {
+      for (const row of captured) {
+        if (row?.exercise_template_id && row?.weight_unit) {
+          unitMap[row.exercise_template_id] = String(row.weight_unit).toLowerCase() === 'lbs' ? 'lbs' : 'kg';
+        }
+      }
+    }
+  } finally {
+    page.off('response', onResp);
+  }
+  return unitMap;
+}
+
+function appendRoutineBackup(normalizedRoutine, reason = 'pre_apply_plan') {
+  try {
+    fs.mkdirSync(path.dirname(ROUTINES_BACKUP_FILE), { recursive: true });
+    let backups = [];
+    if (fs.existsSync(ROUTINES_BACKUP_FILE)) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(ROUTINES_BACKUP_FILE, 'utf8'));
+        backups = Array.isArray(parsed?.backups) ? parsed.backups : [];
+      } catch {
+        backups = [];
+      }
+    }
+    backups.unshift({
+      backedUpAt: new Date().toISOString(),
+      reason,
+      routineShortId: normalizedRoutine.shortId,
+      routineUuid: normalizedRoutine.uuid,
+      routineTitle: normalizedRoutine.title,
+      exerciseCount: normalizedRoutine.exerciseCount,
+      routine: normalizedRoutine,
+    });
+    fs.writeFileSync(
+      ROUTINES_BACKUP_FILE,
+      JSON.stringify({ updatedAt: new Date().toISOString(), backups: backups.slice(0, 30) }, null, 2),
+      'utf8'
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function upsertRoutineInSavedFile(normalizedRoutine, accountName = null) {
+  fs.mkdirSync(path.dirname(ROUTINES_DATA_FILE), { recursive: true });
+  let existing = { exportedAt: new Date().toISOString(), accountName, routines: [] };
+  if (fs.existsSync(ROUTINES_DATA_FILE)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(ROUTINES_DATA_FILE, 'utf8'));
+      if (parsed && Array.isArray(parsed.routines)) existing = parsed;
+    } catch {
+      // ignore
+    }
+  }
+  const idx = existing.routines.findIndex(
+    (r) => r.shortId === normalizedRoutine.shortId || r.uuid === normalizedRoutine.uuid
+  );
+  if (idx >= 0) existing.routines[idx] = normalizedRoutine;
+  else existing.routines.push(normalizedRoutine);
+  existing.exportedAt = new Date().toISOString();
+  if (accountName) existing.accountName = accountName;
+  existing.routineCount = existing.routines.length;
+  fs.writeFileSync(ROUTINES_DATA_FILE, JSON.stringify(existing, null, 2), 'utf8');
+}
+
+async function handleExportRoutines() {
+  let ctx;
+  try {
+    ctx = await openContext(true, 'export-routines');
+    const page = ctx.pages()[0] || (await ctx.newPage());
+    const auth = await isLoggedIn(page);
+    if (!auth.authenticated) {
+      console.log(
+        JSON.stringify({
+          ok: false,
+          requiresLogin: true,
+          url: auth.url,
+          error: 'Sesión Chrome de Hevy Web no iniciada.',
+        })
+      );
+      return;
+    }
+
+    // 1. Capturar unidades reales por ejercicio (kg vs lbs) desde /edit-routine
+    const unitMap = await fetchTemplateUnitsViaPage(
+      page,
+      `https://hevy.com/edit-routine/${KNOWN_ROUTINES[0].uuid}`
+    );
+
+    // 2. Descubrir cualquier rutina adicional en hevy.com/routines
+    const shortIds = new Set(KNOWN_ROUTINES.map((r) => r.shortId));
+    try {
+      await page.goto('https://hevy.com/routines', { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForTimeout(2200);
+      const discovered = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('a[href*="/routine/"]'))
+          .map((a) => {
+            const m = (a.getAttribute('href') || '').match(/\/routine\/([A-Za-z0-9_-]+)/);
+            return m ? m[1] : null;
+          })
+          .filter(Boolean);
+      });
+      for (const sid of discovered) shortIds.add(sid);
+    } catch {
+      // continuar con las 4 rutinas conocidas
+    }
+
+    // 3. Capturar el JSON oficial completo de cada rutina
+    const routines = [];
+    for (const sid of shortIds) {
+      const raw = await fetchRoutineViaPage(page, sid);
+      const norm = normalizeHevyRoutinePayload(raw, unitMap);
+      if (norm) routines.push(norm);
+    }
+
+    fs.mkdirSync(path.dirname(ROUTINES_DATA_FILE), { recursive: true });
+    const outPayload = {
+      exportedAt: new Date().toISOString(),
+      accountName: auth.accountName || '@teheransmit',
+      routineCount: routines.length,
+      templateUnitsCount: Object.keys(unitMap).length,
+      templateUnits: unitMap,
+      routines,
+    };
+    fs.writeFileSync(ROUTINES_DATA_FILE, JSON.stringify(outPayload, null, 2), 'utf8');
+
+    console.log(
+      JSON.stringify({
+        ok: true,
+        accountName: outPayload.accountName,
+        routinesFile: ROUTINES_DATA_FILE,
+        routineCount: routines.length,
+        templateUnitsCount: outPayload.templateUnitsCount,
+        routinesSummary: routines.map((r) => ({
+          shortId: r.shortId,
+          uuid: r.uuid,
+          title: r.title,
+          exerciseCount: r.exerciseCount,
+        })),
+        exportedAt: outPayload.exportedAt,
+      })
+    );
+  } catch (err) {
+    console.log(JSON.stringify({ ok: false, error: formatCleanBridgeError(err) }));
+    process.exitCode = 1;
+  } finally {
+    if (ctx) await ctx.close().catch(() => {});
+    releaseBridgeLock();
+  }
+}
+
+async function getLiveCardTitles(page) {
+  return await page.evaluate(() => {
+    const cards = Array.from(
+      document.querySelectorAll('[data-rbd-droppable-id="exercise-area"] > [data-rbd-draggable-id]')
+    );
+    return cards.map((c, idx) => {
+      const title = c.querySelector('p')?.textContent?.trim() || '';
+      const rbdId = c.getAttribute('data-rbd-draggable-id') || '';
+      return { idx, rbdId, title };
+    });
+  });
+}
+
+function findMatchingCardIndex(liveCards, candidates, usedRbdIds = new Set()) {
+  const normCandidates = candidates.filter(Boolean).map(normalizeTitle).filter(Boolean);
+  if (normCandidates.length === 0) return -1;
+
+  // 1. Exact match first (preferring unused cards)
+  let idx = liveCards.findIndex(
+    (c) => !usedRbdIds.has(c.rbdId) && normCandidates.includes(normalizeTitle(c.title))
+  );
+  if (idx >= 0) return idx;
+
+  // 2. Partial substring match for length >= 6
+  idx = liveCards.findIndex((c) => {
+    if (usedRbdIds.has(c.rbdId)) return false;
+    const t = normalizeTitle(c.title);
+    return normCandidates.some((cand) => cand.length >= 6 && (t.includes(cand) || cand.includes(t)));
+  });
+  return idx;
+}
+
+async function setCardRestTimer(page, cardLocator, targetSeconds) {
+  const desiredLabel = formatRestSecondsLabel(targetSeconds);
+  const currentLabel = (
+    await cardLocator.locator('div[class*="singleValue"]').first().textContent().catch(() => '')
+  ).trim();
+
+  if (currentLabel === desiredLabel) {
+    return { changed: false, from: currentLabel, to: desiredLabel };
+  }
+
+  const restControl = cardLocator
+    .locator('input[aria-label="Temporizador de descanso:"]')
+    .first()
+    .locator('xpath=ancestor::div[contains(@class,"control")][1]');
+
+  if ((await restControl.count()) === 0) {
+    return { changed: false, error: 'No se encontró control de temporizador de descanso' };
+  }
+
+  await restControl.scrollIntoViewIfNeeded();
+  await restControl.click();
+  await page.waitForTimeout(300);
+
+  const optionLocator = page
+    .locator('[role="option"], div[id*="react-select"][id*="-option-"]')
+    .filter({ hasText: new RegExp(`^${desiredLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`) })
+    .first();
+
+  if ((await optionLocator.count()) === 0) {
+    await page.keyboard.press('Escape').catch(() => {});
+    return { changed: false, error: `Opción de descanso '${desiredLabel}' no encontrada` };
+  }
+
+  await optionLocator.scrollIntoViewIfNeeded();
+  await optionLocator.click();
+  await page.waitForTimeout(200);
+
+  const afterLabel = (
+    await cardLocator.locator('div[class*="singleValue"]').first().textContent().catch(() => '')
+  ).trim();
+
+  return {
+    changed: afterLabel === desiredLabel,
+    from: currentLabel,
+    to: afterLabel,
+  };
+}
+
+async function handleApplyRoutinePlan(args) {
+  const payloadFile = args['payload-file'] || '';
   if (!payloadFile || !fs.existsSync(payloadFile)) {
     console.log(JSON.stringify({ ok: false, error: 'No se encontró --payload-file' }));
     process.exitCode = 1;
@@ -654,11 +1089,26 @@ async function handleUpdateRoutine(args) {
   }
 
   const payload = JSON.parse(fs.readFileSync(payloadFile, 'utf8'));
-  const exercisesToUpdate = Array.isArray(payload.exercises) ? payload.exercises : [];
+  const meta = resolveRoutineMeta(args, payload);
+  if (!meta.editUrl && !meta.routineUrl && !meta.name) {
+    console.log(JSON.stringify({ ok: false, error: 'Se requiere identificar la rutina (--routine-name / --routine-id / --edit-url)' }));
+    process.exitCode = 1;
+    return;
+  }
+
+  const applyOptions = {
+    weightsAndReps: payload.applyOptions?.weightsAndReps !== false,
+    restTimers: Boolean(payload.applyOptions?.restTimers),
+    notes: payload.applyOptions?.notes !== false,
+    reorder: Boolean(payload.applyOptions?.reorder),
+    removeMarked: Boolean(payload.applyOptions?.removeMarked),
+  };
+
+  const exercisesInput = Array.isArray(payload.exercises) ? payload.exercises : [];
 
   let ctx;
   try {
-    ctx = await openContext(true, 'update-routine');
+    ctx = await openContext(true, 'apply-routine-plan');
     const page = ctx.pages()[0] || (await ctx.newPage());
     const auth = await isLoggedIn(page);
     if (!auth.authenticated) {
@@ -666,160 +1116,505 @@ async function handleUpdateRoutine(args) {
       return;
     }
 
-    if (routineUrlArg) {
-      await page.goto(routineUrlArg, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    // 1. Snapshot previo + respaldo automático en data/hevy_routines_backup.json
+    let backupSaved = false;
+    let unitMap = {};
+    if (meta.shortId) {
+      const preRaw = await fetchRoutineViaPage(page, meta.shortId);
+      const preNorm = normalizeHevyRoutinePayload(preRaw, unitMap);
+      if (preNorm) {
+        if (!meta.uuid && preNorm.uuid) {
+          meta.uuid = preNorm.uuid;
+          meta.editUrl = `https://hevy.com/edit-routine/${preNorm.uuid}`;
+        }
+        backupSaved = appendRoutineBackup(preNorm, 'before_apply_routine_plan');
+      }
+    }
+
+    // 2. Abrir el editor oficial /edit-routine/{uuid} y capturar unidades
+    const capturedUnitsPromise = new Promise((resolve) => {
+      const onUnits = async (res) => {
+        if (res.url().includes('exercise_template_units') && res.status() === 200) {
+          try {
+            const arr = await res.json();
+            page.off('response', onUnits);
+            resolve(arr);
+          } catch {
+            // ignore
+          }
+        }
+      };
+      page.on('response', onUnits);
+      setTimeout(() => {
+        page.off('response', onUnits);
+        resolve(null);
+      }, 9000);
+    });
+
+    if (meta.editUrl) {
+      await page.goto(meta.editUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    } else if (meta.routineUrl) {
+      await page.goto(meta.routineUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForTimeout(1800);
+      const editBtn = page.getByRole('button', { name: /Editar rutina|Edit Routine/i }).first();
+      if ((await editBtn.count()) > 0) await editBtn.click();
+      else await page.locator('a[href*="/edit-routine/"]').first().click();
+      await page.waitForURL(/\/edit-routine\//, { timeout: 20000 });
     } else {
       await page.goto('https://hevy.com/routines', { waitUntil: 'domcontentloaded', timeout: 30000 });
       await page.waitForTimeout(2000);
-      const targetLink = page.locator('a[href*="/routine/"]').filter({ hasText: routineName }).first();
+      const targetLink = page.locator('a[href*="/routine/"]').filter({ hasText: meta.name }).first();
       if ((await targetLink.count()) === 0) {
-        console.log(JSON.stringify({ ok: false, error: `No se encontró la rutina '${routineName}' en hevy.com/routines` }));
+        console.log(JSON.stringify({ ok: false, error: `No se encontró la rutina '${meta.name}' en hevy.com/routines` }));
         process.exitCode = 1;
         return;
       }
       await targetLink.click();
-    }
-
-    await page.waitForTimeout(1800);
-    if (!page.url().includes('/edit-routine/')) {
+      await page.waitForTimeout(1500);
       const editBtn = page.getByRole('button', { name: /Editar rutina|Edit Routine/i }).first();
-      if ((await editBtn.count()) > 0) {
-        await editBtn.click();
-      } else {
-        const editLink = page.locator('a[href*="/edit-routine/"]').first();
-        await editLink.waitFor({ state: 'visible', timeout: 15000 });
-        await editLink.click();
-      }
+      if ((await editBtn.count()) > 0) await editBtn.click();
+      else await page.locator('a[href*="/edit-routine/"]').first().click();
       await page.waitForURL(/\/edit-routine\//, { timeout: 20000 });
     }
 
-    await page.waitForTimeout(2200);
+    await page
+      .locator('[data-rbd-droppable-id="exercise-area"] > [data-rbd-draggable-id]')
+      .first()
+      .waitFor({ state: 'visible', timeout: 15000 });
+    await page.waitForTimeout(800);
+
+    const unitsArr = await capturedUnitsPromise;
+    if (Array.isArray(unitsArr)) {
+      for (const row of unitsArr) {
+        if (row?.exercise_template_id && row?.weight_unit) {
+          unitMap[row.exercise_template_id] = String(row.weight_unit).toLowerCase() === 'lbs' ? 'lbs' : 'kg';
+        }
+      }
+    }
+
     const editUrl = page.url();
+    const cardsLocator = page.locator('[data-rbd-droppable-id="exercise-area"] > [data-rbd-draggable-id]');
 
-    // Actualizar campos de peso/notas por ejercicio dentro del editor (detecta automáticamente KG vs LBS)
-    const result = await page.evaluate((updates) => {
-      const modified = [];
-      const notFound = [];
+    const modifiedExercises = [];
+    const restTimersUpdated = [];
+    const notesUpdated = [];
+    const removedExercises = [];
+    const notFound = [];
+    let reorderedCount = 0;
 
-      const normalize = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-
-      // Detectar unidad global configurada en Hevy Web (KG vs LBS)
-      const bodyText = (document.body.innerText || '').toUpperCase();
-      const usesKg = /\bKG\b/.test(bodyText) && !/\bLBS\b/.test(bodyText);
-
-      const setReactInputValue = (el, val) => {
-        const proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
-        const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
-        if (setter) setter.call(el, String(val));
-        else el.value = String(val);
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        el.dispatchEvent(new Event('blur', { bubbles: true }));
-      };
-
-      for (const item of updates) {
-        const candidates = [item.exerciseName, item.esTitle].filter(Boolean).map(normalize);
-        const headings = Array.from(document.querySelectorAll('button, h4, h5, span, a'));
-        const matchEl = headings.find((el) => {
-          const t = normalize(el.textContent);
-          return t && candidates.some((c) => t === c || (c.length > 5 && t.includes(c)));
-        });
-
-        if (!matchEl) {
-          notFound.push(item.exerciseName || item.esTitle);
-          continue;
-        }
-
-        let card = matchEl.parentElement;
-        while (card && card.parentElement && card.querySelectorAll('input').length < 2) {
-          card = card.parentElement;
-        }
-        if (!card) {
-          notFound.push(item.exerciseName);
-          continue;
-        }
-
-        // Verificar unidad específica dentro de la tarjeta (encabezado KG vs LBS)
-        const cardTextUpper = (card.innerText || '').toUpperCase();
-        const cardUsesKg = /\bKG\b/.test(cardTextUpper) ? true : /\bLBS\b/.test(cardTextUpper) ? false : usesKg;
-        const targetWeight = cardUsesKg && Number(item.targetWeightKg) > 0
-          ? Number(item.targetWeightKg)
-          : Number(item.targetWeightLbs || 0);
-
-        if (item.pinnedNote) {
-          const noteInput = card.querySelector(
-            'input[placeholder*="nota" i], textarea[placeholder*="nota" i], input[placeholder*="note" i], textarea[placeholder*="note" i]'
-          );
-          if (noteInput) {
-            setReactInputValue(noteInput, item.pinnedNote);
+    // 3. Eliminación opcional de ejercicios redundantes (SOLO si el usuario activó removeMarked)
+    if (applyOptions.removeMarked) {
+      const toRemove = exercisesInput.filter((ex) => ex.keepExercise === false);
+      for (const item of toRemove) {
+        const liveCards = await getLiveCardTitles(page);
+        const matchIdx = findMatchingCardIndex(liveCards, [item.esTitle, item.exerciseName]);
+        if (matchIdx < 0) continue;
+        const card = cardsLocator.nth(matchIdx);
+        const optBtn = card.locator('button[aria-label="Opciones del ejercicio"]').first();
+        if ((await optBtn.count()) > 0) {
+          await optBtn.scrollIntoViewIfNeeded();
+          await optBtn.click();
+          await page.waitForTimeout(300);
+          const delItem = page
+            .locator('[role="menuitem"], button, div')
+            .filter({ hasText: /^Eliminar ejercicio$|^Delete Exercise$|^Remove Exercise$/i })
+            .first();
+          if ((await delItem.count()) > 0) {
+            await delItem.click();
+            await page.waitForTimeout(350);
+            removedExercises.push(item.exerciseName || item.esTitle);
+          } else {
+            await page.keyboard.press('Escape').catch(() => {});
           }
         }
+      }
+    }
 
-        if (targetWeight > 0) {
-          const noteEl = card.querySelector('input[placeholder*="nota" i], input[placeholder*="note" i]');
-          const allInputs = Array.from(card.querySelectorAll('input')).filter((inp) => inp !== noteEl && inp.type !== 'checkbox');
-          let updatedSets = 0;
+    // 4. Actualizar pesos, repeticiones/rangos, temporizadores de descanso y notas fijadas
+    const usedRbdIds = new Set();
+    for (const item of exercisesInput) {
+      if (applyOptions.removeMarked && item.keepExercise === false) continue;
 
-          // Identificar filas de series efectivas (1, 2, 3...) ignorando calentamiento (W)
-          const rows = Array.from(card.querySelectorAll('div')).filter((d) => {
-            const directInputs = Array.from(d.children).filter((ch) => ch.tagName === 'INPUT' || ch.querySelector?.('input'));
-            const setLabel = d.querySelector('h5, span, button')?.textContent?.trim() || '';
-            const isWorkingSet = /^\d+$/.test(setLabel);
-            return isWorkingSet && directInputs.length >= 2;
-          });
+      const liveCards = await getLiveCardTitles(page);
+      const matchIdx = findMatchingCardIndex(liveCards, [item.esTitle, item.exerciseName], usedRbdIds);
+      if (matchIdx < 0) {
+        notFound.push(item.exerciseName || item.esTitle);
+        continue;
+      }
 
-          if (rows.length > 0) {
-            for (const row of rows) {
-              const weightInput = row.querySelector('input');
-              if (weightInput) {
-                setReactInputValue(weightInput, targetWeight);
-                updatedSets++;
+      const matchedCardInfo = liveCards[matchIdx];
+      usedRbdIds.add(matchedCardInfo.rbdId);
+      const card = cardsLocator.nth(matchIdx);
+      await card.scrollIntoViewIfNeeded();
+
+      let setsUpdated = 0;
+      let cardUnit = 'kg';
+      let cardMode = 'reps';
+      let restChange = null;
+      let noteApplied = false;
+
+      // 4A. Pesos & Repeticiones / Rangos de Repeticiones
+      if (applyOptions.weightsAndReps) {
+        // Detectar estructura de la tarjeta y marcar inputs de series efectivas (saltando W)
+        const cardMeta = await page.evaluate(
+          ({ rbdId }) => {
+            const c = document.querySelector(`[data-rbd-draggable-id="${rbdId}"]`);
+            if (!c) return null;
+
+            // Limpiar marcas previas
+            c.querySelectorAll('[data-vyfith-cell]').forEach((el) => el.removeAttribute('data-vyfith-cell'));
+
+            const ps = Array.from(c.querySelectorAll('p')).map((p) => (p.textContent || '').trim().toUpperCase());
+            const isDuration = ps.includes('TIEMPO') || ps.includes('TIME');
+            const isRepRange = ps.includes('INTERVALO DE REPETICIONES') || ps.includes('REP RANGE');
+            const unit = ps.includes('LBS') ? 'lbs' : 'kg';
+
+            if (isDuration) {
+              return { unit, mode: 'duration', usesCommaDecimal: false, workingRows: [] };
+            }
+
+            const allSetInputs = Array.from(c.querySelectorAll('input')).filter(
+              (inp) => inp.getAttribute('aria-label') !== 'Temporizador de descanso:' && inp.type !== 'checkbox'
+            );
+
+            // Agrupar inputs en filas reales (que tienen etiqueta W, 1, 2, 3, F, D en su primer hijo)
+            const seenRows = new Set();
+            const workingRows = [];
+            let usesCommaDecimal = false;
+
+            for (const inp of allSetInputs) {
+              if ((inp.value || '').includes(',')) usesCommaDecimal = true;
+              let r = inp.parentElement;
+              while (r && r !== c) {
+                const firstTxt = (r.children?.[0]?.textContent || '').trim();
+                const inpsInRow = Array.from(r.querySelectorAll('input')).filter(
+                  (i) => i.getAttribute('aria-label') !== 'Temporizador de descanso:'
+                );
+                if (/^(W|\d+|F|D)$/i.test(firstTxt) && inpsInRow.length >= 2) {
+                  if (!seenRows.has(r)) {
+                    seenRows.add(r);
+                    if (!/^W$/i.test(firstTxt)) {
+                      const rowIdx = workingRows.length;
+                      inpsInRow[0].setAttribute('data-vyfith-cell', `w-${rowIdx}`);
+                      if (inpsInRow[1]) inpsInRow[1].setAttribute('data-vyfith-cell', `rmin-${rowIdx}`);
+                      if (inpsInRow[2]) inpsInRow[2].setAttribute('data-vyfith-cell', `rmax-${rowIdx}`);
+                      workingRows.push({
+                        rowIdx,
+                        label: firstTxt,
+                        inputCount: inpsInRow.length,
+                        currentWeight: inpsInRow[0].value,
+                        currentRepMin: inpsInRow[1]?.value ?? '',
+                        currentRepMax: inpsInRow[2]?.value ?? '',
+                      });
+                    }
+                  }
+                  break;
+                }
+                r = r.parentElement;
               }
             }
-          } else if (allInputs.length > 0) {
-            setReactInputValue(allInputs[0], targetWeight);
-            updatedSets = 1;
-          }
 
-          modified.push({
-            exerciseName: item.exerciseName,
-            unitUsed: cardUsesKg ? 'kg' : 'lbs',
-            targetWeight,
-            updatedSets,
+            // En Hevy Web en español, las tarjetas en KG usan coma decimal ("42,5")
+            const langIsEs = (document.documentElement.lang || '').toLowerCase().startsWith('es') ||
+              (document.body.innerText || '').includes('Actualizar rutina');
+            if (langIsEs && !usesCommaDecimal && allSetInputs.every((i) => !(i.value || '').includes('.'))) {
+              usesCommaDecimal = true;
+            }
+
+            return {
+              unit,
+              mode: isRepRange ? 'rep-range' : 'reps',
+              usesCommaDecimal,
+              workingRows,
+            };
+          },
+          { rbdId: matchedCardInfo.rbdId }
+        );
+
+        if (cardMeta && cardMeta.mode !== 'duration' && cardMeta.workingRows.length > 0) {
+          cardUnit = cardMeta.unit;
+          cardMode = cardMeta.mode;
+          const nonWarmupSuggestions = Array.isArray(item.setSuggestions)
+            ? item.setSuggestions.filter((s) => !s.isWarmup)
+            : [];
+
+          for (let rIdx = 0; rIdx < cardMeta.workingRows.length; rIdx++) {
+            const rowMeta = cardMeta.workingRows[rIdx];
+            const setPlan = nonWarmupSuggestions[rIdx] || nonWarmupSuggestions[nonWarmupSuggestions.length - 1] || null;
+
+            const desiredKg = Number(setPlan?.suggestedWeightKg ?? item.targetWeightKg ?? 0);
+            const desiredLbs = Number(
+              setPlan?.suggestedWeightLbs ??
+                (desiredKg > 0 ? Math.round((desiredKg / LBS_TO_KG) * 10) / 10 : item.targetWeightLbs ?? 0)
+            );
+            const targetWeightVal = cardMeta.unit === 'lbs' ? desiredLbs : desiredKg;
+
+            let touchedRow = false;
+
+            if (targetWeightVal > 0) {
+              const formattedWeight = formatWeightForHevyInput(targetWeightVal, cardMeta.usesCommaDecimal);
+              const wLoc = card.locator(`[data-vyfith-cell="w-${rIdx}"]`).first();
+              if (formattedWeight && (await wLoc.count()) > 0 && rowMeta.currentWeight !== formattedWeight) {
+                await wLoc.fill(formattedWeight);
+                await wLoc.blur().catch(() => {});
+                touchedRow = true;
+              } else if (formattedWeight && rowMeta.currentWeight === formattedWeight) {
+                touchedRow = true; // ya estaba en el objetivo
+              }
+            }
+
+            // Repeticiones o Rango de Repeticiones
+            const repRangeStr = String(setPlan?.suggestedRepRange || '').trim();
+            const rangeMatch = repRangeStr.match(/(\d+)\s*[-–]\s*(\d+)/);
+            const singleReps = Number(setPlan?.suggestedReps ?? 0);
+
+            if (cardMeta.mode === 'rep-range' && rowMeta.inputCount >= 3) {
+              let minVal = '';
+              let maxVal = '';
+              if (rangeMatch) {
+                minVal = rangeMatch[1];
+                maxVal = rangeMatch[2];
+              } else if (singleReps > 0) {
+                minVal = String(Math.round(singleReps));
+                maxVal = rowMeta.currentRepMax ? String(Math.max(Math.round(singleReps) + 2, Number(rowMeta.currentRepMax) || Math.round(singleReps) + 2)) : String(Math.round(singleReps) + 2);
+              }
+              if (minVal) {
+                const rMinLoc = card.locator(`[data-vyfith-cell="rmin-${rIdx}"]`).first();
+                if ((await rMinLoc.count()) > 0 && rowMeta.currentRepMin !== minVal) {
+                  await rMinLoc.fill(minVal);
+                  await rMinLoc.blur().catch(() => {});
+                  touchedRow = true;
+                }
+              }
+              if (maxVal) {
+                const rMaxLoc = card.locator(`[data-vyfith-cell="rmax-${rIdx}"]`).first();
+                if ((await rMaxLoc.count()) > 0 && rowMeta.currentRepMax !== maxVal) {
+                  await rMaxLoc.fill(maxVal);
+                  await rMaxLoc.blur().catch(() => {});
+                  touchedRow = true;
+                }
+              }
+            } else if (singleReps > 0) {
+              const rMinLoc = card.locator(`[data-vyfith-cell="rmin-${rIdx}"]`).first();
+              const repStr = String(Math.round(singleReps));
+              if ((await rMinLoc.count()) > 0 && rowMeta.currentRepMin !== repStr) {
+                await rMinLoc.fill(repStr);
+                await rMinLoc.blur().catch(() => {});
+                touchedRow = true;
+              }
+            }
+
+            if (touchedRow) setsUpdated++;
+          }
+        }
+      }
+
+      // 4B. Temporizador de descanso
+      if (applyOptions.restTimers && Number.isFinite(Number(item.suggestedRestSeconds)) && Number(item.suggestedRestSeconds) >= 0) {
+        restChange = await setCardRestTimer(page, card, Number(item.suggestedRestSeconds));
+        if (restChange?.changed) {
+          restTimersUpdated.push({
+            exerciseName: item.exerciseName || matchedCardInfo.title,
+            from: restChange.from,
+            to: restChange.to,
           });
         }
       }
 
-      return { modified, notFound, unitDetected: usesKg ? 'kg' : 'lbs' };
-    }, exercisesToUpdate);
+      // 4C. Nota fijada de la rutina
+      if (applyOptions.notes && item.pinnedNote && String(item.pinnedNote).trim()) {
+        const noteArea = card.locator('textarea[aria-label="Nota fijada de la rutina"]').first();
+        if ((await noteArea.count()) > 0) {
+          const cleanNote = String(item.pinnedNote).trim().slice(0, 280);
+          const curNote = await noteArea.inputValue().catch(() => '');
+          if (curNote.trim() !== cleanNote) {
+            await noteArea.scrollIntoViewIfNeeded();
+            await noteArea.fill(cleanNote);
+            await noteArea.blur().catch(() => {});
+            noteApplied = true;
+            notesUpdated.push(item.exerciseName || matchedCardInfo.title);
+          }
+        }
+      }
 
-    if (result.modified.length === 0) {
+      if (setsUpdated > 0 || restChange?.changed || noteApplied) {
+        modifiedExercises.push({
+          exerciseName: item.exerciseName || matchedCardInfo.title,
+          esTitle: matchedCardInfo.title,
+          unitUsed: cardUnit,
+          mode: cardMode,
+          updatedSets: setsUpdated,
+          restChanged: restChange?.changed ? `${restChange.from} -> ${restChange.to}` : null,
+          noteUpdated: noteApplied,
+        });
+      }
+    }
+
+    // 5. Reordenamiento opcional con react-beautiful-dnd (teclado nativo determinista)
+    let finalOrderTitles = [];
+    if (applyOptions.reorder) {
+      const sortableDesired = exercisesInput
+        .filter((ex) => !(applyOptions.removeMarked && ex.keepExercise === false))
+        .filter((ex) => Number.isFinite(Number(ex.suggestedOrderIndex)))
+        .sort((a, b) => Number(a.suggestedOrderIndex) - Number(b.suggestedOrderIndex));
+
+      const placedRbdIds = new Set();
+      let targetSlot = 0;
+
+      for (const item of sortableDesired) {
+        const liveCards = await getLiveCardTitles(page);
+        const curIdx = findMatchingCardIndex(liveCards, [item.esTitle, item.exerciseName], placedRbdIds);
+        if (curIdx < 0) continue;
+
+        const rbdId = liveCards[curIdx].rbdId;
+        placedRbdIds.add(rbdId);
+
+        if (curIdx !== targetSlot) {
+          const handle = page
+            .locator(`[data-rbd-draggable-id="${rbdId}"] [data-rbd-drag-handle-draggable-id]`)
+            .first();
+          if ((await handle.count()) > 0) {
+            await handle.scrollIntoViewIfNeeded();
+            await handle.focus();
+            await page.waitForTimeout(120);
+            await page.keyboard.press('Space');
+            await page.waitForTimeout(180);
+
+            const steps = Math.abs(curIdx - targetSlot);
+            const arrow = curIdx > targetSlot ? 'ArrowUp' : 'ArrowDown';
+            for (let s = 0; s < steps; s++) {
+              await page.keyboard.press(arrow);
+              await page.waitForTimeout(55);
+            }
+            await page.keyboard.press('Space');
+            await page.waitForTimeout(260);
+            reorderedCount++;
+          }
+        }
+        targetSlot++;
+      }
+      finalOrderTitles = (await getLiveCardTitles(page)).map((c) => c.title);
+    }
+
+    if (
+      modifiedExercises.length === 0 &&
+      restTimersUpdated.length === 0 &&
+      notesUpdated.length === 0 &&
+      removedExercises.length === 0 &&
+      reorderedCount === 0
+    ) {
       console.log(
         JSON.stringify({
           ok: false,
           editUrl,
-          error: 'No se modificó ningún ejercicio coincidente en el DOM del editor de Hevy.',
-          notFound: result.notFound,
+          backupSaved,
+          error: 'No se detectó ningún cambio efectivo para aplicar en el editor de Hevy (verifica coincidencias de ejercicios).',
+          notFound,
         })
       );
       process.exitCode = 1;
       return;
     }
 
+    // 6. Pulsar «Actualizar rutina» e INTERCEPTAR respuesta HTTP 200 real de api.hevyapp.com
+    let saveNetworkResult = null;
+    const onSaveResp = async (res) => {
+      const method = res.request().method();
+      const url = res.url();
+      if (
+        url.includes('api.hevyapp.com') &&
+        ['PUT', 'POST', 'PATCH'].includes(method) &&
+        /routine/i.test(url)
+      ) {
+        let bodySnippet = '';
+        try {
+          bodySnippet = (await res.text()).slice(0, 280);
+        } catch {
+          // ignore
+        }
+        saveNetworkResult = {
+          status: res.status(),
+          method,
+          url,
+          bodySnippet,
+        };
+      }
+    };
+    page.on('response', onSaveResp);
+
     const updateBtn = page.getByRole('button', { name: /Actualizar rutina|Update Routine|Guardar cambios|Save/i }).first();
     await updateBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await updateBtn.scrollIntoViewIfNeeded();
     await updateBtn.click();
-    await page.waitForTimeout(3500);
+
+    const saveDeadline = Date.now() + 16000;
+    while (!saveNetworkResult && Date.now() < saveDeadline) {
+      await page.waitForTimeout(250);
+    }
+    page.off('response', onSaveResp);
+
+    if (!saveNetworkResult) {
+      console.log(
+        JSON.stringify({
+          ok: false,
+          editUrl,
+          backupSaved,
+          error: 'Se pulsó «Actualizar rutina» pero Hevy no emitió respuesta de guardado HTTP. No se puede confirmar la modificación.',
+        })
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    if (saveNetworkResult.status < 200 || saveNetworkResult.status >= 300) {
+      console.log(
+        JSON.stringify({
+          ok: false,
+          editUrl,
+          backupSaved,
+          httpStatus: saveNetworkResult.status,
+          saveEndpoint: saveNetworkResult.url,
+          error: `Hevy rechazó el guardado con HTTP ${saveNetworkResult.status}: ${saveNetworkResult.bodySnippet}`,
+        })
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    // 7. Re-lectura antifraude desde servidores de Hevy para comprobar persistencia real
+    let verifiedRoutine = null;
+    if (meta.shortId) {
+      await page.waitForTimeout(900);
+      const postRaw = await fetchRoutineViaPage(page, meta.shortId);
+      verifiedRoutine = normalizeHevyRoutinePayload(postRaw, unitMap);
+      if (verifiedRoutine) {
+        upsertRoutineInSavedFile(verifiedRoutine, auth.accountName || '@teheransmit');
+      }
+    }
 
     console.log(
       JSON.stringify({
         ok: true,
-        routineName,
+        verifiedHttp200: true,
+        httpStatus: saveNetworkResult.status,
+        saveMethod: saveNetworkResult.method,
+        saveEndpoint: saveNetworkResult.url,
+        routineName: verifiedRoutine?.title || meta.name,
+        routineShortId: meta.shortId,
         editUrl,
-        postSaveUrl: page.url(),
-        unitDetected: result.unitDetected,
-        modifiedExercises: result.modified,
-        notFound: result.notFound,
+        routineUrl: meta.routineUrl,
+        backupSaved,
+        backupFile: backupSaved ? ROUTINES_BACKUP_FILE : null,
+        applyOptions,
+        modifiedExercises,
+        restTimersUpdated,
+        notesUpdated,
+        removedExercises,
+        reorderedCount,
+        finalOrderTitles,
+        notFound,
+        verifiedExerciseCount: verifiedRoutine?.exerciseCount ?? null,
+        verifiedAt: new Date().toISOString(),
       })
     );
   } catch (err) {
@@ -835,7 +1630,8 @@ const args = parseArgs(process.argv);
 if (args.cmd === 'status') await handleStatus();
 else if (args.cmd === 'login') await handleLogin(args);
 else if (args.cmd === 'export-csv') await handleExportCsv(args.out || DEFAULT_EXPORT_CSV);
-else if (args.cmd === 'update-routine') await handleUpdateRoutine(args);
+else if (args.cmd === 'export-routines') await handleExportRoutines();
+else if (args.cmd === 'apply-routine-plan' || args.cmd === 'update-routine') await handleApplyRoutinePlan(args);
 else {
   console.log(JSON.stringify({ ok: false, error: `Comando desconocido: ${args.cmd}` }));
   process.exitCode = 1;

@@ -4,7 +4,9 @@
     "name": "Horizontal Torso (Chest & Back)",
     "date": "17 nov 2026, 17:11",
     "startTimeLocal": "17:11",
+    "endTimeLocal": "18:53",
     "startTimeIso": "2026-11-17T17:11:00-05:00",
+    "endTimeIso": "2026-11-17T18:53:00-05:00",
     "durationMinutes": 102,
     "totalVolumeKg": 5940,
     "totalVolumeLbs": 13095,
@@ -19,8 +21,8 @@
           {
             "setNumber": 1,
             "weightKg": 0,
-            "weightLbs": 0,
             "reps": 0,
+            "durationSeconds": 105,
             "indicator": "warmup"
           }
         ],
@@ -266,7 +268,7 @@
           {
             "setNumber": 1,
             "weightKg": 54,
-            "weightLbs": 119,
+            "weightLbs": 119.1,
             "reps": 8,
             "rpe": 9.5,
             "indicator": "normal"
@@ -274,7 +276,7 @@
           {
             "setNumber": 2,
             "weightKg": 54,
-            "weightLbs": 119,
+            "weightLbs": 119.1,
             "reps": 5,
             "rpe": 10,
             "indicator": "normal"
@@ -314,9 +316,7 @@
         ],
         "totalVolume": 479
       }
-    ],
-    "endTimeLocal": "18:53",
-    "endTimeIso": "2026-11-17T18:53:00-05:00"
+    ]
   },
   {
     "id": "b4t9vnN1e9g",
