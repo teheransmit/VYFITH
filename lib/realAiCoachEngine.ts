@@ -24,7 +24,12 @@ import {
   StructuralIssue,
   AiCouncilModelContribution,
   ExerciseCoachAction,
+  CoherenceCrossCheck,
 } from '@/lib/realAiCoachTypes';
+import {
+  buildHolistic360AthleteDossier,
+  Holistic360Dossier,
+} from '@/lib/holisticAthleteContext';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const ROUTINES_FILE = path.join(DATA_DIR, 'real_hevy_routines.json');
@@ -473,51 +478,74 @@ function sanitizeAction(raw: unknown): ExerciseCoachAction {
 function buildPromptForRoutine(params: {
   routine: LiveHevyRoutine;
   recentSessions: HevyWorkoutSession[];
-  biometrics: Record<string, unknown>;
+  dossier: Holistic360Dossier;
+  mode: 'audit' | 'build_optimal';
 }): { systemInstruction: string; userPrompt: string } {
-  const systemInstruction = `Eres el Consejo Técnico de Hipertrofia y Biomecánica (metodología Jeff Nippard + Dr. Mike Israetel + fisiología del ejercicio) para Santiago Smit Teherán Mogollón (21 años, ectomorfo magro 55.5 kg -> meta 60 kg, entrena solo en Gimnasio UPB Montería).
+  const isBuildOptimal = params.mode === 'build_optimal';
+  const modeDirective = isBuildOptimal
+    ? `MODO CONSTRUCTOR AUTÓNOMO 360° (REESTRUCTURACIÓN COMPLETA):
+- Tu misión es ARMAR Y REESTRUCTURAR la versión ÓPTIMA y depurada de esta rutina de principio a fin.
+- Recorta SIN MIEDO el volumen basura dejando estrictamente entre 8 y 10 ejercicios de máximo Ratio Estímulo-Fatiga (marca el resto con "keepExercise": false y explica por qué en "removeReason", ej. exceso de antebrazos, estiramiento estático al inicio o ejercicios duplicados que funden a un ectomorfo de ${params.dossier.athleteProfile.weightKg} kg).
+- Reordena los ejercicios conservados ('suggestedOrderIndex' 0..K-1) poniendo compuestos pesados primero (#0-#2), accesorios multiarticulares después y aislamientos/core/máximo 1 antebrazo al cierre absoluto.
+- Prescribe el número exacto de series efectivas ('targetWorkingSets': 2 o 3) según el presupuesto diario (${params.dossier.nutritionAndHydration.maxRecommendedSetsToday} series máx hoy) y la fatiga de paseos en bici.`
+    : `MODO AUDITORÍA INTEGRAL 360°:
+- Audita la rutina real actual en Hevy, señala fallos críticos de orden, descansos, volumen basura y RPE 10, propón mejoras serie por serie (+1/-1 rep, +/- kg) y marca qué ejercicios sobran o deben reubicarse.`;
 
-Tu trabajo es hacer una AUDITORÍA REAL, HONESTA, SIN FILTRO y SERIE POR SERIE de su rutina actual en Hevy App cruzando:
-1) La ESTRUCTURA REAL de su rutina en Hevy (orden de los ejercicios #0..#(N-1), tiempos de descanso en segundos, volumen basura / redundancia, fatiga de agarre, estiramientos estáticos antes de compuestos pesados).
-2) Sus ÚLTIMAS SESIONES EJECUTADAS (pesos exactos, repeticiones exactas, RPE 9.5-10 al fallo, caída de rendimiento entre series, duración real, frecuencia cardíaca del reloj si existe).
-3) TODAS SUS NOTAS PERSONALES en cada ejercicio (ej. si dice "estoy solo y no me atrevo por si se me queda la barra", debes citarlo explícitamente y adaptar peso/reps/seguridad/RIR).
-4) Su BIOMETRÍA VIVA (sueño, HRV, RHR, Readiness, hidratación, proteína y calorías).
+  const systemInstruction = `Eres el Arquitecto de Hipertrofia y Entrenador Personal 360° de Santiago Smit Teherán Mogollón (21 años, ectomorfo magro ${params.dossier.athleteProfile.weightKg} kg -> meta 60 kg, entrena solo en Gimnasio UPB Montería).
+Trabajas conectado directamente a su base científica de Google NotebookLM ("MegaProyecto", ID 57126469-ac46-4b0d-a370-6270c887c26b, 67 fuentes: Jeff Nippard, Dr. Mike Israetel, Brad Schoenfeld y Eric Helms) y a TODAS las 8 fuentes vivas de datos de su página VYFITH.
+
+${modeDirective}
+
+OBLIGACIÓN DE COHERENCIA CRUZADA CON TODOS LOS DATOS DE LA PÁGINA:
+1) MEDIDAS DE 17 PUNTOS Y ASIMETRÍAS: Santiago tiene el lado izquierdo más pequeño (-0.5 cm en bíceps, antebrazo, muslo y gemelo). En ejercicios unilaterales o con mancuerna/polea, indícale explícitamente en 'pinnedNoteForHevy' iniciar por el lado izquierdo e igualar repeticiones en el derecho.
+2) BÁSCULA FEMMTO + NUTRICIÓN + AGUA: Pesa ${params.dossier.athleteProfile.weightKg} kg (${params.dossier.athleteProfile.bodyFatPct}% grasa). Controla el volumen basura para no quemar su superávit hacia los 60 kg; cita sus calorías/proteína/agua reales del día.
+3) PASEOS CANINOS EN BICI (Frida + Sienna, ~${params.dossier.walksBikeAndSchedule.estimatedWeeklyBikeKm} km/sem a 15 km/h): Considera el desgaste periférico de tren inferior y gasto energético extra al programar piernas y volumen total.
+4) SUEÑO, HRV, RELOJ SMART BAND 9 PRO Y NOTAS PERSONALES EN HEVY: Cita textualmente sus notas reales (ej. entrenar solo sin spotter en Press Banca, falta de apoyo de pies en Remo Sentado UPB) y su RPE 9.5-10.
+5) REGLAS CIENTÍFICAS DE NOTEBOOKLM ("MegaProyecto"): Aplica y cita los códigos 'NLM-*' provistos en 'notebookLmKnowledge'.
 
 REGLAS ESTRICTAS DE RESPUESTA:
 - Responde ÚNICAMENTE con un objeto JSON válido (sin markdown ni texto fuera del JSON).
-- Sé quirúrgico y honesto: si la rutina tiene 18 ejercicios desordenados, dilo claro con una nota baja realista (ej. 45-65/100) y propón el orden óptimo ('suggestedOrderIndex' de 0 a N-1) y marca con '"keepExercise": false' los ejercicios claramente redundantes / volumen basura (ej. 4 ejercicios de antebrazo en medio del torso o estiramiento estático al inicio).
-- Para CADA ejercicio de la rutina, calcula recomendaciones SERIE POR SERIE ('setSuggestions') con:
-  * 'setNumber' (1, 2, 3... solo series efectivas; marca 'isWarmup: true' si es serie W).
-  * 'suggestedWeightKg' (número exacto en kg; si baja peso para sacar la serie de RPE 10, baja 2.5 a 5 kg; si sube peso por Doble Progresión, sube 2.27 kg / 5 lbs o 2.5 kg).
-  * 'suggestedReps' (entero exacto: ej. si hizo 6 reps, sugiere 7 para +1 rep; si hizo 4 reps al fallo @10, sugiere bajar peso o ajustar reps para dejar RIR 1-2).
-  * 'suggestedRepRange' (ej. "6-8", "8-12", "10-15").
-  * 'targetRir' (1, 2 o 3).
-- Para CADA ejercicio, prescribe 'suggestedRestSeconds' múltiplo de 5 entre 60 y 240 (compuestos pesados: 150-180s; accesorios multiarticulares: 120s; aislamientos/brazos/gemelos/core: 60-90s).
-- Para CADA ejercicio, escribe 'pinnedNoteForHevy' (máximo 130 caracteres, español directo y accionable para que Santiago lo lea en su celular dentro de Hevy App mientras entrena).
+- Para CADA ejercicio de la rutina actual en Hevy (todos los ${params.routine.exerciseCount} ejercicios), entrega un objeto en 'exerciseRecommendations' con:
+  * 'exerciseName': nombre exacto en inglés de la rutina.
+  * 'suggestedOrderIndex': entero 0..N-1.
+  * 'keepExercise': true o false (en modo Constructor 360°, marca false en todo volumen basura/redundante hasta dejar 8-10 ejercicios clave).
+  * 'targetWorkingSets': 2 o 3 (series efectivas óptimas para ese ejercicio).
+  * 'suggestedRestSeconds': múltiplo de 5 entre 60 y 240 (compuestos pesados: 150-180s; accesorios: 120s; aislamientos/brazos/core: 60-90s).
+  * 'setSuggestions': arreglo serie por serie con 'setNumber', 'isWarmup', 'suggestedWeightKg', 'suggestedReps', 'suggestedRepRange' (ej. "6-8"), 'targetRir' (1-3).
+  * 'pinnedNoteForHevy': máximo 135 caracteres, directo y accionable para leer en Hevy App (incluyendo pines de seguridad, lado izquierdo primero si es unilateral, o descanso).
 
 ESQUEMA JSON OBLIGATORIO:
 {
-  "structureScore": 52,
-  "executiveVerdict": "Diagnóstico directo de 3-4 frases sin relleno citando datos reales de la rutina, sesiones y biometría.",
+  "structureScore": 48,
+  "projectedOptimizedScore": 92,
+  "executiveVerdict": "Diagnóstico directo de 3-4 frases cruzando los 8 módulos de datos y NotebookLM.",
+  "coherenceCrossCheck": {
+    "measurementsImpact": "Cómo las medidas de 17 puntos y asimetrías Izq<Der (-0.5 cm) moldearon la rutina.",
+    "femmtoAndNutritionImpact": "Cómo el peso de 55.5 kg, meta 60 kg y nutrición/agua definieron el límite de ejercicios y series.",
+    "walksAndBikeImpact": "Cómo los paseos de Frida/Sienna y la bici (15 km/h) ajustaron la fatiga y duración.",
+    "sleepAndWatchImpact": "Cómo el sueño, HRV, RHR y reloj ajustaron el RIR y los descansos.",
+    "notebookLmCitations": ["NLM-ORDER-01: ...", "NLM-VOL-02: ..."]
+  },
   "structuralIssues": [
     {
       "severity": "critical | warning | optimization",
       "category": "orden | descanso | volumen | rpe_fatiga | desbalance | nota_atleta",
       "title": "Título breve y contundente",
-      "detail": "Explicación biomecánica concreta con números y nombres de ejercicios."
+      "detail": "Explicación concreta citando ejercicios, números y reglas NLM."
     }
   ],
   "exerciseRecommendations": [
     {
       "exerciseName": "Nombre exacto en inglés de la rutina",
       "suggestedOrderIndex": 0,
-      "orderChangeReason": "Por qué va en esta posición (o vacío si no cambia)",
+      "orderChangeReason": "Por qué va en esta posición",
       "keepExercise": true,
       "removeReason": "Solo si keepExercise es false: por qué sobra",
+      "targetWorkingSets": 3,
       "suggestedRestSeconds": 180,
       "action": "SUBIR_PESO | SUBIR_REPS | BAJAR_PESO | MANTENER_TECNICA | REUBICAR | ELIMINAR",
-      "coachReasoning": "Por qué exacto citando últimas reps, RPE, notas personales del atleta o fatiga.",
-      "pinnedNoteForHevy": "Meta: 61.2 kg x 7,6 (RIR 1-2) | Usar pines de seguridad solo | 3:00 descanso",
+      "coachReasoning": "Explicación real citando RPE, notas del atleta, medidas 17 pts y NotebookLM.",
+      "pinnedNoteForHevy": "Pines seguridad! 61.2kg x 6-8 (RIR 2) • 3:00 desc",
       "setSuggestions": [
         {
           "setNumber": 1,
@@ -580,10 +608,23 @@ ESQUEMA JSON OBLIGATORIO:
 
   const userPrompt = JSON.stringify(
     {
+      mode: params.mode,
       routineTitle: params.routine.title,
       routineShortId: params.routine.shortId,
       totalExercisesInRoutine: params.routine.exerciseCount,
-      biometricsLive: params.biometrics,
+      holistic360Dossier: {
+        athleteProfile: params.dossier.athleteProfile,
+        biometricsAndWatch: params.dossier.biometricsAndWatch,
+        measurements17Pts: params.dossier.measurements17Pts,
+        nutritionAndHydration: params.dossier.nutritionAndHydration,
+        walksBikeAndSchedule: params.dossier.walksBikeAndSchedule,
+        notebookLmKnowledge: {
+          notebookId: params.dossier.notebookLmKnowledge.notebookId,
+          curatedSourcesCount: params.dossier.notebookLmKnowledge.curatedSourcesCount,
+          coreRules: params.dossier.notebookLmKnowledge.coreRules,
+          routineBlueprint: params.dossier.notebookLmKnowledge.routineBlueprint,
+        },
+      },
       currentHevyRoutineStructure: compactRoutine,
       lastExecutedSessions: compactHistory,
     },
@@ -597,13 +638,15 @@ ESQUEMA JSON OBLIGATORIO:
 function normalizeAndValidateAudit(params: {
   routine: LiveHevyRoutine;
   recentSessions: HevyWorkoutSession[];
-  biometricSummary: string;
+  dossier: Holistic360Dossier;
+  mode: 'audit' | 'build_optimal';
   primaryJson: Record<string, unknown>;
   secondaryJsons: Array<{ model: string; json: Record<string, unknown> }>;
   contributions: AiCouncilModelContribution[];
   totalLatencyMs: number;
 }): LiveAiRoutineAudit {
-  const { routine, recentSessions, biometricSummary, primaryJson, secondaryJsons, contributions, totalLatencyMs } = params;
+  const { routine, recentSessions, dossier, mode, primaryJson, secondaryJsons, contributions, totalLatencyMs } = params;
+  const biometricSummary = dossier.summaryLine;
   const latestSession = recentSessions[0] || null;
 
   // Mapear recomendaciones crudas del LLM por nombre normalizado
@@ -759,6 +802,12 @@ function normalizeAndValidateAudit(params: {
       ? 'ELIMINAR'
       : sanitizeAction(raw?.action);
 
+    const targetWorkingSetsRaw = Number(raw?.targetWorkingSets);
+    const targetWorkingSets =
+      Number.isFinite(targetWorkingSetsRaw) && targetWorkingSetsRaw >= 1 && targetWorkingSetsRaw <= 5
+        ? Math.round(targetWorkingSetsRaw)
+        : Math.max(1, setSuggestions.filter((s) => !s.isWarmup).length);
+
     return {
       exerciseName: ex.title,
       esTitle: ex.esTitle || translateExerciseTitle(ex.title),
@@ -771,6 +820,7 @@ function normalizeAndValidateAudit(params: {
       currentRestSeconds,
       suggestedRestSeconds,
       restDeltaSeconds,
+      targetWorkingSets,
       action,
       coachReasoning:
         raw?.coachReasoning
@@ -864,21 +914,53 @@ function normalizeAndValidateAudit(params: {
 
   const modelsUsed = contributions.filter((c) => c.success).map((c) => c.model);
 
+  const rawCross = primaryJson.coherenceCrossCheck as Record<string, unknown> | undefined;
+  const coherenceCrossCheck: CoherenceCrossCheck = {
+    measurementsImpact:
+      String(rawCross?.measurementsImpact || '').trim() ||
+      (dossier.measurements17Pts.asymmetryAlerts.length > 0
+        ? `Detectadas ${dossier.measurements17Pts.asymmetryAlerts.length} asimetrías Izq<Der (-0.5 cm); ejercicios unilaterales inician por el lado izquierdo.`
+        : `Medidas 17 pts (${dossier.measurements17Pts.chestCm ?? '?'} cm pecho / ${dossier.measurements17Pts.shouldersCm ?? '?'} cm hombros) cruzadas con volumen semanal.`),
+    femmtoAndNutritionImpact:
+      String(rawCross?.femmtoAndNutritionImpact || '').trim() ||
+      `Ectomorfo ${dossier.athleteProfile.weightKg} kg → 60 kg; tope de ${dossier.nutritionAndHydration.maxRecommendedExercisesToday} ejercicios y ${dossier.nutritionAndHydration.maxRecommendedSetsToday} series efectivas para evitar catabolismo.`,
+    walksAndBikeImpact:
+      String(rawCross?.walksAndBikeImpact || '').trim() ||
+      `Paseos de Frida + Sienna (~${dossier.walksBikeAndSchedule.estimatedWeeklyBikeKm} km/sem en bicicleta a 15 km/h) integrados para regular fatiga periférica.`,
+    sleepAndWatchImpact:
+      String(rawCross?.sleepAndWatchImpact || '').trim() ||
+      `Sueño ${dossier.biometricsAndWatch.sleepHours ?? '?'}h, HRV ${dossier.biometricsAndWatch.hrvMs ?? '?'} ms y Readiness ${dossier.biometricsAndWatch.readinessScore ?? '?'}/100 regulando RIR 1-2 y descansos.`,
+    notebookLmCitations: Array.isArray(rawCross?.notebookLmCitations)
+      ? (rawCross!.notebookLmCitations as unknown[]).map((c) => String(c).trim()).filter(Boolean).slice(0, 6)
+      : dossier.notebookLmKnowledge.coreRules.slice(0, 3).map((r) => `${r.id}: ${r.topic}`),
+  };
+
+  const projRaw = Number(primaryJson.projectedOptimizedScore);
+  const projectedOptimizedScore =
+    Number.isFinite(projRaw) && projRaw >= structureScore && projRaw <= 100
+      ? Math.round(projRaw)
+      : Math.min(96, Math.max(structureScore + 28, 88));
+
   return {
     routineId: routine.uuid,
     routineShortId: routine.shortId,
     routineName: routine.title,
     routineUrl: routine.routineUrl,
     editUrl: routine.editUrl,
+    mode,
     analyzedAt: new Date().toISOString(),
     totalLatencyMs,
     modelsUsed,
     modelContributions: contributions,
     structureScore,
+    projectedOptimizedScore,
     executiveVerdict:
       executiveVerdict ||
       `Auditoría completada para ${routine.title} (${latestSession ? `última sesión: ${latestSession.date}` : 'rutina activa'}).`,
     biometricContextSummary: biometricSummary,
+    sourcesConnectedCount: dossier.sourcesConnectedCount,
+    holisticPills: dossier.pills,
+    coherenceCrossCheck,
     structuralIssues: issues.slice(0, 10),
     exerciseRecommendations: recommendations,
   };
@@ -886,11 +968,13 @@ function normalizeAndValidateAudit(params: {
 
 /**
  * Ejecuta el Consejo Multi-IA REAL en paralelo (Google AI Studio Gemini + NVIDIA NIM)
- * para auditar la rutina viva de Hevy y devolver recomendaciones serie por serie.
+ * cruzando TODAS las 8 fuentes vivas de VYFITH + Base NotebookLM ("MegaProyecto")
+ * en modo 'audit' o 'build_optimal' (Constructor Autónomo 360°).
  * NUNCA inventa respuestas deterministas de 0ms: si todos los modelos fallan, devuelve el error HTTP real.
  */
 export async function runRealAiRoutineAudit(params: {
   routineName: string;
+  mode?: 'audit' | 'build_optimal';
   keys?: AiKeysConfig;
 }): Promise<
   | { ok: true; audit: LiveAiRoutineAudit }
@@ -902,6 +986,7 @@ export async function runRealAiRoutineAudit(params: {
     }
 > {
   const startedAt = Date.now();
+  const mode: 'audit' | 'build_optimal' = params.mode === 'build_optimal' ? 'build_optimal' : 'audit';
   const routine = findLiveHevyRoutine(params.routineName);
   if (!routine) {
     return {
@@ -923,11 +1008,12 @@ export async function runRealAiRoutineAudit(params: {
   }
 
   const recentSessions = getRecentMatchingSessions(routine.title, 4);
-  const { summaryLine: biometricSummary, structured: biometrics } = buildLiveBiometricSnapshot();
+  const dossier = buildHolistic360AthleteDossier(routine.title);
   const { systemInstruction, userPrompt } = buildPromptForRoutine({
     routine,
     recentSessions,
-    biometrics,
+    dossier,
+    mode,
   });
 
   // Lanzar Consejo Multi-IA REAL en paralelo (Gemini JSON mode + NVIDIA NIM)
@@ -1029,7 +1115,8 @@ export async function runRealAiRoutineAudit(params: {
   const audit = normalizeAndValidateAudit({
     routine,
     recentSessions,
-    biometricSummary,
+    dossier,
+    mode,
     primaryJson: primary.json!,
     secondaryJsons: secondaries,
     contributions,

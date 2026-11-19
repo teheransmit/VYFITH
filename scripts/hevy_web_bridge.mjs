@@ -1332,6 +1332,20 @@ async function handleApplyRoutinePlan(args) {
         );
 
         if (cardMeta && cardMeta.mode !== 'duration' && cardMeta.workingRows.length > 0) {
+          // Si el Constructor 360° prescribió más series efectivas (ej. 2 -> 3), pulsar «Agregar Serie»
+          const desiredSetsCount = Number(item.targetWorkingSets || 0);
+          if (desiredSetsCount > cardMeta.workingRows.length && desiredSetsCount <= 4) {
+            const addSetBtn = card.locator('button, p').filter({ hasText: /^Agregar Serie$|^Add Set$/i }).first();
+            const toAdd = Math.min(2, desiredSetsCount - cardMeta.workingRows.length);
+            if ((await addSetBtn.count()) > 0) {
+              for (let a = 0; a < toAdd; a++) {
+                await addSetBtn.scrollIntoViewIfNeeded();
+                await addSetBtn.click();
+                await page.waitForTimeout(200);
+              }
+            }
+          }
+
           cardUnit = cardMeta.unit;
           cardMode = cardMeta.mode;
           const nonWarmupSuggestions = Array.isArray(item.setSuggestions)
@@ -1516,42 +1530,191 @@ async function handleApplyRoutinePlan(args) {
       return;
     }
 
-    // 6. Pulsar «Actualizar rutina» e INTERCEPTAR respuesta HTTP 200 real de api.hevyapp.com
-    let saveNetworkResult = null;
-    const onSaveResp = async (res) => {
-      const method = res.request().method();
-      const url = res.url();
-      if (
-        url.includes('api.hevyapp.com') &&
-        ['PUT', 'POST', 'PATCH'].includes(method) &&
-        /routine/i.test(url)
-      ) {
-        let bodySnippet = '';
-        try {
-          bodySnippet = (await res.text()).slice(0, 280);
-        } catch {
-          // ignore
-        }
-        saveNetworkResult = {
-          status: res.status(),
-          method,
-          url,
-          bodySnippet,
-        };
-      }
+function verifySavedRoutineAgainstPlan(verifiedRoutine, exercisesInput, applyOptions) {
+  if (!verifiedRoutine || !Array.isArray(verifiedRoutine.exercises)) {
+    return {
+      verifiedPct: 0,
+      checksPassed: 0,
+      checksTotal: 0,
+      retryPerformed: false,
+      mismatches: [],
+      sampleVerifiedDiffs: [],
     };
-    page.on('response', onSaveResp);
+  }
 
-    const updateBtn = page.getByRole('button', { name: /Actualizar rutina|Update Routine|Guardar cambios|Save/i }).first();
-    await updateBtn.waitFor({ state: 'visible', timeout: 10000 });
-    await updateBtn.scrollIntoViewIfNeeded();
-    await updateBtn.click();
+  const diffs = [];
+  const serverExercises = verifiedRoutine.exercises;
 
-    const saveDeadline = Date.now() + 16000;
-    while (!saveNetworkResult && Date.now() < saveDeadline) {
-      await page.waitForTimeout(250);
+  const findOnServer = (item) => {
+    const cands = [item.exerciseName, item.esTitle].filter(Boolean).map(normalizeTitle);
+    return (
+      serverExercises.find(
+        (ex) => cands.includes(normalizeTitle(ex.title)) || cands.includes(normalizeTitle(ex.esTitle))
+      ) ||
+      serverExercises.find((ex) => {
+        const t = normalizeTitle(ex.title);
+        const es = normalizeTitle(ex.esTitle);
+        return cands.some((c) => c.length >= 6 && (t.includes(c) || c.includes(t) || es.includes(c)));
+      }) ||
+      null
+    );
+  };
+
+  for (const item of exercisesInput) {
+    const label = item.exerciseName || item.esTitle || 'Ejercicio';
+    const srvEx = findOnServer(item);
+
+    // 1. Verificar eliminación si applyOptions.removeMarked estaba activo
+    if (applyOptions.removeMarked && item.keepExercise === false) {
+      diffs.push({
+        exerciseName: label,
+        field: 'removed',
+        expected: 'Eliminado de la rutina',
+        actualOnHevyServer: srvEx ? `Aún presente (#${srvEx.index + 1})` : 'Eliminado ✓',
+        matched: !srvEx,
+      });
+      continue;
     }
-    page.off('response', onSaveResp);
+
+    if (!srvEx) continue;
+
+    // 2. Verificar temporizador de descanso
+    if (
+      applyOptions.restTimers &&
+      Number.isFinite(Number(item.suggestedRestSeconds)) &&
+      Number(item.suggestedRestSeconds) >= 0
+    ) {
+      const expectedRest = Math.max(0, Math.min(300, Math.round(Number(item.suggestedRestSeconds) / 5) * 5));
+      const actualRest = Number(srvEx.restSeconds ?? 0);
+      diffs.push({
+        exerciseName: label,
+        field: 'restSeconds',
+        expected: formatRestSecondsLabel(expectedRest),
+        actualOnHevyServer: formatRestSecondsLabel(actualRest),
+        matched: Math.abs(actualRest - expectedRest) <= 5,
+      });
+    }
+
+    // 3. Verificar nota fijada
+    if (applyOptions.notes && item.pinnedNote && String(item.pinnedNote).trim()) {
+      const expectedNote = String(item.pinnedNote).trim().slice(0, 280);
+      const srvNote = String(
+        srvEx.notes || (Array.isArray(srvEx.pinnedNotes) && srvEx.pinnedNotes[0]?.content) || ''
+      ).trim();
+      const matched =
+        srvNote.length > 0 &&
+        normalizeTitle(srvNote).includes(normalizeTitle(expectedNote.slice(0, 24)));
+      diffs.push({
+        exerciseName: label,
+        field: 'note',
+        expected: expectedNote.slice(0, 60),
+        actualOnHevyServer: srvNote ? srvNote.slice(0, 60) : '(vacía)',
+        matched,
+      });
+    }
+
+    // 4. Verificar peso y reps de la primera serie efectiva
+    if (applyOptions.weightsAndReps && srvEx.exerciseType !== 'duration') {
+      const workingSrvSets = (srvEx.sets || []).filter((s) => s.type !== 'warmup');
+      const nonWarmupPlan = Array.isArray(item.setSuggestions)
+        ? item.setSuggestions.filter((s) => !s.isWarmup)
+        : [];
+      const firstSrv = workingSrvSets[0];
+      const firstPlan = nonWarmupPlan[0];
+
+      if (firstSrv && firstPlan && Number(firstPlan.suggestedWeightKg) > 0) {
+        const expKg = Number(firstPlan.suggestedWeightKg);
+        const actKg = Number(firstSrv.weightKg || 0);
+        // Tolerancia de 0.6 kg por redondeo LBS/KG en Hevy
+        const wMatched = Math.abs(actKg - expKg) <= 0.65;
+        diffs.push({
+          exerciseName: label,
+          field: 'weight',
+          expected: `${expKg} kg`,
+          actualOnHevyServer: `${actKg} kg (${firstSrv.weightLbs} lb)`,
+          matched: wMatched,
+        });
+      }
+    }
+  }
+
+  // 5. Verificar orden relativo si applyOptions.reorder estaba activo
+  if (applyOptions.reorder) {
+    const expectedKept = exercisesInput
+      .filter((ex) => !(applyOptions.removeMarked && ex.keepExercise === false))
+      .filter((ex) => Number.isFinite(Number(ex.suggestedOrderIndex)))
+      .sort((a, b) => Number(a.suggestedOrderIndex) - Number(b.suggestedOrderIndex));
+
+    expectedKept.slice(0, 5).forEach((item, desiredPos) => {
+      const srvEx = findOnServer(item);
+      if (srvEx) {
+        diffs.push({
+          exerciseName: item.exerciseName || item.esTitle,
+          field: 'order',
+          expected: `#${desiredPos + 1}`,
+          actualOnHevyServer: `#${srvEx.index + 1}`,
+          matched: srvEx.index === desiredPos,
+        });
+      }
+    });
+  }
+
+  const checksTotal = diffs.length;
+  const checksPassed = diffs.filter((d) => d.matched).length;
+  const mismatches = diffs.filter((d) => !d.matched);
+  const verifiedPct = checksTotal > 0 ? Math.round((checksPassed / checksTotal) * 100) : 100;
+
+  return {
+    verifiedPct,
+    checksPassed,
+    checksTotal,
+    retryPerformed: false,
+    mismatches: mismatches.slice(0, 12),
+    sampleVerifiedDiffs: diffs.filter((d) => d.matched).slice(0, 12),
+  };
+}
+
+async function clickUpdateRoutineAndAssert200(page) {
+  let saveNetworkResult = null;
+  const onSaveResp = async (res) => {
+    const method = res.request().method();
+    const url = res.url();
+    if (
+      url.includes('api.hevyapp.com') &&
+      ['PUT', 'POST', 'PATCH'].includes(method) &&
+      /routine/i.test(url)
+    ) {
+      let bodySnippet = '';
+      try {
+        bodySnippet = (await res.text()).slice(0, 280);
+      } catch {
+        // ignore
+      }
+      saveNetworkResult = {
+        status: res.status(),
+        method,
+        url,
+        bodySnippet,
+      };
+    }
+  };
+  page.on('response', onSaveResp);
+
+  const updateBtn = page.getByRole('button', { name: /Actualizar rutina|Update Routine|Guardar cambios|Save/i }).first();
+  await updateBtn.waitFor({ state: 'visible', timeout: 10000 });
+  await updateBtn.scrollIntoViewIfNeeded();
+  await updateBtn.click();
+
+  const saveDeadline = Date.now() + 16000;
+  while (!saveNetworkResult && Date.now() < saveDeadline) {
+    await page.waitForTimeout(250);
+  }
+  page.off('response', onSaveResp);
+  return saveNetworkResult;
+}
+
+    // 6. Pulsar «Actualizar rutina» e INTERCEPTAR respuesta HTTP 200 real de api.hevyapp.com
+    let saveNetworkResult = await clickUpdateRoutineAndAssert200(page);
 
     if (!saveNetworkResult) {
       console.log(
@@ -1581,13 +1744,65 @@ async function handleApplyRoutinePlan(args) {
       return;
     }
 
-    // 7. Re-lectura antifraude desde servidores de Hevy para comprobar persistencia real
+    // 7. Re-lectura antifraude desde servidores de Hevy + Verificación Round-Trip Campo por Campo
     let verifiedRoutine = null;
+    let fieldVerificationReport = null;
+    let retryPerformed = false;
+
     if (meta.shortId) {
       await page.waitForTimeout(900);
       const postRaw = await fetchRoutineViaPage(page, meta.shortId);
       verifiedRoutine = normalizeHevyRoutinePayload(postRaw, unitMap);
       if (verifiedRoutine) {
+        fieldVerificationReport = verifySavedRoutineAgainstPlan(verifiedRoutine, exercisesInput, applyOptions);
+
+        // Auto-Reintento Self-Healing si algún descanso o nota no persistió en el primer guardado
+        const retryableMismatches = fieldVerificationReport.mismatches.filter(
+          (m) => m.field === 'restSeconds' || m.field === 'note'
+        );
+        if (retryableMismatches.length > 0 && meta.editUrl) {
+          retryPerformed = true;
+          await page.goto(meta.editUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          await page
+            .locator('[data-rbd-droppable-id="exercise-area"] > [data-rbd-draggable-id]')
+            .first()
+            .waitFor({ state: 'visible', timeout: 15000 });
+          await page.waitForTimeout(700);
+
+          const liveCardsRetry = await getLiveCardTitles(page);
+          for (const mis of retryableMismatches) {
+            const targetItem = exercisesInput.find(
+              (ex) => normalizeTitle(ex.exerciseName) === normalizeTitle(mis.exerciseName)
+            );
+            if (!targetItem) continue;
+            const cIdx = findMatchingCardIndex(liveCardsRetry, [targetItem.esTitle, targetItem.exerciseName]);
+            if (cIdx < 0) continue;
+            const cLoc = cardsLocator.nth(cIdx);
+            if (mis.field === 'restSeconds' && Number.isFinite(Number(targetItem.suggestedRestSeconds))) {
+              await setCardRestTimer(page, cLoc, Number(targetItem.suggestedRestSeconds));
+            }
+            if (mis.field === 'note' && targetItem.pinnedNote) {
+              const noteArea = cLoc.locator('textarea[aria-label="Nota fijada de la rutina"]').first();
+              if ((await noteArea.count()) > 0) {
+                await noteArea.fill(String(targetItem.pinnedNote).trim().slice(0, 280));
+                await noteArea.blur().catch(() => {});
+              }
+            }
+          }
+          const retrySave = await clickUpdateRoutineAndAssert200(page);
+          if (retrySave && retrySave.status >= 200 && retrySave.status < 300) {
+            saveNetworkResult = retrySave;
+            await page.waitForTimeout(900);
+            const postRetryRaw = await fetchRoutineViaPage(page, meta.shortId);
+            const postRetryNorm = normalizeHevyRoutinePayload(postRetryRaw, unitMap);
+            if (postRetryNorm) {
+              verifiedRoutine = postRetryNorm;
+              fieldVerificationReport = verifySavedRoutineAgainstPlan(verifiedRoutine, exercisesInput, applyOptions);
+              fieldVerificationReport.retryPerformed = true;
+            }
+          }
+        }
+
         upsertRoutineInSavedFile(verifiedRoutine, auth.accountName || '@teheransmit');
       }
     }
@@ -1599,6 +1814,7 @@ async function handleApplyRoutinePlan(args) {
         httpStatus: saveNetworkResult.status,
         saveMethod: saveNetworkResult.method,
         saveEndpoint: saveNetworkResult.url,
+        mobilePushTriggered: saveNetworkResult.url.includes('sendSyncEventToMobileApp=true'),
         routineName: verifiedRoutine?.title || meta.name,
         routineShortId: meta.shortId,
         editUrl,
@@ -1614,6 +1830,8 @@ async function handleApplyRoutinePlan(args) {
         finalOrderTitles,
         notFound,
         verifiedExerciseCount: verifiedRoutine?.exerciseCount ?? null,
+        retryPerformed,
+        fieldVerificationReport,
         verifiedAt: new Date().toISOString(),
       })
     );

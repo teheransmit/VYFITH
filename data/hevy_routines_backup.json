@@ -1,6 +1,921 @@
 {
-  "updatedAt": "2026-11-19T23:05:09.640Z",
+  "updatedAt": "2026-11-19T23:33:32.056Z",
   "backups": [
+    {
+      "backedUpAt": "2026-11-19T23:33:32.056Z",
+      "reason": "before_apply_routine_plan",
+      "routineShortId": "DsaJ9O9Ed4U",
+      "routineUuid": "b0f00c93-41ba-41b3-91dd-06b503028635",
+      "routineTitle": "Horizontal Torso (Chest & Back)",
+      "exerciseCount": 18,
+      "routine": {
+        "uuid": "b0f00c93-41ba-41b3-91dd-06b503028635",
+        "shortId": "DsaJ9O9Ed4U",
+        "title": "Horizontal Torso (Chest & Back)",
+        "folderId": 899917,
+        "notes": "",
+        "routineUrl": "https://hevy.com/routine/DsaJ9O9Ed4U",
+        "editUrl": "https://hevy.com/edit-routine/b0f00c93-41ba-41b3-91dd-06b503028635",
+        "updatedAt": "2026-11-19T23:05:24.699Z",
+        "exerciseCount": 18,
+        "exercises": [
+          {
+            "index": 0,
+            "id": "df571427-c117-4ee9-8123-6a480463abdb",
+            "exerciseTemplateId": "527DA061",
+            "title": "Stretching",
+            "esTitle": "Estiramiento",
+            "muscleGroup": "other",
+            "exerciseType": "duration",
+            "equipmentCategory": "none",
+            "unit": "kg",
+            "restSeconds": 120,
+            "inputModifier": "reps",
+            "notes": "Estiramiento estático solo al terminar la sesión.",
+            "pinnedNotes": [
+              {
+                "id": "078cd10e-9036-405a-bc74-fe0dfaa283c9",
+                "content": "Estiramiento estático solo al terminar la sesión.",
+                "createdAt": "2026-11-19T23:05:11.562Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 0,
+                "weightLbs": 0,
+                "reps": null,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": 105,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 1,
+            "id": "7b2d7f13-7996-47ae-b1b3-bb409fb5762c",
+            "exerciseTemplateId": "79D0BB3A",
+            "title": "Bench Press (Barbell)",
+            "esTitle": "Press de Banca (Barra)",
+            "muscleGroup": "chest",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "barbell",
+            "unit": "kg",
+            "restSeconds": 180,
+            "inputModifier": "rep-range",
+            "notes": "¡USA PINES DE SEGURIDAD! Meta: 61.2 kg x 6-8 reps (RIR 2). Descansa 3 min.",
+            "pinnedNotes": [
+              {
+                "id": "2e10b3e6-ccf6-40e8-91ad-5a712afe1089",
+                "content": "¡USA PINES DE SEGURIDAD! Meta: 61.2 kg x 6-8 reps (RIR 2). Descansa 3 min.",
+                "createdAt": "2026-11-19T23:05:11.817Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "warmup",
+                "weightKg": 20.41,
+                "weightLbs": 45,
+                "reps": null,
+                "repRangeStart": 5,
+                "repRangeEnd": 8,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 61.24,
+                "weightLbs": 135,
+                "reps": null,
+                "repRangeStart": 6,
+                "repRangeEnd": 8,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "normal",
+                "weightKg": 61.24,
+                "weightLbs": 135,
+                "reps": null,
+                "repRangeStart": 6,
+                "repRangeEnd": 8,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 2,
+            "id": "ed473b3d-104f-4f83-a692-1d0029e3153b",
+            "exerciseTemplateId": "07B38369",
+            "title": "Incline Bench Press (Dumbbell)",
+            "esTitle": "Press de Banca Inclinado (Mancuerna)",
+            "muscleGroup": "chest",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "dumbbell",
+            "unit": "kg",
+            "restSeconds": 150,
+            "inputModifier": "rep-range",
+            "notes": "Controla la bajada (2 seg). Meta: 31.75 kg x 8 reps (RIR 1-2).",
+            "pinnedNotes": [
+              {
+                "id": "e1dbecf8-3180-4d5e-8a92-975924d51a51",
+                "content": "Controla la bajada (2 seg). Meta: 31.75 kg x 8 reps (RIR 1-2).",
+                "createdAt": "2026-11-19T23:05:12.726Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 31.75,
+                "weightLbs": 70,
+                "reps": null,
+                "repRangeStart": 6,
+                "repRangeEnd": 8,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 31.75,
+                "weightLbs": 70,
+                "reps": null,
+                "repRangeStart": 6,
+                "repRangeEnd": 8,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 3,
+            "id": "d875f53c-d2b2-4e4d-87a9-31e1669d920e",
+            "exerciseTemplateId": "0E4523F4",
+            "title": "Wrist Roller",
+            "esTitle": "Rodillo de Antebrazos",
+            "muscleGroup": "forearms",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 60,
+            "inputModifier": "rep-range",
+            "notes": "Bombeo metabólico final de antebrazos.",
+            "pinnedNotes": [
+              {
+                "id": "0898ac83-a9c6-4b22-bc6c-283b9a55b4fb",
+                "content": "Bombeo metabólico final de antebrazos.",
+                "createdAt": "2026-11-19T23:05:13.753Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 18.14,
+                "weightLbs": 40,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 18.14,
+                "weightLbs": 40,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "normal",
+                "weightKg": 18.14,
+                "weightLbs": 40,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 4,
+            "id": "25c956f9-0bbc-42dd-9876-a2ab39539b07",
+            "exerciseTemplateId": "ADA8623C",
+            "title": "Bicep Curl (Cable)",
+            "esTitle": "Curl de Bíceps (Cable)",
+            "muscleGroup": "biceps",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 90,
+            "inputModifier": "reps",
+            "notes": "Codos fijos atrás de la línea del torso. RIR 1.",
+            "pinnedNotes": [
+              {
+                "id": "79b9c37b-b3cb-48bf-b67c-fa183752a4c3",
+                "content": "Codos fijos atrás de la línea del torso. RIR 1.",
+                "createdAt": "2026-11-19T23:05:14.651Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 14.97,
+                "weightLbs": 33,
+                "reps": 12,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 14.97,
+                "weightLbs": 33,
+                "reps": 10,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 5,
+            "id": "54ec8fc1-18e1-4c72-a822-3dbdf06d5833",
+            "exerciseTemplateId": "6B4C797E",
+            "title": "Seated Chest Flys (Cable)",
+            "esTitle": "Aperturas de Pecho Sentado (Cable)",
+            "muscleGroup": "chest",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 90,
+            "inputModifier": "reps",
+            "notes": "Abraza un árbol grande, codos semifijos. RIR 1.",
+            "pinnedNotes": [
+              {
+                "id": "a81524c6-749e-4ce3-879a-b7688cb7b64e",
+                "content": "Abraza un árbol grande, codos semifijos. RIR 1.",
+                "createdAt": "2026-11-19T23:05:15.598Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": 10,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": 8,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": 8,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 6,
+            "id": "f5376377-b4da-41ba-af18-5816741bd3e1",
+            "exerciseTemplateId": "DDB29047",
+            "title": "Behind the Back Wrist Curl (Barbell)",
+            "esTitle": "Curl de Muñeca por Detrás de la Espalda (Barra)",
+            "muscleGroup": "forearms",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "barbell",
+            "unit": "kg",
+            "restSeconds": 60,
+            "inputModifier": "rep-range",
+            "notes": "Deja deslizar la barra hasta las yemas de los dedos.",
+            "pinnedNotes": [
+              {
+                "id": "c9d019f2-16a7-4437-ad0f-29b3ac88f869",
+                "content": "Deja deslizar la barra hasta las yemas de los dedos.",
+                "createdAt": "2026-11-19T23:05:16.686Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 37.65,
+                "weightLbs": 83,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 37.65,
+                "weightLbs": 83,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "normal",
+                "weightKg": 37.65,
+                "weightLbs": 83,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 7,
+            "id": "b326bd16-a7ac-4c73-8f59-6fa5b988c703",
+            "exerciseTemplateId": "0393F233",
+            "title": "Seated Cable Row - V Grip (Cable)",
+            "esTitle": "Remo Sentado con Agarre en V (Cable)",
+            "muscleGroup": "upper_back",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 180,
+            "inputModifier": "rep-range",
+            "notes": "Improvisa soporte de pies firme en UPB. Sube a 45 kg x 6 reps.",
+            "pinnedNotes": [
+              {
+                "id": "43ded54b-b8d3-4e06-b3a4-fba141793598",
+                "content": "Improvisa soporte de pies firme en UPB. Sube a 45 kg x 6 reps.",
+                "createdAt": "2026-11-19T23:05:17.001Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 45,
+                "weightLbs": 99.2,
+                "reps": null,
+                "repRangeStart": 6,
+                "repRangeEnd": 8,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 45,
+                "weightLbs": 99.2,
+                "reps": null,
+                "repRangeStart": 6,
+                "repRangeEnd": 8,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 8,
+            "id": "7ef10a9b-f3b5-44f1-a2a8-3ed51131389e",
+            "exerciseTemplateId": "9202CC23",
+            "title": "Seated Wrist Extension (Barbell)",
+            "esTitle": "Extensión de Muñeca Sentado (Barra)",
+            "muscleGroup": "forearms",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "barbell",
+            "unit": "kg",
+            "restSeconds": 60,
+            "inputModifier": "reps",
+            "notes": "Rango completo arriba. Último set al fallo técnico.",
+            "pinnedNotes": [
+              {
+                "id": "a8c70e1b-ecd6-41ba-aabd-c96f55fa307c",
+                "content": "Rango completo arriba. Último set al fallo técnico.",
+                "createdAt": "2026-11-19T23:05:17.866Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 24.04,
+                "weightLbs": 53,
+                "reps": 12,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 24.04,
+                "weightLbs": 53,
+                "reps": 12,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "normal",
+                "weightKg": 24.04,
+                "weightLbs": 53,
+                "reps": 12,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 9,
+            "id": "c7f058fb-1a07-453d-a51f-d6b9f98b8f83",
+            "exerciseTemplateId": "7EB3F7C3",
+            "title": "Chest Press (Machine)",
+            "esTitle": "Press de Pecho (Máquina)",
+            "muscleGroup": "chest",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 120,
+            "inputModifier": "rep-range",
+            "notes": "Pico de contracción de 1s arriba. Meta: 54 kg x 8, 8.",
+            "pinnedNotes": [
+              {
+                "id": "e44cf71e-4c30-4262-a716-ca9e9a593c8d",
+                "content": "Pico de contracción de 1s arriba. Meta: 54 kg x 8, 8.",
+                "createdAt": "2026-11-19T23:05:18.135Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 54,
+                "weightLbs": 119,
+                "reps": null,
+                "repRangeStart": 8,
+                "repRangeEnd": 10,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 54,
+                "weightLbs": 119,
+                "reps": null,
+                "repRangeStart": 8,
+                "repRangeEnd": 10,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 10,
+            "id": "0512ab54-0027-4426-93bf-fe12af98d6bb",
+            "exerciseTemplateId": "CDC472B1",
+            "title": "Triceps Pressdown",
+            "esTitle": "Extensión de tríceps en polea",
+            "muscleGroup": "triceps",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 90,
+            "inputModifier": "reps",
+            "notes": "Bloqueo total abajo. RIR 1 en última serie.",
+            "pinnedNotes": [
+              {
+                "id": "34c50f22-1edb-4490-9a16-ed234ce88e7a",
+                "content": "Bloqueo total abajo. RIR 1 en última serie.",
+                "createdAt": "2026-11-19T23:05:18.984Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 14.97,
+                "weightLbs": 33,
+                "reps": 12,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 14.97,
+                "weightLbs": 33,
+                "reps": 10,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "failure",
+                "weightKg": 14.97,
+                "weightLbs": 33,
+                "reps": 10,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 11,
+            "id": "edc3f937-b570-4746-a9b4-1eaf22499ac8",
+            "exerciseTemplateId": "867b1a71-463a-4794-a000-4cd8ec410d50",
+            "title": "Smith Machine Bent Over Row (Elevated)",
+            "esTitle": "Smith Machine Bent Over Row (Elevated)",
+            "muscleGroup": "upper_back",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 150,
+            "inputModifier": "rep-range",
+            "notes": "Retracción escapular previa. Meta: 37.5 kg x 8 reps.",
+            "pinnedNotes": [
+              {
+                "id": "1384d314-be59-43e3-bb5a-d1476e695179",
+                "content": "Retracción escapular previa. Meta: 37.5 kg x 8 reps.",
+                "createdAt": "2026-11-19T23:05:19.987Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 36.29,
+                "weightLbs": 80,
+                "reps": null,
+                "repRangeStart": 8,
+                "repRangeEnd": 10,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 36.29,
+                "weightLbs": 80,
+                "reps": null,
+                "repRangeStart": 8,
+                "repRangeEnd": 10,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "normal",
+                "weightKg": 36.29,
+                "weightLbs": 80,
+                "reps": null,
+                "repRangeStart": 8,
+                "repRangeEnd": 10,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 12,
+            "id": "89071bef-ac74-4f22-84e8-68ce18624715",
+            "exerciseTemplateId": "43261173-7947-4cda-887a-e1dac5ef9805",
+            "title": "Reverse Wrist Curl en Polea Alta (Unilateral)",
+            "esTitle": "Reverse Wrist Curl en Polea Alta (Unilateral)",
+            "muscleGroup": "forearms",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 60,
+            "inputModifier": "rep-range",
+            "notes": "Ejercicio eliminado por redundancia.",
+            "pinnedNotes": [
+              {
+                "id": "1f19a55d-738c-44d4-9078-fd5a3204021a",
+                "content": "Ejercicio eliminado por redundancia.",
+                "createdAt": "2026-11-19T23:05:20.784Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": null,
+                "repRangeStart": 12,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": null,
+                "repRangeStart": 8,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 2,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 13,
+            "id": "8bdf3801-9303-4a48-a71c-234193253741",
+            "exerciseTemplateId": "9264ADA1",
+            "title": "Reverse Fly Single Arm (Cable)",
+            "esTitle": "Vuelos Posteriores a Un Brazo (Cable)",
+            "muscleGroup": "shoulders",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 90,
+            "inputModifier": "reps",
+            "notes": "Codo apuntando afuera, sin rotar el tronco. RIR 1.",
+            "pinnedNotes": [
+              {
+                "id": "ff5954d1-8839-4c2c-8ba1-e4645ac322ac",
+                "content": "Codo apuntando afuera, sin rotar el tronco. RIR 1.",
+                "createdAt": "2026-11-19T23:05:21.662Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 2.49,
+                "weightLbs": 5.5,
+                "reps": 10,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 2.49,
+                "weightLbs": 5.5,
+                "reps": 8,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 14,
+            "id": "53e6465b-4aa3-4f5c-ab0d-9f8372b4f6f0",
+            "exerciseTemplateId": "33058d46-4de1-4982-a21b-dc692aef56bc",
+            "title": "Crossbody Lat Pull-Around (Cable, Torso Turned)",
+            "esTitle": "Crossbody Lat Pull-Around (Cable, Torso Turned)",
+            "muscleGroup": "lats",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 90,
+            "inputModifier": "rep-range",
+            "notes": "Arco lateral amplio buscando estiramiento del dorsal. RIR 1-2.",
+            "pinnedNotes": [
+              {
+                "id": "82783b13-c5e8-48d6-862a-a6ad6c5597d2",
+                "content": "Arco lateral amplio buscando estiramiento del dorsal. RIR 1-2.",
+                "createdAt": "2026-11-19T23:05:22.568Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 9.98,
+                "weightLbs": 22,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 15,
+            "id": "05a6f822-9d16-4f9b-87a5-37ab5157267d",
+            "exerciseTemplateId": "D2387AB1",
+            "title": "Straight Arm Lat Pulldown (Cable)",
+            "esTitle": "Jalón de dorsales con brazos rectos (polea)",
+            "muscleGroup": "lats",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 90,
+            "inputModifier": "rep-range",
+            "notes": "Cadera levemente atrás, barra a los muslos. RIR 1.",
+            "pinnedNotes": [
+              {
+                "id": "2b8042e2-1552-4063-8ce5-32952b0424ac",
+                "content": "Cadera levemente atrás, barra a los muslos. RIR 1.",
+                "createdAt": "2026-11-19T23:05:23.523Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 12.47,
+                "weightLbs": 27.5,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 12,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 12.47,
+                "weightLbs": 27.5,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 12,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 16,
+            "id": "1fab4a79-a91b-48f5-9416-d3ca273ae822",
+            "exerciseTemplateId": "23A48484",
+            "title": "Cable Crunch",
+            "esTitle": "Abdominal Corto con Cable",
+            "muscleGroup": "abdominals",
+            "exerciseType": "weight_reps",
+            "equipmentCategory": "machine",
+            "unit": "kg",
+            "restSeconds": 75,
+            "inputModifier": "rep-range",
+            "notes": "Lleva las costillas hacia la pelvis. RIR 1.",
+            "pinnedNotes": [
+              {
+                "id": "8b7a67d0-ab73-445d-b436-29dc12d6a2d3",
+                "content": "Lleva las costillas hacia la pelvis. RIR 1.",
+                "createdAt": "2026-11-19T23:05:24.313Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 17,
+                "weightLbs": 37.5,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              },
+              {
+                "index": 1,
+                "type": "normal",
+                "weightKg": 17,
+                "weightLbs": 37.5,
+                "reps": null,
+                "repRangeStart": 10,
+                "repRangeEnd": 15,
+                "durationSeconds": null,
+                "rpe": null
+              }
+            ]
+          },
+          {
+            "index": 17,
+            "id": "ea3e5e2a-cfe1-4d18-ae1a-330ea6ffe950",
+            "exerciseTemplateId": "527DA061",
+            "title": "Stretching",
+            "esTitle": "Estiramiento",
+            "muscleGroup": "other",
+            "exerciseType": "duration",
+            "equipmentCategory": "none",
+            "unit": "kg",
+            "restSeconds": 120,
+            "inputModifier": "reps",
+            "notes": "Estiramiento estático solo al terminar la sesión.",
+            "pinnedNotes": [
+              {
+                "id": "6e7e0010-1910-44a8-b253-bf1ad7660c32",
+                "content": "Estiramiento estático solo al terminar la sesión.",
+                "createdAt": "2026-11-19T23:05:24.446Z"
+              }
+            ],
+            "supersetId": null,
+            "sets": [
+              {
+                "index": 0,
+                "type": "normal",
+                "weightKg": 0,
+                "weightLbs": 0,
+                "reps": null,
+                "repRangeStart": null,
+                "repRangeEnd": null,
+                "durationSeconds": 0,
+                "rpe": null
+              }
+            ]
+          }
+        ]
+      }
+    },
     {
       "backedUpAt": "2026-11-19T23:05:09.640Z",
       "reason": "before_apply_routine_plan",

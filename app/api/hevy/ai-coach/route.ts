@@ -9,6 +9,7 @@ import {
   applyRoutinePlanToHevyExternal,
   exportLiveRoutinesFromHevy,
   readHevyBridgeAuthStatus,
+  syncNotebookLmKnowledgeBase,
   isRunningInSandboxedDesktop,
   HEVY_LOGIN_LAUNCHER_PATH,
 } from '@/lib/hevySyncService';
@@ -18,6 +19,7 @@ import {
   readLiveHevyRoutines,
   runRealAiRoutineAudit,
 } from '@/lib/realAiCoachEngine';
+import { buildHolistic360AthleteDossier } from '@/lib/holisticAthleteContext';
 import { HevyApplyOptions } from '@/lib/realAiCoachTypes';
 
 export const dynamic = 'force-dynamic';
@@ -36,6 +38,7 @@ export async function GET(request: NextRequest) {
     const liveAudit = getSavedAiAuditForRoutine(routine);
     const allRoutinesBundle = readLiveHevyRoutines();
     const bridgeAuth = readHevyBridgeAuthStatus();
+    const holisticDossier = buildHolistic360AthleteDossier(liveRoutine?.title || routine);
 
     let localSaved: any = null;
     if (fs.existsSync(ROUTINES_FILE)) {
@@ -51,6 +54,21 @@ export async function GET(request: NextRequest) {
       success: true,
       liveAudit,
       liveRoutine,
+      holisticSummary: {
+        sourcesConnectedCount: holisticDossier.sourcesConnectedCount,
+        summaryLine: holisticDossier.summaryLine,
+        pills: holisticDossier.pills,
+        asymmetryCount: holisticDossier.measurements17Pts.asymmetryAlerts.length,
+        notebookLm: {
+          connected: holisticDossier.notebookLmKnowledge.connected,
+          notebookId: holisticDossier.notebookLmKnowledge.notebookId,
+          notebookName: holisticDossier.notebookLmKnowledge.notebookName,
+          notebookUrl: holisticDossier.notebookLmKnowledge.notebookUrl,
+          curatedSourcesCount: holisticDossier.notebookLmKnowledge.curatedSourcesCount,
+          syncedAt: holisticDossier.notebookLmKnowledge.syncedAt,
+          driveDossierSynced: holisticDossier.notebookLmKnowledge.driveDossierSynced,
+        },
+      },
       routinesExportedAt: allRoutinesBundle.exportedAt,
       allRoutines: allRoutinesBundle.routines.map((r) => ({
         shortId: r.shortId,
@@ -119,9 +137,41 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // MODO 2: Auditoría REAL con Consejo Multi-IA (Gemini + NVIDIA NIM) — CERO 0ms fakes
-    if (action === 'analyze_with_ai') {
+    // MODO 1B: Sincronizar Base de Datos Viva de Google NotebookLM ("MegaProyecto") + Dossier Staging Drive
+    if (action === 'sync_notebooklm') {
+      const nlmRes = await syncNotebookLmKnowledgeBase();
+      if (!nlmRes.ok) {
+        return NextResponse.json(
+          { success: false, error: nlmRes.error || 'Error sincronizando NotebookLM' },
+          { status: 500 }
+        );
+      }
+      const dossier = buildHolistic360AthleteDossier(String(body?.routineName || 'Horizontal Torso (Chest & Back)'));
+      return NextResponse.json({
+        success: true,
+        notebookLm: nlmRes,
+        holisticSummary: {
+          sourcesConnectedCount: dossier.sourcesConnectedCount,
+          summaryLine: dossier.summaryLine,
+          pills: dossier.pills,
+          asymmetryCount: dossier.measurements17Pts.asymmetryAlerts.length,
+          notebookLm: {
+            connected: dossier.notebookLmKnowledge.connected,
+            notebookId: dossier.notebookLmKnowledge.notebookId,
+            notebookName: dossier.notebookLmKnowledge.notebookName,
+            notebookUrl: dossier.notebookLmKnowledge.notebookUrl,
+            curatedSourcesCount: dossier.notebookLmKnowledge.curatedSourcesCount,
+            syncedAt: dossier.notebookLmKnowledge.syncedAt,
+            driveDossierSynced: dossier.notebookLmKnowledge.driveDossierSynced,
+          },
+        },
+      });
+    }
+
+    // MODO 2: Auditoría REAL o Constructor Autónomo 360° con Consejo Multi-IA + 8 Fuentes + NotebookLM — CERO 0ms fakes
+    if (action === 'analyze_with_ai' || action === 'build_optimal_routine') {
       const routineName = String(body?.routineName || body?.routineTitle || 'Horizontal Torso (Chest & Back)');
+      const mode: 'audit' | 'build_optimal' = action === 'build_optimal_routine' ? 'build_optimal' : 'audit';
       const shouldRefresh = Boolean(body?.refreshRoutines) || !findLiveHevyRoutine(routineName);
 
       if (shouldRefresh) {
@@ -142,6 +192,7 @@ export async function POST(request: NextRequest) {
 
       const aiRes = await runRealAiRoutineAudit({
         routineName,
+        mode,
         keys: body?.keys,
       });
 
@@ -157,10 +208,27 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const dossier = buildHolistic360AthleteDossier(routineName);
       return NextResponse.json({
         success: true,
+        mode,
         liveAudit: aiRes.audit,
         liveRoutine: findLiveHevyRoutine(routineName),
+        holisticSummary: {
+          sourcesConnectedCount: dossier.sourcesConnectedCount,
+          summaryLine: dossier.summaryLine,
+          pills: dossier.pills,
+          asymmetryCount: dossier.measurements17Pts.asymmetryAlerts.length,
+          notebookLm: {
+            connected: dossier.notebookLmKnowledge.connected,
+            notebookId: dossier.notebookLmKnowledge.notebookId,
+            notebookName: dossier.notebookLmKnowledge.notebookName,
+            notebookUrl: dossier.notebookLmKnowledge.notebookUrl,
+            curatedSourcesCount: dossier.notebookLmKnowledge.curatedSourcesCount,
+            syncedAt: dossier.notebookLmKnowledge.syncedAt,
+            driveDossierSynced: dossier.notebookLmKnowledge.driveDossierSynced,
+          },
+        },
       });
     }
 
@@ -200,6 +268,7 @@ export async function POST(request: NextRequest) {
         keepExercise: ex.keepExercise !== false,
         suggestedOrderIndex: ex.suggestedOrderIndex,
         suggestedRestSeconds: ex.suggestedRestSeconds,
+        targetWorkingSets: ex.targetWorkingSets,
         pinnedNote: ex.pinnedNoteForHevy ?? ex.pinnedNote ?? '',
         targetWeightKg: ex.setSuggestions?.find((s: any) => !s.isWarmup)?.suggestedWeightKg ?? ex.targetWeightKg,
         targetWeightLbs: ex.setSuggestions?.find((s: any) => !s.isWarmup)?.suggestedWeightLbs ?? ex.targetWeightLbs,

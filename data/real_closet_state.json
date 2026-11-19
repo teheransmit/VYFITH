@@ -2,12 +2,12 @@
   "favoriteItems": 0,
   "totalItems": 15,
   "categoriesCount": {
-    "Bottoms": 3,
-    "Accesorios": 3,
-    "Outerwear": 3,
     "Tops": 3,
+    "Outerwear": 3,
+    "Accesorios": 3,
+    "Bottoms": 3,
     "Calzado": 3
   },
-  "lastUpdated": "2026-11-19T22:11:35.397Z",
-  "lastSyncedAt": "2026-11-19T22:11:35.397Z"
+  "lastUpdated": "2026-11-19T23:34:58.279Z",
+  "lastSyncedAt": "2026-11-19T23:34:58.279Z"
 }

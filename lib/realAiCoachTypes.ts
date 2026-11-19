@@ -83,10 +83,45 @@ export interface ExerciseAiRecommendation {
   currentRestSeconds: number;
   suggestedRestSeconds: number;
   restDeltaSeconds: number;
+  targetWorkingSets?: number; // ej. 2 o 3 series efectivas sugeridas por Constructor 360°
   action: ExerciseCoachAction;
   coachReasoning: string;
   pinnedNoteForHevy: string;
   setSuggestions: SetDeltaSuggestion[];
+}
+
+export interface Holistic360Pill {
+  id: string;
+  icon: 'measurements' | 'femmto' | 'bike' | 'watch' | 'nutrition' | 'notebooklm' | 'hevy' | 'calendar';
+  label: string;
+  value: string;
+  tone: 'emerald' | 'amber' | 'rose' | 'cyan' | 'indigo';
+  detail?: string;
+}
+
+export interface CoherenceCrossCheck {
+  measurementsImpact: string;
+  femmtoAndNutritionImpact: string;
+  walksAndBikeImpact: string;
+  sleepAndWatchImpact: string;
+  notebookLmCitations: string[];
+}
+
+export interface RoundTripVerificationDiff {
+  exerciseName: string;
+  field: 'order' | 'removed' | 'restSeconds' | 'weight' | 'reps' | 'note';
+  expected: string;
+  actualOnHevyServer: string;
+  matched: boolean;
+}
+
+export interface RoundTripFieldVerification {
+  verifiedPct: number;
+  checksPassed: number;
+  checksTotal: number;
+  retryPerformed: boolean;
+  mismatches: RoundTripVerificationDiff[];
+  sampleVerifiedDiffs: RoundTripVerificationDiff[];
 }
 
 export interface StructuralIssue {
@@ -111,13 +146,18 @@ export interface LiveAiRoutineAudit {
   routineName: string;
   routineUrl: string;
   editUrl: string;
+  mode?: 'audit' | 'build_optimal';
   analyzedAt: string;
   totalLatencyMs: number;
   modelsUsed: string[];
   modelContributions: AiCouncilModelContribution[];
   structureScore: number; // 0-100
+  projectedOptimizedScore?: number; // 0-100 tras aplicar el plan óptimo
   executiveVerdict: string;
   biometricContextSummary: string;
+  sourcesConnectedCount?: number;
+  holisticPills?: Holistic360Pill[];
+  coherenceCrossCheck?: CoherenceCrossCheck;
   structuralIssues: StructuralIssue[];
   exerciseRecommendations: ExerciseAiRecommendation[];
 }

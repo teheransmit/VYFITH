@@ -1138,6 +1138,7 @@ export async function applyRoutinePlanToHevyExternal(params: {
     keepExercise?: boolean;
     suggestedOrderIndex?: number;
     suggestedRestSeconds?: number;
+    targetWorkingSets?: number;
     pinnedNote?: string;
     targetWeightKg?: number;
     targetWeightLbs?: number;
@@ -1154,6 +1155,9 @@ export async function applyRoutinePlanToHevyExternal(params: {
   syncedToHevy: boolean;
   verifiedHttp200: boolean;
   httpStatus?: number;
+  mobilePushTriggered?: boolean;
+  retryPerformed?: boolean;
+  fieldVerificationReport?: any;
   method: 'hevy_web_playwright' | 'local_plan_only';
   requiresLogin?: boolean;
   backupSaved?: boolean;
@@ -1215,10 +1219,16 @@ export async function applyRoutinePlanToHevyExternal(params: {
       remCount > 0 ? `${remCount} ejercicios eliminados` : null,
     ].filter(Boolean);
 
+    const fv = bridgeRes.fieldVerificationReport;
+    const verifyTag = fv && fv.checksTotal > 0 ? ` • Round-Trip ${fv.verifiedPct}% (${fv.checksPassed}/${fv.checksTotal} campos verificados)` : '';
+
     return {
       syncedToHevy: true,
       verifiedHttp200: true,
       httpStatus: bridgeRes.httpStatus,
+      mobilePushTriggered: Boolean(bridgeRes.mobilePushTriggered),
+      retryPerformed: Boolean(bridgeRes.retryPerformed),
+      fieldVerificationReport: fv || null,
       method: 'hevy_web_playwright',
       backupSaved: Boolean(bridgeRes.backupSaved),
       backupFile: bridgeRes.backupFile || null,
@@ -1232,7 +1242,7 @@ export async function applyRoutinePlanToHevyExternal(params: {
       finalOrderTitles: bridgeRes.finalOrderTitles || [],
       notFound: bridgeRes.notFound || [],
       verifiedExerciseCount: bridgeRes.verifiedExerciseCount ?? null,
-      message: `Verificado en Hevy Web (HTTP ${bridgeRes.httpStatus}): ${summaryParts.join(' • ')}. Ya se sincroniza en tu Hevy App del celular.`,
+      message: `Verificado en Hevy Web (HTTP ${bridgeRes.httpStatus}${bridgeRes.mobilePushTriggered ? ' + Push Móvil' : ''}): ${summaryParts.join(' • ')}${verifyTag}.`,
     };
   }
 
@@ -1256,4 +1266,32 @@ export async function applyRoutinePlanToHevyExternal(params: {
       ? 'Plan guardado SOLO en VYFITH local. Falta iniciar sesión 1 vez en Hevy Web (Conectar_Hevy_Web.bat).'
       : `Plan guardado SOLO en VYFITH local. Hevy Web no confirmó guardado HTTP 200: ${bridgeRes?.error || 'error desconocido'}.`,
   };
+}
+
+export async function syncNotebookLmKnowledgeBase(): Promise<{
+  ok: boolean;
+  notebookId?: string;
+  notebookUrl?: string;
+  curatedSourcesCount?: number;
+  rulesCount?: number;
+  driveSynced?: boolean;
+  driveDossierPath?: string | null;
+  asymmetriesCount?: number;
+  error?: string;
+}> {
+  const nlmScript = path.join(process.cwd(), 'scripts', 'notebooklm_bridge.mjs');
+  if (!fs.existsSync(nlmScript)) {
+    return { ok: false, error: 'Falta scripts/notebooklm_bridge.mjs' };
+  }
+  try {
+    const { stdout } = await execFileAsync(process.execPath, [nlmScript, 'sync-knowledge'], {
+      cwd: process.cwd(),
+      timeout: 30000,
+      windowsHide: true,
+    });
+    const lastLine = stdout.trim().split(/\r?\n/).pop() || '{}';
+    return JSON.parse(lastLine);
+  } catch (err: any) {
+    return { ok: false, error: err?.message || 'Error sincronizando base NotebookLM' };
+  }
 }

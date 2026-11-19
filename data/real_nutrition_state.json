@@ -8,10 +8,10 @@
     "targetWaterMl": 2900
   },
   "current": {
-    "calories": 385,
-    "protein": 30.4,
-    "carbs": 58.9,
-    "fat": 1.8,
+    "calories": 647.6,
+    "protein": 42.6,
+    "carbs": 90.1,
+    "fat": 11.4,
     "waterMl": 2650
   },
   "meals": {
@@ -21,25 +21,55 @@
       "time": "07:30",
       "items": [
         {
-          "id": "15c3dbde-4f26-4a79-9f8b-08e781fddd98",
+          "id": "e563d537-46ae-4d0c-a4da-74d99f50e90a",
+          "name": "Coffee with milk",
+          "spanishName": "Café con leche",
+          "portionDisplay": "Porta lleno + adición (500 g)",
+          "grams": 500,
+          "calories": 170,
+          "protein": 9,
+          "carbs": 14,
+          "fat": 8.5,
+          "fiber": 0,
+          "source": "nlp_voice",
+          "confidence": 0.91,
+          "notes": "una taza de café con. con un pancake con un pedazo de pan. y al café Le agregué un Scoop de proteína"
+        },
+        {
+          "id": "a8ea7456-c6a7-47fa-891a-de52053d580c",
+          "name": "Sliced bread",
+          "spanishName": "Pan",
+          "portionDisplay": "½x 2 unidad/rebanada(es) (35 g)",
+          "grams": 35,
+          "calories": 92.8,
+          "protein": 3.2,
+          "carbs": 17.2,
+          "fat": 1.1,
+          "fiber": 1,
+          "source": "nlp_voice",
+          "confidence": 0.89,
+          "notes": "una taza de café con. con un pancake con un pedazo de pan. y al café Le agregué un Scoop de proteína"
+        },
+        {
+          "id": "2cf65cf6-e3e3-4ad1-ab5d-d4003f48feca",
           "name": "Whey Protein Isolate Shake",
           "spanishName": "Batido de Proteína Whey",
           "portionDisplay": "1 scoop (32 g)",
           "grams": 32,
-          "calories": 125,
+          "calories": 124.8,
           "protein": 25,
           "carbs": 2.5,
           "fat": 1.2,
           "fiber": 0,
           "source": "nlp_voice",
-          "confidence": 0.96,
-          "notes": "en la mañana desayuné un pedazo de pan un pancake una taza de café con un Scoop de proteína"
+          "confidence": 0.89,
+          "notes": "una taza de café con. con un pancake con un pedazo de pan. y al café Le agregué un Scoop de proteína"
         }
       ],
-      "totalKcal": 125,
-      "totalProtein": 25,
-      "totalCarbs": 2.5,
-      "totalFat": 1.2
+      "totalKcal": 387.6,
+      "totalProtein": 37.2,
+      "totalCarbs": 33.7,
+      "totalFat": 10.8
     },
     "almuerzo": {
       "mealType": "almuerzo",
@@ -90,6 +120,51 @@
   },
   "recentScans": [
     {
+      "id": "2cf65cf6-e3e3-4ad1-ab5d-d4003f48feca",
+      "name": "Whey Protein Isolate Shake",
+      "spanishName": "Batido de Proteína Whey",
+      "portionDisplay": "1 scoop (32 g)",
+      "grams": 32,
+      "calories": 124.8,
+      "protein": 25,
+      "carbs": 2.5,
+      "fat": 1.2,
+      "fiber": 0,
+      "source": "nlp_voice",
+      "confidence": 0.89,
+      "notes": "una taza de café con. con un pancake con un pedazo de pan. y al café Le agregué un Scoop de proteína"
+    },
+    {
+      "id": "a8ea7456-c6a7-47fa-891a-de52053d580c",
+      "name": "Sliced bread",
+      "spanishName": "Pan",
+      "portionDisplay": "½x 2 unidad/rebanada(es) (35 g)",
+      "grams": 35,
+      "calories": 92.8,
+      "protein": 3.2,
+      "carbs": 17.2,
+      "fat": 1.1,
+      "fiber": 1,
+      "source": "nlp_voice",
+      "confidence": 0.89,
+      "notes": "una taza de café con. con un pancake con un pedazo de pan. y al café Le agregué un Scoop de proteína"
+    },
+    {
+      "id": "e563d537-46ae-4d0c-a4da-74d99f50e90a",
+      "name": "Coffee with milk",
+      "spanishName": "Café con leche",
+      "portionDisplay": "Porta lleno + adición (500 g)",
+      "grams": 500,
+      "calories": 170,
+      "protein": 9,
+      "carbs": 14,
+      "fat": 8.5,
+      "fiber": 0,
+      "source": "nlp_voice",
+      "confidence": 0.91,
+      "notes": "una taza de café con. con un pancake con un pedazo de pan. y al café Le agregué un Scoop de proteína"
+    },
+    {
       "id": "0a6b2d56-4d8f-4a63-811f-0184ed364209",
       "name": "Cooked white rice",
       "spanishName": "Arroz blanco cocido",
@@ -120,5 +195,5 @@
       "notes": "en la mañana desayuné un pedazo de pan un pancake una taza de café con un Scoop de proteína"
     }
   ],
-  "lastUpdated": "2026-11-19T23:13:22.718Z"
+  "lastUpdated": "2026-11-19T23:34:58.296Z"
 }

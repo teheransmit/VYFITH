@@ -112,8 +112,26 @@ async function main() {
   assert.equal(resBad.status, 400);
   const badJson = await resBad.json();
   assert.equal(badJson.syncedToHevy, false);
-  console.log('[5/5] PASS: Validación antifraude rechaza payloads vacíos con HTTP 400 y syncedToHevy=false.');
-  console.log('ALL AI COACH & HEVY APPLY TESTS PASSED.');
+  console.log('[5/7] PASS: Validación antifraude rechaza payloads vacíos con HTTP 400 y syncedToHevy=false.');
+
+  // 6. Verificar Base de Datos Viva NotebookLM + Dossier 360° en Staging Drive
+  const nlmPath = path.join(ROOT, 'data', 'notebooklm_knowledge_base.json');
+  assert.ok(fs.existsSync(nlmPath), 'Debe existir data/notebooklm_knowledge_base.json');
+  const nlmData = JSON.parse(fs.readFileSync(nlmPath, 'utf8'));
+  assert.equal(nlmData.notebookId, '57126469-ac46-4b0d-a370-6270c887c26b');
+  assert.ok(nlmData.curatedSourcesCount >= 67, 'Debe indexar las 67 fuentes de MegaProyecto');
+  assert.ok(Array.isArray(nlmData.coreHypertrophyRules) && nlmData.coreHypertrophyRules.length >= 6);
+  console.log(`[6/7] PASS: Base de Datos NotebookLM MegaProyecto verificada (${nlmData.curatedSourcesCount} fuentes, ${nlmData.coreHypertrophyRules.length} reglas científicas).`);
+
+  // 7. Verificar Fusión Holística 360° (8/8 fuentes vivas + asimetrías 17 pts + coherenceCrossCheck)
+  assert.ok(horiz.holisticSummary, 'GET /api/hevy/ai-coach debe incluir holisticSummary 360°');
+  assert.ok(horiz.holisticSummary.sourcesConnectedCount >= 7, `Deben conectarse >=7 fuentes vivas, got ${horiz.holisticSummary.sourcesConnectedCount}`);
+  assert.ok(Array.isArray(horiz.holisticSummary.pills) && horiz.holisticSummary.pills.length >= 5);
+  assert.ok(horiz.holisticSummary.asymmetryCount >= 1, 'Debe detectar asimetrías reales de real_body_measurements.json');
+  assert.ok(horiz.liveAudit.coherenceCrossCheck, 'liveAudit debe incluir coherenceCrossCheck cruzando las 8 fuentes');
+  console.log(`[7/7] PASS: Coherencia Cruzada 360° verificada (${horiz.holisticSummary.sourcesConnectedCount}/8 fuentes, ${horiz.holisticSummary.asymmetryCount} asimetrías 17 pts detectadas).`);
+
+  console.log('ALL AI COACH 360°, NOTEBOOKLM & HEVY APPLY TESTS PASSED.');
 }
 
 main().catch((err) => {

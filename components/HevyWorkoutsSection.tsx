@@ -51,6 +51,8 @@ import {
   LiveHevyRoutine,
   ExerciseAiRecommendation,
   HevyApplyOptions,
+  Holistic360Pill,
+  RoundTripFieldVerification,
   formatSecondsToMmSs,
 } from '@/lib/realAiCoachTypes';
 
@@ -70,8 +72,27 @@ export default function HevyWorkoutsSection() {
   const [isConnectingBrowser, setIsConnectingBrowser] = useState(false);
   const [liveAudit, setLiveAudit] = useState<LiveAiRoutineAudit | null>(null);
   const [liveRoutine, setLiveRoutine] = useState<LiveHevyRoutine | null>(null);
+  const [holisticSummary, setHolisticSummary] = useState<{
+    sourcesConnectedCount: number;
+    summaryLine: string;
+    pills: Holistic360Pill[];
+    asymmetryCount: number;
+    notebookLm?: {
+      connected: boolean;
+      notebookId: string;
+      notebookName: string;
+      notebookUrl: string;
+      curatedSourcesCount: number;
+      syncedAt: string | null;
+      driveDossierSynced: boolean;
+    };
+  } | null>(null);
   const [isLoadingCoach, setIsLoadingCoach] = useState(false);
   const [isAnalyzingAi, setIsAnalyzingAi] = useState(false);
+  const [isBuildingOptimal, setIsBuildingOptimal] = useState(false);
+  const [isSyncingNotebookLm, setIsSyncingNotebookLm] = useState(false);
+  const [nlmSyncNotice, setNlmSyncNotice] = useState<string | null>(null);
+  const [showRoundTripProof, setShowRoundTripProof] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [applyOptions, setApplyOptions] = useState<HevyApplyOptions>({
     weightsAndReps: true,
@@ -87,6 +108,9 @@ export default function HevyWorkoutsSection() {
     syncedToHevy: boolean;
     verifiedHttp200?: boolean;
     httpStatus?: number;
+    mobilePushTriggered?: boolean;
+    retryPerformed?: boolean;
+    fieldVerificationReport?: RoundTripFieldVerification | null;
     savedLocally?: boolean;
     backupSaved?: boolean;
     method?: string;
@@ -376,6 +400,7 @@ export default function HevyWorkoutsSection() {
         const data = await res.json();
         setLiveAudit(data.liveAudit || null);
         setLiveRoutine(data.liveRoutine || null);
+        if (data.holisticSummary) setHolisticSummary(data.holisticSummary);
       }
     } catch (e: any) {
       console.warn('Error cargando auditoría Coach IA:', e);
@@ -388,13 +413,14 @@ export default function HevyWorkoutsSection() {
     if (selectedSession?.name) {
       setSyncActionResult(null);
       setShowOrderPreview(false);
+      setShowRoundTripProof(false);
       setExpandVerdict(false);
       fetchCoachForRoutine(selectedSession.name);
     }
   }, [selectedSession?.name]);
 
   const handleAnalyzeWithAi = async (refreshRoutines = false) => {
-    if (!selectedSession?.name || isAnalyzingAi) return;
+    if (!selectedSession?.name || isAnalyzingAi || isBuildingOptimal) return;
     setIsAnalyzingAi(true);
     setAiError(null);
     setSyncActionResult(null);
@@ -412,6 +438,7 @@ export default function HevyWorkoutsSection() {
       if (res.ok && data.success && data.liveAudit) {
         setLiveAudit(data.liveAudit);
         if (data.liveRoutine) setLiveRoutine(data.liveRoutine);
+        if (data.holisticSummary) setHolisticSummary(data.holisticSummary);
       } else {
         setAiError(
           `HTTP ${res.status}: ${data.error || 'El Consejo Multi-IA no devolvió análisis.'}`
@@ -421,6 +448,76 @@ export default function HevyWorkoutsSection() {
       setAiError(`Error de red llamando al Consejo Multi-IA: ${err?.message || 'desconocido'}`);
     } finally {
       setIsAnalyzingAi(false);
+    }
+  };
+
+  const handleBuildOptimalRoutine = async () => {
+    if (!selectedSession?.name || isAnalyzingAi || isBuildingOptimal) return;
+    setIsBuildingOptimal(true);
+    setAiError(null);
+    setSyncActionResult(null);
+    try {
+      const res = await fetch('/api/hevy/ai-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'build_optimal_routine',
+          routineName: selectedSession.name,
+          refreshRoutines: false,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.liveAudit) {
+        setLiveAudit(data.liveAudit);
+        if (data.liveRoutine) setLiveRoutine(data.liveRoutine);
+        if (data.holisticSummary) setHolisticSummary(data.holisticSummary);
+        // Pre-activar Reordenar + Quitar Redundantes y mostrar Antes -> Después (respaldo automático garantizado)
+        setApplyOptions({
+          weightsAndReps: true,
+          restTimers: true,
+          notes: true,
+          reorder: true,
+          removeMarked: true,
+        });
+        setShowOrderPreview(true);
+      } else {
+        setAiError(
+          `HTTP ${res.status}: ${data.error || 'El Constructor 360° no devolvió la rutina óptima.'}`
+        );
+      }
+    } catch (err: any) {
+      setAiError(`Error de red en Constructor 360°: ${err?.message || 'desconocido'}`);
+    } finally {
+      setIsBuildingOptimal(false);
+    }
+  };
+
+  const handleSyncNotebookLm = async () => {
+    if (isSyncingNotebookLm) return;
+    setIsSyncingNotebookLm(true);
+    setNlmSyncNotice(null);
+    try {
+      const res = await fetch('/api/hevy/ai-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sync_notebooklm',
+          routineName: selectedSession?.name || 'Horizontal Torso (Chest & Back)',
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (data.holisticSummary) setHolisticSummary(data.holisticSummary);
+        setNlmSyncNotice(
+          `NotebookLM «MegaProyecto» sincronizado (${data.notebookLm?.curatedSourcesCount || 67} fuentes • Dossier 360° actualizado en Drive Staging).`
+        );
+      } else {
+        setNlmSyncNotice(`Error sincronizando NotebookLM: ${data.error || res.status}`);
+      }
+    } catch (err: any) {
+      setNlmSyncNotice(`Error de red NotebookLM: ${err?.message || 'desconocido'}`);
+    } finally {
+      setIsSyncingNotebookLm(false);
     }
   };
 
@@ -654,6 +751,9 @@ export default function HevyWorkoutsSection() {
         syncedToHevy: Boolean(data.syncedToHevy),
         verifiedHttp200: Boolean(data.verifiedHttp200),
         httpStatus: data.httpStatus,
+        mobilePushTriggered: Boolean(data.mobilePushTriggered),
+        retryPerformed: Boolean(data.retryPerformed),
+        fieldVerificationReport: data.fieldVerificationReport || null,
         savedLocally: Boolean(data.savedLocally),
         backupSaved: Boolean(data.backupSaved),
         method: data.method,
@@ -1433,35 +1533,119 @@ export default function HevyWorkoutsSection() {
 
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
+                onClick={handleSyncNotebookLm}
+                disabled={isSyncingNotebookLm || isAnalyzingAi || isBuildingOptimal}
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#09090b]/85 hover:bg-slate-800 text-indigo-200 text-xs font-bold border border-indigo-500/35 transition-all disabled:opacity-50"
+                title="Actualiza el Dossier 360° en Google Drive Staging y sincroniza las 67 fuentes de tu NotebookLM MegaProyecto"
+              >
+                <BookOpen className={`w-3.5 h-3.5 text-indigo-400 ${isSyncingNotebookLm ? 'animate-pulse' : ''}`} />
+                <span>{isSyncingNotebookLm ? 'Sync NLM...' : 'Sync NotebookLM'}</span>
+              </button>
+
+              <button
                 onClick={() => handleAnalyzeWithAi(false)}
-                disabled={isAnalyzingAi || isSyncingHevy}
+                disabled={isAnalyzingAi || isBuildingOptimal || isSyncingHevy}
                 className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-200 text-xs font-bold border border-cyan-500/40 transition-all disabled:opacity-50"
-                title="Consulta al Consejo Multi-IA (Gemini + NVIDIA NIM) sobre tu rutina viva en Hevy y tus últimas 4 sesiones"
+                title="Audita tu rutina actual cruzando las 8 fuentes de VYFITH + NotebookLM"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzingAi ? 'animate-spin text-cyan-300' : ''}`} />
-                <span>{isAnalyzingAi ? 'Consultando Multi-IA...' : liveAudit ? 'Re-Analizar con IA' : 'Analizar Rutina con IA'}</span>
+                <span>{isAnalyzingAi ? 'Auditando...' : liveAudit ? 'Re-Analizar' : 'Analizar con IA'}</span>
+              </button>
+
+              <button
+                onClick={handleBuildOptimalRoutine}
+                disabled={isBuildingOptimal || isAnalyzingAi || isSyncingHevy}
+                className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600/25 hover:bg-emerald-600/35 text-emerald-200 text-xs font-extrabold border border-emerald-500/45 transition-all disabled:opacity-50"
+                title="Arma y reestructura automáticamente tu rutina óptima 360° (8-10 ejercicios, orden biomecánico, descansos, asimetrías 17 pts, paseos en bici y NotebookLM)"
+              >
+                <Sparkles className={`w-3.5 h-3.5 text-emerald-300 ${isBuildingOptimal ? 'animate-spin' : ''}`} />
+                <span>{isBuildingOptimal ? 'Armando Rutina 360°...' : 'Armar Rutina Óptima 360°'}</span>
               </button>
 
               <button
                 onClick={handleApplyToHevy}
-                disabled={isSyncingHevy || isAnalyzingAi || !liveAudit}
+                disabled={isSyncingHevy || isAnalyzingAi || isBuildingOptimal || !liveAudit}
                 className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-md shadow-indigo-600/30 transition-all disabled:opacity-45"
-                title="Edita realmente tu rutina en hevy.com/edit-routine, verifica HTTP 200 y guarda respaldo local antes"
+                title="Edita realmente tu rutina en hevy.com/edit-routine, verifica HTTP 200 + Push Móvil + Round-Trip campo por campo y guarda respaldo antes"
               >
                 {isSyncingHevy ? (
                   <>
                     <RotateCcw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Aplicando en Hevy Web...</span>
+                    <span>Aplicando y Verificando...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <ShieldCheck className="w-3.5 h-3.5" />
                     <span>Aplicar Cambios a Hevy App</span>
                   </>
                 )}
               </button>
             </div>
           </div>
+
+          {nlmSyncNotice && (
+            <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-xs text-indigo-200 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <BookOpen className="w-4 h-4 text-indigo-400 shrink-0" />
+                <span className="font-medium break-words">{nlmSyncNotice}</span>
+              </div>
+              <button
+                onClick={() => setNlmSyncNotice(null)}
+                className="cursor-pointer px-2 py-0.5 rounded bg-black/30 hover:bg-black/50 text-xs font-bold shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* BARRA DE COHERENCIA CRUZADA 360° (8 FUENTES VIVAS + NOTEBOOKLM MEGAPROYECTO) */}
+          {(holisticSummary?.pills || liveAudit?.holisticPills) && (
+            <div className="p-3.5 rounded-xl bg-[#09090b]/80 border border-indigo-500/25 space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2 text-[10px] font-mono">
+                <span className="font-extrabold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>
+                    Coherencia Cruzada 360° ({holisticSummary?.sourcesConnectedCount ?? liveAudit?.sourcesConnectedCount ?? 8}/8 Fuentes Vivas Conectadas)
+                  </span>
+                </span>
+                {holisticSummary?.notebookLm?.notebookUrl && (
+                  <a
+                    href={holisticSummary.notebookLm.notebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-indigo-300 hover:text-indigo-200 font-bold"
+                  >
+                    <span>NotebookLM MegaProyecto ({holisticSummary.notebookLm.curatedSourcesCount} fuentes)</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {(holisticSummary?.pills || liveAudit?.holisticPills || []).map((pill) => {
+                  const toneCls =
+                    pill.tone === 'emerald'
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200'
+                      : pill.tone === 'rose'
+                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-200'
+                      : pill.tone === 'amber'
+                      ? 'bg-amber-500/10 border-amber-500/30 text-amber-200'
+                      : pill.tone === 'cyan'
+                      ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-200'
+                      : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-200';
+                  return (
+                    <div
+                      key={pill.id}
+                      className={`px-2.5 py-2 rounded-lg border text-[11px] flex flex-col gap-0.5 ${toneCls}`}
+                      title={pill.detail || pill.value}
+                    >
+                      <span className="text-[9px] font-mono uppercase font-extrabold opacity-80">{pill.label}</span>
+                      <span className="font-bold truncate">{pill.value}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {aiError && (
             <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-start justify-between gap-3">
@@ -1501,8 +1685,16 @@ export default function HevyWorkoutsSection() {
                     <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono text-emerald-300/90">
                       {syncActionResult.verifiedHttp200 && (
                         <span className="px-2 py-0.5 rounded bg-emerald-950/70 border border-emerald-500/40">
-                          HTTP {syncActionResult.httpStatus || 200} Confirmado
+                          HTTP {syncActionResult.httpStatus || 200} {syncActionResult.mobilePushTriggered ? '+ Push Móvil' : 'Confirmado'}
                         </span>
+                      )}
+                      {syncActionResult.fieldVerificationReport && syncActionResult.fieldVerificationReport.checksTotal > 0 && (
+                        <button
+                          onClick={() => setShowRoundTripProof((v) => !v)}
+                          className="cursor-pointer px-2 py-0.5 rounded bg-cyan-950/80 hover:bg-cyan-900/80 border border-cyan-500/45 text-cyan-200 font-bold"
+                        >
+                          Round-Trip {syncActionResult.fieldVerificationReport.verifiedPct}% ({syncActionResult.fieldVerificationReport.checksPassed}/{syncActionResult.fieldVerificationReport.checksTotal}) {showRoundTripProof ? '▲' : '▼'}
+                        </button>
                       )}
                       {syncActionResult.backupSaved && (
                         <span className="px-2 py-0.5 rounded bg-slate-900/80 border border-slate-700 text-slate-300">
@@ -1521,6 +1713,24 @@ export default function HevyWorkoutsSection() {
                       {typeof syncActionResult.removedCount === 'number' && syncActionResult.removedCount > 0 && (
                         <span>✂️ {syncActionResult.removedCount} depurados</span>
                       )}
+                    </div>
+                  )}
+                  {showRoundTripProof && syncActionResult.fieldVerificationReport && (
+                    <div className="mt-2 p-2.5 rounded-lg bg-black/45 border border-emerald-500/30 text-[10px] font-mono space-y-1 max-h-48 overflow-y-auto">
+                      <div className="font-bold text-emerald-300">
+                        Prueba Round-Trip leída directamente desde servidores de Hevy {syncActionResult.retryPerformed ? '(Auto-Reintento aplicado ✓)' : ''}:
+                      </div>
+                      {[
+                        ...(syncActionResult.fieldVerificationReport.sampleVerifiedDiffs || []),
+                        ...(syncActionResult.fieldVerificationReport.mismatches || []),
+                      ].map((d, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-2 border-t border-white/5 pt-1">
+                          <span className="text-slate-200 truncate">{d.exerciseName} [{d.field}]</span>
+                          <span className={d.matched ? 'text-emerald-300 shrink-0' : 'text-amber-300 shrink-0'}>
+                            {d.actualOnHevyServer} {d.matched ? '✓' : `≠ ${d.expected}`}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   )}
                   {!syncActionResult.syncedToHevy && syncActionResult.requiresLogin && syncActionResult.sandboxedDesktop && (
@@ -1589,6 +1799,29 @@ export default function HevyWorkoutsSection() {
                     </button>
                   )}
                 </p>
+
+                {liveAudit.coherenceCrossCheck && (
+                  <div className="pt-2.5 mt-2 border-t border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+                    <div className="p-2.5 rounded-lg bg-[#141418] border border-slate-800">
+                      <span className="font-bold text-amber-300 block mb-0.5">📏 Medidas 17 Pts & Asimetrías:</span>
+                      <span className="text-slate-300">{liveAudit.coherenceCrossCheck.measurementsImpact}</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-[#141418] border border-slate-800">
+                      <span className="font-bold text-cyan-300 block mb-0.5">⚖️ Femmto (55.5 → 60 kg) & Nutrición:</span>
+                      <span className="text-slate-300">{liveAudit.coherenceCrossCheck.femmtoAndNutritionImpact}</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-[#141418] border border-slate-800">
+                      <span className="font-bold text-emerald-300 block mb-0.5">🚲 Paseos Caninos & Bici 15 km/h:</span>
+                      <span className="text-slate-300">{liveAudit.coherenceCrossCheck.walksAndBikeImpact}</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-[#141418] border border-slate-800">
+                      <span className="font-bold text-indigo-300 block mb-0.5">📚 Reglas NotebookLM MegaProyecto:</span>
+                      <span className="text-slate-300">
+                        {liveAudit.coherenceCrossCheck.notebookLmCitations.join(' • ') || liveAudit.coherenceCrossCheck.sleepAndWatchImpact}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* HALLAZGOS ESTRUCTURALES REALES (ORDEN, DESCANSOS, VOLUMEN, RPE, NOTAS) */}

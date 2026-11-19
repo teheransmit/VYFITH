@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-11-19T23:13:22.722Z",
+  "lastUpdated": "2026-11-19T23:34:58.302Z",
   "lastFirestorePullAt": "2026-11-19T21:55:26.988Z",
   "sessions": [
     {
@@ -20,7 +20,7 @@
       "sourceLabel": "Mi Fitness (Xiaomi) (Reloj)",
       "deviceModel": "Xiaomi Smart Band 9 Pro",
       "isWatchSource": true,
-      "syncedAt": "2026-11-19T23:13:22.722Z"
+      "syncedAt": "2026-11-19T23:34:58.302Z"
     }
   ]
 }
