@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { execFile } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
 import { promisify } from 'util';
 import { HevyWorkoutSession, HevyExercise, ExerciseSet } from './hevyStore';
 import {
@@ -639,6 +639,55 @@ export function sanitizeHevyBridgeError(raw: unknown): string {
   const cleanLine = str.split(/Browser logs:|Call log:|\r?\n/)[0].trim();
   return cleanLine.slice(0, 450) || 'Error ejecutando puente Chrome Hevy Web.';
 }
+
+let cachedSandboxedDesktop: boolean | null = null;
+
+/**
+ * Detecta una sola vez si el servidor Next.js corre en un escritorio Windows aislado (exebox-* / service-*)
+ * donde no es posible mostrar ventanas interactivas al usuario.
+ */
+export function isRunningInSandboxedDesktop(): boolean {
+  if (cachedSandboxedDesktop !== null) return cachedSandboxedDesktop;
+  if (process.platform !== 'win32') {
+    cachedSandboxedDesktop = false;
+    return false;
+  }
+  try {
+    const ps = `
+Add-Type @"
+using System;
+using System.Text;
+using System.Runtime.InteropServices;
+public class VyfithServerDesk {
+  [DllImport("user32.dll")] public static extern IntPtr GetThreadDesktop(uint dwThreadId);
+  [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
+  [DllImport("user32.dll", SetLastError=true, CharSet=CharSet.Unicode)]
+  public static extern bool GetUserObjectInformation(IntPtr hObj, int nIndex, StringBuilder pvInfo, int nLength, out int lpnLengthNeeded);
+  public static string Name() {
+    IntPtr d = GetThreadDesktop(GetCurrentThreadId());
+    var sb = new StringBuilder(256); int need;
+    GetUserObjectInformation(d, 2, sb, 256, out need);
+    return sb.ToString();
+  }
+}
+"@
+Write-Output ([VyfithServerDesk]::Name())
+`;
+    const out = execFileSync(
+      'powershell.exe',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ps],
+      { encoding: 'utf8', timeout: 8000, windowsHide: true }
+    );
+    const desk = String(out || '').trim().split(/\r?\n/).pop() || 'Default';
+    cachedSandboxedDesktop = /^(exebox-|service-)/i.test(desk);
+    return cachedSandboxedDesktop;
+  } catch {
+    cachedSandboxedDesktop = false;
+    return false;
+  }
+}
+
+export const HEVY_LOGIN_LAUNCHER_PATH = path.join(process.cwd(), 'Conectar_Hevy_Web.bat');
 
 type BridgeGlobalState = {
   promise: Promise<any> | null;

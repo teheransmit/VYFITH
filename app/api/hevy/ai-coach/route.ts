@@ -3,7 +3,12 @@ import fs from 'fs';
 import path from 'path';
 import { generateAiCoachPrescription } from '@/lib/aiCoachPeriodizationEngine';
 import { findKnownRoutine } from '@/lib/hevyDateParser';
-import { readStoredWorkouts, pushPrescriptionToHevyExternal } from '@/lib/hevySyncService';
+import {
+  readStoredWorkouts,
+  pushPrescriptionToHevyExternal,
+  isRunningInSandboxedDesktop,
+  HEVY_LOGIN_LAUNCHER_PATH,
+} from '@/lib/hevySyncService';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -94,6 +99,8 @@ export async function POST(request: NextRequest) {
       syncedToHevy: externalResult.syncedToHevy,
       method: externalResult.method,
       requiresLogin: Boolean(externalResult.requiresLogin),
+      sandboxedDesktop: isRunningInSandboxedDesktop(),
+      launcherScript: HEVY_LOGIN_LAUNCHER_PATH,
       routineUrl: externalResult.routineUrl || findKnownRoutine(routineTitle)?.routineUrl,
       editUrl: externalResult.editUrl || findKnownRoutine(routineTitle)?.editUrl,
       modifiedExercises: externalResult.modifiedExercises || [],

@@ -64,17 +64,22 @@ export default function HevyWorkoutsSection() {
     savedLocally?: boolean;
     method?: string;
     requiresLogin?: boolean;
+    sandboxedDesktop?: boolean;
+    launcherScript?: string;
     routineUrl?: string;
     editUrl?: string;
     message: string;
     modifiedCount?: number;
   } | null>(null);
+  const [copiedLauncher, setCopiedLauncher] = useState(false);
   const [syncStatusInfo, setSyncStatusInfo] = useState<{
     sourceUsed: string;
     addedCount: number;
     requiresBrowserAuth: boolean;
     hasProApiKey: boolean;
     browserBridgeAuthenticated: boolean;
+    sandboxedDesktop?: boolean;
+    launcherScript?: string;
     remoteWorkoutCount?: number | null;
     pendingRemoteDiff?: number;
     lastSyncAt?: string | null;
@@ -150,6 +155,8 @@ export default function HevyWorkoutsSection() {
           requiresBrowserAuth: Boolean(data.requiresBrowserAuth),
           hasProApiKey: Boolean(data.hasProApiKey),
           browserBridgeAuthenticated: Boolean(data.browserBridgeAuthenticated),
+          sandboxedDesktop: Boolean(data.sandboxedDesktop),
+          launcherScript: data.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat',
           remoteWorkoutCount: typeof data.remoteWorkoutCount === 'number' ? data.remoteWorkoutCount : null,
           pendingRemoteDiff: typeof data.pendingRemoteDiff === 'number' ? data.pendingRemoteDiff : 0,
           lastSyncAt: data.syncMeta?.lastSyncAt || null,
@@ -328,18 +335,33 @@ export default function HevyWorkoutsSection() {
     }
   }, [selectedSession.name, sessions]);
 
+  const handleCopyLauncherPath = (customPath?: string) => {
+    const p = customPath || syncStatusInfo?.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat';
+    navigator.clipboard?.writeText(p).catch(() => {});
+    setCopiedLauncher(true);
+    setTimeout(() => setCopiedLauncher(false), 3000);
+  };
+
   const handleConnectHevyBrowser = async (autoApplyAfterLogin = false) => {
     if (isConnectingBrowser) return;
     setIsConnectingBrowser(true);
     setUploadSuccess(null);
-    const waitingNotice =
-      'Se abrió la ventana independiente de Chromium en hevy.com/login (revisa tu pantalla o la barra de tareas). Inicia sesión allí una sola vez y VYFITH guardará tu sesión permanente para sincronizar y editar rutinas solo.';
+    const isSandboxed = Boolean(syncStatusInfo?.sandboxedDesktop || syncActionResult?.sandboxedDesktop);
+    const launcher =
+      syncStatusInfo?.launcherScript ||
+      syncActionResult?.launcherScript ||
+      'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat';
+    const waitingNotice = isSandboxed
+      ? 'Verificando si ya completaste el inicio de sesión con Conectar_Hevy_Web.bat...'
+      : 'Conectando con Chromium en hevy.com/login... Inicia sesión en la ventana que aparecerá.';
     setSyncStatusInfo((prev) => ({
       sourceUsed: prev?.sourceUsed || 'local_cache',
       addedCount: prev?.addedCount || 0,
       requiresBrowserAuth: true,
       hasProApiKey: Boolean(prev?.hasProApiKey),
       browserBridgeAuthenticated: false,
+      sandboxedDesktop: isSandboxed,
+      launcherScript: launcher,
       remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
       pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
       lastSyncAt: prev?.lastSyncAt || null,
@@ -350,6 +372,8 @@ export default function HevyWorkoutsSection() {
         syncedToHevy: false,
         savedLocally: true,
         requiresLogin: true,
+        sandboxedDesktop: isSandboxed,
+        launcherScript: launcher,
         routineUrl: prev?.routineUrl,
         editUrl: prev?.editUrl,
         message: waitingNotice,
@@ -376,6 +400,8 @@ export default function HevyWorkoutsSection() {
             requiresBrowserAuth: false,
             hasProApiKey: Boolean(prev?.hasProApiKey),
             browserBridgeAuthenticated: true,
+            sandboxedDesktop: Boolean(prev?.sandboxedDesktop),
+            launcherScript: prev?.launcherScript || launcher,
             remoteWorkoutCount: typeof data.remoteWorkoutCount === 'number' ? data.remoteWorkoutCount : data.workouts.length,
             pendingRemoteDiff: typeof data.pendingRemoteDiff === 'number' ? data.pendingRemoteDiff : 0,
             lastSyncAt: new Date().toISOString(),
@@ -389,6 +415,8 @@ export default function HevyWorkoutsSection() {
             syncedToHevy: false,
             savedLocally: true,
             requiresLogin: false,
+            sandboxedDesktop: Boolean(prev?.sandboxedDesktop),
+            launcherScript: prev?.launcherScript || launcher,
             routineUrl: prev?.routineUrl,
             editUrl: prev?.editUrl,
             message: '¡Sesión conectada en Hevy Web! Aplicando automáticamente tus nuevas cargas en la rutina...',
@@ -398,6 +426,8 @@ export default function HevyWorkoutsSection() {
           return;
         }
       } else {
+        const respSandboxed = Boolean(data?.sandboxedDesktop || isSandboxed);
+        const respLauncher = data?.launcherScript || launcher;
         const errMsg =
           cleanHevyWarning(data?.error) ||
           `Error HTTP ${res.status} conectando el puente Chrome Hevy Web.`;
@@ -407,6 +437,8 @@ export default function HevyWorkoutsSection() {
           requiresBrowserAuth: true,
           hasProApiKey: Boolean(prev?.hasProApiKey),
           browserBridgeAuthenticated: false,
+          sandboxedDesktop: respSandboxed,
+          launcherScript: respLauncher,
           remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
           pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
           lastSyncAt: prev?.lastSyncAt || null,
@@ -417,6 +449,8 @@ export default function HevyWorkoutsSection() {
             syncedToHevy: false,
             savedLocally: true,
             requiresLogin: true,
+            sandboxedDesktop: respSandboxed,
+            launcherScript: respLauncher,
             routineUrl: prev?.routineUrl,
             editUrl: prev?.editUrl,
             message: errMsg,
@@ -431,6 +465,8 @@ export default function HevyWorkoutsSection() {
         requiresBrowserAuth: true,
         hasProApiKey: Boolean(prev?.hasProApiKey),
         browserBridgeAuthenticated: false,
+        sandboxedDesktop: isSandboxed,
+        launcherScript: launcher,
         remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
         pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
         lastSyncAt: prev?.lastSyncAt || null,
@@ -441,6 +477,8 @@ export default function HevyWorkoutsSection() {
           syncedToHevy: false,
           savedLocally: true,
           requiresLogin: true,
+          sandboxedDesktop: isSandboxed,
+          launcherScript: launcher,
           routineUrl: prev?.routineUrl,
           editUrl: prev?.editUrl,
           message: netErr,
@@ -480,6 +518,8 @@ export default function HevyWorkoutsSection() {
         savedLocally: Boolean(data.savedLocally),
         method: data.method,
         requiresLogin: Boolean(data.requiresLogin),
+        sandboxedDesktop: Boolean(data.sandboxedDesktop || syncStatusInfo?.sandboxedDesktop),
+        launcherScript: data.launcherScript || syncStatusInfo?.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat',
         routineUrl: data.routineUrl || findKnownRoutine(coachPrescription.routineName)?.routineUrl,
         editUrl: data.editUrl || findKnownRoutine(coachPrescription.routineName)?.editUrl,
         message: data.message || data.error || 'Respuesta sin confirmación de Hevy.',
@@ -1260,21 +1300,48 @@ export default function HevyWorkoutsSection() {
                   )}
                   <div className="space-y-1">
                     <p className="font-semibold">{syncActionResult.message}</p>
-                    {!syncActionResult.syncedToHevy && (
+                    {!syncActionResult.syncedToHevy && syncActionResult.sandboxedDesktop ? (
+                      <div className="text-[11px] text-amber-200/90 space-y-1 pt-1">
+                        <p>
+                          <strong>Cómo conectarlo en 15 segundos (1 sola vez):</strong> presiona{' '}
+                          <kbd className="px-1.5 py-0.5 rounded bg-black/50 border border-amber-500/40 font-mono text-[10px]">
+                            Win + R
+                          </kbd>
+                          , pega{' '}
+                          <code className="px-1.5 py-0.5 rounded bg-black/50 text-amber-300 font-mono">
+                            {syncActionResult.launcherScript || 'C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat'}
+                          </code>{' '}
+                          y dale Enter. Inicia sesión en la ventana de Chromium que se abrirá y luego pulsa{' '}
+                          <strong>«Ya inicié sesión — Aplicar»</strong>.
+                        </p>
+                      </div>
+                    ) : !syncActionResult.syncedToHevy ? (
                       <p className="text-[11px] text-amber-300/80">
                         Sin API Key de Hevy PRO ni sesión web en Chrome conectada, VYFITH no puede modificar tus rutinas en los servidores de Hevy de forma remota sin mentirte.
                       </p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  {syncActionResult.requiresLogin && syncActionResult.sandboxedDesktop && (
+                    <button
+                      onClick={() => handleCopyLauncherPath(syncActionResult.launcherScript)}
+                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-[11px] border border-amber-500/40 transition-colors"
+                    >
+                      {copiedLauncher ? '✓ Ruta copiada (Win+R)' : 'Copiar ruta (Win+R)'}
+                    </button>
+                  )}
                   {syncActionResult.requiresLogin && (
                     <button
                       onClick={() => handleConnectHevyBrowser(true)}
                       disabled={isConnectingBrowser}
                       className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition-colors disabled:opacity-60"
                     >
-                      {isConnectingBrowser ? 'Ventana abierta — Esperando login...' : 'Conectar Chrome Hevy'}
+                      {isConnectingBrowser
+                        ? 'Verificando sesión...'
+                        : syncActionResult.sandboxedDesktop
+                        ? 'Ya inicié sesión — Aplicar'
+                        : 'Conectar Chrome Hevy'}
                     </button>
                   )}
                   {(syncActionResult.editUrl || syncActionResult.routineUrl) && (

@@ -4,6 +4,8 @@ import {
   parseHevyCsvToSessions,
   normalizeHevyApiWorkout,
   mergeAndPersistWorkouts,
+  isRunningInSandboxedDesktop,
+  HEVY_LOGIN_LAUNCHER_PATH,
 } from '@/lib/hevySyncService';
 import { generateAiCoachPrescription } from '@/lib/aiCoachPeriodizationEngine';
 import { readWatchArchive } from '@/lib/workoutFusionEngine';
@@ -29,6 +31,8 @@ export async function GET(request: NextRequest) {
       requiresBrowserAuth: syncResult.requiresBrowserAuth,
       hasProApiKey: syncResult.hasProApiKey,
       browserBridgeAuthenticated: syncResult.browserBridgeAuthenticated,
+      sandboxedDesktop: isRunningInSandboxedDesktop(),
+      launcherScript: HEVY_LOGIN_LAUNCHER_PATH,
       remoteWorkoutCount: syncResult.remoteWorkoutCount,
       pendingRemoteDiff: syncResult.pendingRemoteDiff,
       warning: syncResult.warning,

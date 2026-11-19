@@ -427,10 +427,11 @@ async function handleLogin(args = {}) {
   let browser = null;
   let launchedPid = null;
   try {
-    // 1. Verificar primero si ya existe una sesión autenticada válida en .hevy-chrome-profile (headless)
+    // 1. Verificar primero si el proceso corre en escritorio aislado (exebox-* / service-*)
     const desktopName = getWindowsDesktopName();
-    if (desktopName && desktopName.toLowerCase() !== 'default') {
-      // Antes de reportar escritorio aislado, verificar si ya inició sesión (ej. vía Conectar_Hevy_Web.bat)
+    const isIsolatedDesktop = /^(exebox-|service-)/i.test(desktopName || '');
+    if (isIsolatedDesktop) {
+      // Comprobar primero si ya hay sesión autenticada guardada (ej. recién conectado con Conectar_Hevy_Web.bat)
       let quickCtx = null;
       try {
         quickCtx = await openContext(true, 'status');
@@ -470,7 +471,7 @@ async function handleLogin(args = {}) {
           desktopName,
           launcherScript: launcherPath,
           error:
-            'El servidor localhost:3000 fue iniciado desde el escritorio aislado de Antigravity (sin ventanas visibles). Haz doble clic UNA SOLA VEZ en C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat para iniciar sesión visible en Hevy Web; después «Sync en Vivo» y «Aplicar Cargas a Hevy App» funcionarán solos sin Antigravity.',
+            'No se puede abrir la ventana desde el servidor en segundo plano de Antigravity (escritorio aislado). Ejecuta UNA SOLA VEZ C:\\Proyectos\\VYFITH\\Conectar_Hevy_Web.bat (o presiona Win+R, pega esa ruta y pulsa Enter) para iniciar sesión visible en Hevy Web; después «Sync en Vivo» y «Aplicar Cargas a Hevy App» funcionarán solos.',
         })
       );
       process.exitCode = 1;
@@ -490,10 +491,11 @@ async function handleLogin(args = {}) {
       throw new Error('No se encontró Chromium ni Chrome instalado en el equipo.');
     }
 
-    // En escritorio Windows "Default", Start-Process -WindowStyle Normal + CDP abre ventana 100% VISIBLE en primer plano
+    console.error('[1/3] Abriendo ventana visible de Chromium en https://hevy.com/login ...');
     launchedPid = launchVisibleChromiumForLogin(exePath, 'https://hevy.com/settings?export');
     await waitForCdpReady(LOGIN_CDP_PORT, 15000);
     browser = await chromium.connectOverCDP(`http://127.0.0.1:${LOGIN_CDP_PORT}`);
+    console.error('[2/3] Ventana lista. Inicia sesión en Hevy Web en la ventana que se abrió (esperando hasta 5 min)...');
 
     const defaultCtx = browser.contexts()[0];
     const page = defaultCtx?.pages()?.[0];
@@ -553,12 +555,14 @@ async function handleLogin(args = {}) {
         const verify = await isLoggedIn(activePage);
         if (verify.authenticated) {
           logged = true;
+          console.error(`[3/3] ¡Sesión confirmada (${verify.accountName || '@teheransmit'})! Exportando entrenamientos y guardando sesión permanente...`);
           let csvResult = null;
           try {
             csvResult = await exportCsvFromAuthenticatedPage(activePage, DEFAULT_EXPORT_CSV);
           } catch {
             csvResult = null;
           }
+          console.error('✅ ¡CONECTADO A HEVY WEB! Ya puedes volver a http://localhost:3000/ y pulsar "Aplicar Cargas a Hevy App" o "Sync en Vivo".');
           console.log(
             JSON.stringify({
               ok: true,
