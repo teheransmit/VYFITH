@@ -52,6 +52,7 @@ export interface NormalizedVyfithPayload {
   nutritionCarbsGrams: number | undefined;
   nutritionFatGrams: number | undefined;
   watchActivitySummary: string | null;
+  watchExerciseSessions: any[];
   hydrationState: any | null;
   nutritionState: any | null;
   latestMeasurement: any | null;
@@ -399,6 +400,32 @@ export function normalizeIncomingVyfithPayload(raw: any): NormalizedVyfithPayloa
       ? incomingWorkoutLabel
       : strOrNull(rm.watchActivitySummary);
 
+  // Sesiones de ejercicio reales del reloj (hoy + historial reciente de 30-60 días desde Health Connect)
+  const rawWatchSessionsPool: any[] = [];
+  for (const list of [
+    extBio.exerciseSessions,
+    extBio.recentExerciseSessions,
+    extBio.recentExerciseSessions7d,
+    raw?.exerciseSessions,
+    raw?.recentExerciseSessions,
+  ]) {
+    if (Array.isArray(list)) {
+      for (const item of list) {
+        if (item && typeof item === 'object') {
+          rawWatchSessionsPool.push(item);
+        }
+      }
+    }
+  }
+  const watchSessionsDedup = new Map<string, any>();
+  for (const s of rawWatchSessionsPool) {
+    const key = String(s.id || `${s.dateIso || ''}|${s.startTimeText || ''}|${s.durationMinutes || ''}`);
+    if (!watchSessionsDedup.has(key)) {
+      watchSessionsDedup.set(key, s);
+    }
+  }
+  const watchExerciseSessions = Array.from(watchSessionsDedup.values());
+
   // Módulos Super-App (acepta tanto `superAppSummary` de AI Studio como legacy `*Module`)
   const superSum = raw?.superAppSummary || {};
   const rawFinance = raw?.financeModule || raw?.hydrationState?.financeModule || superSum.finance || null;
@@ -532,6 +559,7 @@ export function normalizeIncomingVyfithPayload(raw: any): NormalizedVyfithPayloa
     nutritionCarbsGrams,
     nutritionFatGrams,
     watchActivitySummary,
+    watchExerciseSessions,
     hydrationState,
     nutritionState,
     latestMeasurement,

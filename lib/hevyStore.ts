@@ -18,12 +18,77 @@ export interface HevyExercise {
   totalVolume: number;
 }
 
+export interface HrZoneMinutes {
+  z1: number; // <60% FCmáx (Recuperación)
+  z2: number; // 60-70% FCmáx (Aeróbico ligero)
+  z3: number; // 70-80% FCmáx (Tempo / Metabólico)
+  z4: number; // 80-90% FCmáx (Umbral anaeróbico)
+  z5: number; // >=90% FCmáx (Máximo)
+}
+
+export interface WatchExerciseSession {
+  id: string;
+  dateIso: string; // YYYY-MM-DD (America/Bogota)
+  startTimeText: string; // HH:mm
+  endTimeText: string; // HH:mm
+  startTimeIso?: string; // Exact ISO-8601 timestamp with timezone offset
+  endTimeIso?: string; // Exact ISO-8601 timestamp with timezone offset
+  durationMinutes: number;
+  durationSeconds?: number;
+  title: string;
+  exerciseTypeName: string;
+  exerciseTypeCode?: number;
+  caloriesBurned: number;
+  avgHeartRateBpm?: number | null;
+  maxHeartRateBpm?: number | null;
+  minHeartRateBpm?: number | null;
+  hrSampleCount?: number;
+  hrZoneMinutes?: HrZoneMinutes | Record<string, number> | null;
+  distanceMeters?: number | null;
+  sourceLabel: string;
+  deviceModel: string;
+  isWatchSource: boolean;
+  syncedAt?: string;
+}
+
+export interface FusedWatchBiometrics {
+  watchSessionId: string;
+  watchTitle: string;
+  watchExerciseType: string;
+  watchDevice: string;
+  watchSource: string;
+  watchDateIso: string;
+  watchStartTime: string;
+  watchEndTime: string;
+  watchStartIso?: string;
+  watchEndIso?: string;
+  watchDurationMinutes: number;
+  watchDurationSeconds?: number;
+  startOffsetSeconds: number; // watchStart - hevyStart (ej. -12s = reloj inició 12s antes)
+  endOffsetSeconds: number; // watchEnd - hevyEnd (ej. -35s = reloj finalizó 35s antes que Hevy)
+  overlapPct: number; // 0..100
+  matchConfidence: 'exact' | 'high' | 'probable' | 'manual';
+  avgHeartRateBpm: number | null;
+  maxHeartRateBpm: number | null;
+  minHeartRateBpm: number | null;
+  hrSampleCount?: number;
+  hrZoneMinutes?: HrZoneMinutes | null;
+  caloriesBurned: number | null;
+  kcalPerMinute: number | null;
+  kgPerKcal: number | null;
+  cardiacLoadIndex: number | null; // Índice de esfuerzo cardiovascular tipo TRIMP
+  distanceMeters?: number | null;
+  fusedAt: string;
+}
+
 export interface HevyWorkoutSession {
   id: string;
   name: string;
   date: string;
   startTimeLocal?: string;
   endTimeLocal?: string;
+  startTimeIso?: string;
+  endTimeIso?: string;
   durationMinutes: number;
   totalVolumeKg: number;
   totalVolumeLbs?: number;
@@ -31,6 +96,7 @@ export interface HevyWorkoutSession {
   rpeAverage: number;
   notes?: string;
   exercises: HevyExercise[];
+  watchBiometrics?: FusedWatchBiometrics;
 }
 
 import realHevyWorkouts from '@/data/real_hevy_workouts.json';

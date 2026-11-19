@@ -10,6 +10,10 @@ import {
   translateExerciseTitle,
   findKnownRoutine,
 } from './hevyDateParser';
+import {
+  applyStoredWatchFusionToWorkouts,
+  parseLocalBogotaIso,
+} from './workoutFusionEngine';
 
 const execFileAsync = promisify(execFile);
 
@@ -213,6 +217,8 @@ export function parseHevyCsvToSessions(csvContent: string): HevyWorkoutSession[]
     date: string;
     startTimeLocal?: string;
     endTimeLocal?: string;
+    startTimeIso?: string;
+    endTimeIso?: string;
     durationMinutes: number;
     notes?: string;
     exercisesMap: Map<string, HevyExercise>;
@@ -235,6 +241,8 @@ export function parseHevyCsvToSessions(csvContent: string): HevyWorkoutSession[]
     if (!sessionsMap.has(groupKey)) {
       const dStart = parseHevyDate(startTime);
       const dEnd = parseHevyDate(endTime);
+      const startIsoInfo = parseLocalBogotaIso(startTime);
+      const endIsoInfo = parseLocalBogotaIso(endTime);
       let durationMinutes = 55;
       if (dStart && dEnd && dEnd.getTime() > dStart.getTime()) {
         durationMinutes = Math.max(5, Math.round((dEnd.getTime() - dStart.getTime()) / 60000));
@@ -248,8 +256,10 @@ export function parseHevyCsvToSessions(csvContent: string): HevyWorkoutSession[]
         id: shortId,
         name: title.trim(),
         date: startTime.trim(),
-        startTimeLocal: extractLocalClock(startTime),
-        endTimeLocal: extractLocalClock(endTime),
+        startTimeLocal: extractLocalClock(startTime) || startIsoInfo?.hhmm,
+        endTimeLocal: extractLocalClock(endTime) || endIsoInfo?.hhmm,
+        startTimeIso: startIsoInfo?.iso,
+        endTimeIso: endIsoInfo?.iso,
         durationMinutes,
         notes: description || undefined,
         exercisesMap: new Map(),
@@ -349,6 +359,8 @@ export function parseHevyCsvToSessions(csvContent: string): HevyWorkoutSession[]
       date: s.date,
       startTimeLocal: s.startTimeLocal,
       endTimeLocal: s.endTimeLocal,
+      ...(s.startTimeIso ? { startTimeIso: s.startTimeIso } : {}),
+      ...(s.endTimeIso ? { endTimeIso: s.endTimeIso } : {}),
       durationMinutes: s.durationMinutes,
       totalVolumeKg,
       totalVolumeLbs,
@@ -364,14 +376,16 @@ export function parseHevyCsvToSessions(csvContent: string): HevyWorkoutSession[]
 
 export function normalizeHevyApiWorkout(rawWorkout: any): HevyWorkoutSession {
   const start = rawWorkout.start_time || rawWorkout.created_at || rawWorkout.date || new Date().toISOString();
-  const end = rawWorkout.end_time || rawWorkout.updated_at || start;
-  const dStart = new Date(start);
-  const dEnd = new Date(end);
+  const explicitEnd = rawWorkout.end_time || rawWorkout.updated_at || '';
+  const startIsoInfo = parseLocalBogotaIso(start);
+  const endIsoInfo = explicitEnd ? parseLocalBogotaIso(explicitEnd) : null;
+  const hasRealEnd = Boolean(startIsoInfo && endIsoInfo && endIsoInfo.ms > startIsoInfo.ms);
   const durationMinutes =
-    rawWorkout.durationMinutes ||
-    (!isNaN(dStart.getTime()) && !isNaN(dEnd.getTime()) && dEnd.getTime() > dStart.getTime()
-      ? Math.max(5, Math.round((dEnd.getTime() - dStart.getTime()) / 60000))
-      : 60);
+    Number(rawWorkout.durationMinutes) > 0
+      ? Number(rawWorkout.durationMinutes)
+      : hasRealEnd
+      ? Math.max(5, Math.round((endIsoInfo!.ms - startIsoInfo!.ms) / 60000))
+      : 60;
 
   let totalVolKg = 0;
   let totalSets = 0;
@@ -424,6 +438,10 @@ export function normalizeHevyApiWorkout(rawWorkout: any): HevyWorkoutSession {
     id: rawWorkout.id || `hevy-api-${Date.now()}`,
     name: rawWorkout.title || rawWorkout.name || 'Entrenamiento Hevy',
     date: start,
+    ...(startIsoInfo?.hhmm ? { startTimeLocal: startIsoInfo.hhmm } : {}),
+    ...(hasRealEnd && endIsoInfo?.hhmm ? { endTimeLocal: endIsoInfo.hhmm } : {}),
+    ...(startIsoInfo?.iso ? { startTimeIso: startIsoInfo.iso } : {}),
+    ...(hasRealEnd && endIsoInfo?.iso ? { endTimeIso: endIsoInfo.iso } : {}),
     durationMinutes,
     totalVolumeKg: roundedKg,
     totalVolumeLbs: Math.round(roundedKg / LBS_TO_KG),
@@ -460,20 +478,43 @@ export function mergeAndPersistWorkouts(
       if ((w.exercises?.length || 0) === 0 && (prev.exercises?.length || 0) > 0) {
         continue;
       }
-      // Conservar ID corto oficial de Hevy si ya estaba registrado
+      // Conservar ID corto oficial de Hevy y telemetría fusionada del reloj si ya estaban registrados
       const preservedId = prev.id && !prev.id.startsWith('hevy-') ? prev.id : w.id;
+      const preservedWatch = w.watchBiometrics ?? prev.watchBiometrics;
+      const incomingHasDistinctEnd = Boolean(
+        w.endTimeLocal && (!w.startTimeLocal || w.endTimeLocal !== w.startTimeLocal)
+      );
+      const nextDuration =
+        incomingHasDistinctEnd && w.durationMinutes > 0
+          ? w.durationMinutes
+          : prev.durationMinutes || w.durationMinutes;
       if (
         prev.totalSets !== w.totalSets ||
         Math.abs((prev.totalVolumeKg || 0) - (w.totalVolumeKg || 0)) > 2 ||
-        (prev.exercises?.length || 0) !== (w.exercises?.length || 0)
+        (prev.exercises?.length || 0) !== (w.exercises?.length || 0) ||
+        (!prev.endTimeLocal && incomingHasDistinctEnd) ||
+        (!prev.startTimeIso && Boolean(w.startTimeIso)) ||
+        (incomingHasDistinctEnd && prev.durationMinutes !== w.durationMinutes)
       ) {
         updatedCount++;
       }
-      byKey.set(k, { ...w, id: preservedId });
+      byKey.set(k, {
+        ...w,
+        id: preservedId,
+        startTimeLocal: w.startTimeLocal || prev.startTimeLocal,
+        endTimeLocal: incomingHasDistinctEnd ? w.endTimeLocal : prev.endTimeLocal || w.endTimeLocal,
+        startTimeIso: w.startTimeIso || prev.startTimeIso,
+        endTimeIso: incomingHasDistinctEnd ? w.endTimeIso || prev.endTimeIso : prev.endTimeIso || w.endTimeIso,
+        durationMinutes: nextDuration,
+        ...(preservedWatch ? { watchBiometrics: preservedWatch } : {}),
+      });
     }
   }
 
-  const allSorted = sortWorkoutsNewestFirst(Array.from(byKey.values()));
+  const allSortedBase = sortWorkoutsNewestFirst(Array.from(byKey.values()));
+  // Auto-fusionar automáticamente contra las sesiones del reloj almacenadas en data/real_watch_workouts.json
+  const fusionApplied = applyStoredWatchFusionToWorkouts(allSortedBase);
+  const allSorted = fusionApplied.workouts;
   fs.mkdirSync(path.dirname(WORKOUTS_PATH), { recursive: true });
   fs.writeFileSync(WORKOUTS_PATH, JSON.stringify(allSorted, null, 2), 'utf8');
 

@@ -6,6 +6,7 @@ import {
   mergeAndPersistWorkouts,
 } from '@/lib/hevySyncService';
 import { generateAiCoachPrescription } from '@/lib/aiCoachPeriodizationEngine';
+import { readWatchArchive } from '@/lib/workoutFusionEngine';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -17,6 +18,8 @@ export async function GET(request: NextRequest) {
     const liveBrowser = searchParams.get('live') === '1' || searchParams.get('refresh') === '1';
 
     const syncResult = await syncAllWorkoutsReal({ apiKey, liveBrowser });
+    const watchArchive = readWatchArchive();
+    const fusedCount = syncResult.workouts.filter((w) => Boolean(w.watchBiometrics)).length;
 
     return NextResponse.json({
       success: true,
@@ -30,6 +33,9 @@ export async function GET(request: NextRequest) {
       pendingRemoteDiff: syncResult.pendingRemoteDiff,
       warning: syncResult.warning,
       syncMeta: syncResult.syncMeta,
+      fusedCount,
+      watchSessionsCount: watchArchive.sessions.length,
+      watchSessions: watchArchive.sessions,
       count: syncResult.workouts.length,
       workouts: syncResult.workouts,
     });

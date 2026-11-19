@@ -7,6 +7,7 @@ import { saveBodyMeasurement } from '@/lib/bodyMeasurementsStore';
 import { readStoredFinanceState, writeStoredFinanceState } from '@/lib/financeServerStore';
 import { readStoredWorkouts } from '@/lib/hevySyncService';
 import { normalizeIncomingVyfithPayload, isWatchCardioLabel } from '@/lib/vyfithHealthNormalizer';
+import { upsertWatchSessionsAndAutoFuse } from '@/lib/workoutFusionEngine';
 import fs from 'fs';
 import path from 'path';
 
@@ -779,12 +780,32 @@ export async function POST(req: NextRequest) {
       // Persistir inmediatamente a disco en tiempo real
       persistStateToDisk(updated);
 
+      // Si llegaron sesiones del reloj (Xiaomi Smart Band 9 Pro / Health Connect), archivar y auto-fusionar con Hevy
+      let watchFusion: {
+        watchSessionsCount: number;
+        fusedWorkoutsCount: number;
+        newlyFusedCount: number;
+      } | null = null;
+      if (Array.isArray(norm.watchExerciseSessions) && norm.watchExerciseSessions.length > 0) {
+        try {
+          const fusionReport = upsertWatchSessionsAndAutoFuse(norm.watchExerciseSessions);
+          watchFusion = {
+            watchSessionsCount: fusionReport.watchSessionsCount,
+            fusedWorkoutsCount: fusionReport.fusedWorkoutsCount,
+            newlyFusedCount: fusionReport.newlyFusedCount,
+          };
+        } catch (err) {
+          console.warn('[HealthSync] Error en auto-fusión Hevy-Reloj:', err);
+        }
+      }
+
       return NextResponse.json(
         {
           success: true,
           message: '¡Datos completos recibidos desde VYFITH_APP (Health Connect + Super-App) y guardados en tiempo real!',
           nextChangesToken: nextToken,
           syncedRecords: incomingObservations.length,
+          watchFusion,
           data: updated,
         },
         { headers: corsHeaders }

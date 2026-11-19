@@ -302,10 +302,10 @@ export default function HevyProAnalyticsSuite() {
               </div>
               <div className="mt-2">
                 <span className="text-2xl font-black text-white font-mono">
-                  {analytics?.cards.workouts.currentDisplay || '4'}
+                  {analytics?.cards.workouts.currentDisplay || '—'}
                 </span>
                 <span className="text-xs text-slate-500 font-mono block mt-0.5">
-                  vs. {analytics?.cards.workouts.previousDisplay || '3'} anterior
+                  vs. {analytics?.cards.workouts.previousDisplay || '—'} anterior
                 </span>
               </div>
             </div>
@@ -334,10 +334,10 @@ export default function HevyProAnalyticsSuite() {
               </div>
               <div className="mt-2">
                 <span className="text-2xl font-black text-white font-mono">
-                  {analytics?.cards.duration.currentDisplay || '4h 32min'}
+                  {analytics?.cards.duration.currentDisplay || '—'}
                 </span>
                 <span className="text-xs text-slate-500 font-mono block mt-0.5">
-                  vs. {analytics?.cards.duration.previousDisplay || '3h 50min'} anterior
+                  vs. {analytics?.cards.duration.previousDisplay || '—'} anterior
                 </span>
               </div>
             </div>
@@ -366,10 +366,10 @@ export default function HevyProAnalyticsSuite() {
               </div>
               <div className="mt-2">
                 <span className="text-2xl font-black text-white font-mono">
-                  {analytics?.cards.volume.currentDisplay || '15,400 kg'}
+                  {analytics?.cards.volume.currentDisplay || '—'}
                 </span>
                 <span className="text-xs text-slate-500 font-mono block mt-0.5">
-                  vs. {analytics?.cards.volume.previousDisplay || '13,500 kg'} anterior
+                  vs. {analytics?.cards.volume.previousDisplay || '—'} anterior
                 </span>
               </div>
             </div>
@@ -398,10 +398,10 @@ export default function HevyProAnalyticsSuite() {
               </div>
               <div className="mt-2">
                 <span className="text-2xl font-black text-white font-mono">
-                  {analytics?.cards.sets.currentDisplay || '76 series'}
+                  {analytics?.cards.sets.currentDisplay || '—'}
                 </span>
                 <span className="text-xs text-slate-500 font-mono block mt-0.5">
-                  vs. {analytics?.cards.sets.previousDisplay || '65 series'} anterior
+                  vs. {analytics?.cards.sets.previousDisplay || '—'} anterior
                 </span>
               </div>
             </div>

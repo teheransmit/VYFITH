@@ -1,63 +1,279 @@
 {
   "Horizontal Torso (Chest & Back)": {
     "routineTitle": "Horizontal Torso (Chest & Back)",
-    "exercises": [
+    "updatedAt": "2026-11-19T21:58:50.046Z",
+    "source": "VYFITH-AI-Coach-JeffNippard",
+    "exercisesCount": 10,
+    "hevySyncPayload": [
       {
-        "title": "Stretching",
-        "targetWeightKg": 0,
-        "targetReps": 1,
-        "targetSets": 1
+        "exerciseName": "Bench Press (Barbell)",
+        "esTitle": "Press de Banca (Barra)",
+        "suggestedWeightKg": 61.23,
+        "suggestedWeightLbs": 135,
+        "targetReps": "2x6",
+        "note": "VYFITH AI Coach: 61.23 kg (2x6) • RIR 2"
       },
       {
-        "title": "Bench Press (Barbell)",
-        "targetWeightKg": 37.65,
-        "targetReps": 6,
-        "targetSets": 2
+        "exerciseName": "Incline Bench Press (Dumbbell)",
+        "esTitle": "Press de Banca Inclinado (Mancuerna)",
+        "suggestedWeightKg": 31.75,
+        "suggestedWeightLbs": 70,
+        "targetReps": "2x8",
+        "note": "VYFITH AI Coach: 31.75 kg (2x8) • RIR 2"
       },
       {
-        "title": "Incline Bench Press (Dumbbell)",
-        "targetWeightKg": 31.75,
-        "targetReps": 6,
-        "targetSets": 3
+        "exerciseName": "Wrist Roller",
+        "esTitle": "Rodillo de Antebrazos",
+        "suggestedWeightKg": 20.64,
+        "suggestedWeightLbs": 45.5,
+        "targetReps": "3x8",
+        "note": "VYFITH AI Coach: 20.64 kg (3x8) • RIR 2"
       },
       {
-        "title": "Wrist Roller",
-        "targetWeightKg": 18.14,
-        "targetReps": 8,
-        "targetSets": 3
+        "exerciseName": "Bicep Curl (Cable)",
+        "esTitle": "Curl de Bíceps (Cable)",
+        "suggestedWeightKg": 14.97,
+        "suggestedWeightLbs": 33,
+        "targetReps": "2x12",
+        "note": "VYFITH AI Coach: 14.97 kg (2x12) • RIR 1"
       },
       {
-        "title": "Bicep Curl (Cable)",
-        "targetWeightKg": 14.97,
-        "targetReps": 10,
-        "targetSets": 2
+        "exerciseName": "Seated Chest Flys (Cable)",
+        "esTitle": "Aperturas de Pecho Sentado (Cable)",
+        "suggestedWeightKg": 9.98,
+        "suggestedWeightLbs": 22,
+        "targetReps": "3x8",
+        "note": "VYFITH AI Coach: 9.98 kg (3x8) • RIR 2"
       },
       {
-        "title": "Behind the Back Wrist Curl (Barbell)",
-        "targetWeightKg": 37.65,
-        "targetReps": 10,
-        "targetSets": 3
+        "exerciseName": "Behind the Back Wrist Curl (Barbell)",
+        "esTitle": "Curl de Muñeca por Detrás de la Espalda (Barra)",
+        "suggestedWeightKg": 37.65,
+        "suggestedWeightLbs": 83,
+        "targetReps": "3x10",
+        "note": "VYFITH AI Coach: 37.65 kg (3x10) • RIR 2"
       },
       {
-        "title": "Seated Wrist Extension (Barbell)",
-        "targetWeightKg": 24.04,
-        "targetReps": 10,
-        "targetSets": 3
+        "exerciseName": "Seated Cable Row - V Grip (Cable)",
+        "esTitle": "Remo Sentado con Agarre en V (Cable)",
+        "suggestedWeightKg": 42.5,
+        "suggestedWeightLbs": 93.7,
+        "targetReps": "2x7",
+        "note": "VYFITH AI Coach: 42.5 kg (2x7) • RIR 2"
       },
       {
-        "title": "Seated Cable Row - V Grip (Cable)",
-        "targetWeightKg": 25,
-        "targetReps": 8,
-        "targetSets": 2
+        "exerciseName": "Seated Wrist Extension (Barbell)",
+        "esTitle": "Seated Wrist Extension (Barbell)",
+        "suggestedWeightKg": 26.54,
+        "suggestedWeightLbs": 58.5,
+        "targetReps": "3x8",
+        "note": "VYFITH AI Coach: 26.54 kg (3x8) • RIR 2"
+      },
+      {
+        "exerciseName": "Chest Press (Machine)",
+        "esTitle": "Chest Press (Machine)",
+        "suggestedWeightKg": 54,
+        "suggestedWeightLbs": 119,
+        "targetReps": "2x8",
+        "note": "VYFITH AI Coach: 54 kg (2x8) • RIR 2"
+      },
+      {
+        "exerciseName": "Triceps Pressdown",
+        "esTitle": "Triceps Pressdown",
+        "suggestedWeightKg": 14.97,
+        "suggestedWeightLbs": 33,
+        "targetReps": "3x15",
+        "note": "VYFITH AI Coach: 14.97 kg (3x15) • RIR 1"
       }
     ],
-    "appliedAt": "2026-11-12T20:15:24.136Z",
-    "syncedWithHevy": true,
-    "status": "ACTIVA_EN_HEVY"
+    "prescriptions": [
+      {
+        "exerciseName": "Bench Press (Barbell)",
+        "muscleGroup": "Pecho",
+        "lastWeightKg": 61.23,
+        "lastRepsSummary": "6, 4",
+        "lastEstimated1RmKg": 68.9,
+        "prescribedWeightKg": 61.23,
+        "prescribedRepsSummary": "2x6",
+        "targetRir": 2,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "PROGRESO_OPTIMO",
+        "reasoning": "Faltan repeticiones para consolidar la carga en 61.23 kg. Objetivo: completar 8 reps en serie 1 antes de aumentar el tonelaje.",
+        "scientificCitation": "Jeff Nippard: The Smartest Way To Bench Press (Science Explained) • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Retracción escapular activa y arco lumbar natural",
+          "Pausa de 1 segundo en el punto de máximo estiramiento sobre el pecho",
+          "Codos a 45°-60° del torso para maximizar tensión en fibras esternocostales"
+        ]
+      },
+      {
+        "exerciseName": "Incline Bench Press (Dumbbell)",
+        "muscleGroup": "Pecho",
+        "lastWeightKg": 31.75,
+        "lastRepsSummary": "7, 7",
+        "lastEstimated1RmKg": 38.1,
+        "prescribedWeightKg": 31.75,
+        "prescribedRepsSummary": "2x8",
+        "targetRir": 2,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "PROGRESO_OPTIMO",
+        "reasoning": "Faltan repeticiones para consolidar la carga en 31.75 kg. Objetivo: completar 8 reps en serie 1 antes de aumentar el tonelaje.",
+        "scientificCitation": "Jeff Nippard: The Smartest Way To Bench Press (Science Explained) • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Retracción escapular activa y arco lumbar natural",
+          "Pausa de 1 segundo en el punto de máximo estiramiento sobre el pecho",
+          "Codos a 45°-60° del torso para maximizar tensión en fibras esternocostales"
+        ]
+      },
+      {
+        "exerciseName": "Wrist Roller",
+        "muscleGroup": "Brazos",
+        "lastWeightKg": 18.14,
+        "lastRepsSummary": "14, 11, 11",
+        "lastEstimated1RmKg": 26.1,
+        "prescribedWeightKg": 20.64,
+        "prescribedRepsSummary": "3x8",
+        "targetRir": 2,
+        "action": "SUBIR_PESO",
+        "plateauStatus": "PROGRESO_OPTIMO",
+        "reasoning": "Completaste 10 reps en todas las series. Se aplica sobrecarga progresiva de +2.5 kg para iniciar ciclo en 8 reps.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Bicep Curl (Cable)",
+        "muscleGroup": "Brazos",
+        "lastWeightKg": 14.97,
+        "lastRepsSummary": "12, 9",
+        "lastEstimated1RmKg": 20.7,
+        "prescribedWeightKg": 14.97,
+        "prescribedRepsSummary": "2x12",
+        "targetRir": 1,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "PROGRESO_OPTIMO",
+        "reasoning": "Faltan repeticiones para consolidar la carga en 14.97 kg. Objetivo: completar 12 reps en serie 1 antes de aumentar el tonelaje.",
+        "scientificCitation": "Jeff Nippard: Science-Based Biceps (Long Head vs Short Head) • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Codos estables ligeramente por delante del torso",
+          "Supinación máxima de muñeca al llegar a la flexión de 90°"
+        ]
+      },
+      {
+        "exerciseName": "Seated Chest Flys (Cable)",
+        "muscleGroup": "Pecho",
+        "lastWeightKg": 9.98,
+        "lastRepsSummary": "7, 4, 11",
+        "lastEstimated1RmKg": 12,
+        "prescribedWeightKg": 9.98,
+        "prescribedRepsSummary": "3x8",
+        "targetRir": 2,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "PROGRESO_OPTIMO",
+        "reasoning": "Faltan repeticiones para consolidar la carga en 9.98 kg. Objetivo: completar 10 reps en serie 1 antes de aumentar el tonelaje.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Behind the Back Wrist Curl (Barbell)",
+        "muscleGroup": "Brazos",
+        "lastWeightKg": 37.65,
+        "lastRepsSummary": "13, 12, 8",
+        "lastEstimated1RmKg": 52.1,
+        "prescribedWeightKg": 37.65,
+        "prescribedRepsSummary": "3x10",
+        "targetRir": 2,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "ALERTA_ESTANCAMIENTO",
+        "reasoning": "Estancamiento detectado (1RM sin variación en las últimas sesiones). Mantén 37.65 kg pero fuerza 1 repetición adicional en las 2 primeras series.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Seated Cable Row - V Grip (Cable)",
+        "muscleGroup": "Espalda",
+        "lastWeightKg": 42.5,
+        "lastRepsSummary": "6, 6",
+        "lastEstimated1RmKg": 49.4,
+        "prescribedWeightKg": 42.5,
+        "prescribedRepsSummary": "2x7",
+        "targetRir": 2,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "PROGRESO_OPTIMO",
+        "reasoning": "Faltan repeticiones para consolidar la carga en 42.5 kg. Objetivo: completar 10 reps en serie 1 antes de aumentar el tonelaje.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Seated Wrist Extension (Barbell)",
+        "muscleGroup": "Brazos",
+        "lastWeightKg": 24.04,
+        "lastRepsSummary": "13, 11, 10",
+        "lastEstimated1RmKg": 33.3,
+        "prescribedWeightKg": 26.54,
+        "prescribedRepsSummary": "3x8",
+        "targetRir": 2,
+        "action": "SUBIR_PESO",
+        "plateauStatus": "PROGRESO_OPTIMO",
+        "reasoning": "Completaste 10 reps en todas las series. Se aplica sobrecarga progresiva de +2.5 kg para iniciar ciclo en 8 reps.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Chest Press (Machine)",
+        "muscleGroup": "Pecho",
+        "lastWeightKg": 54,
+        "lastRepsSummary": "8, 5",
+        "lastEstimated1RmKg": 64.8,
+        "prescribedWeightKg": 54,
+        "prescribedRepsSummary": "2x8",
+        "targetRir": 2,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "ALERTA_ESTANCAMIENTO",
+        "reasoning": "Estancamiento detectado (1RM sin variación en las últimas sesiones). Mantén 54 kg pero fuerza 1 repetición adicional en las 2 primeras series.",
+        "scientificCitation": "Principios de Hipertrofia y Sobrecarga Progresiva • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Control excéntrico de 2 segundos",
+          "Rango completo de movimiento"
+        ]
+      },
+      {
+        "exerciseName": "Triceps Pressdown",
+        "muscleGroup": "Brazos",
+        "lastWeightKg": 14.97,
+        "lastRepsSummary": "12, 10, 20",
+        "lastEstimated1RmKg": 23.4,
+        "prescribedWeightKg": 14.97,
+        "prescribedRepsSummary": "3x15",
+        "targetRir": 1,
+        "action": "SUBIR_REPS",
+        "plateauStatus": "ALERTA_ESTANCAMIENTO",
+        "reasoning": "Estancamiento detectado (1RM sin variación en las últimas sesiones). Mantén 14.97 kg pero fuerza 1 repetición adicional en las 2 primeras series.",
+        "scientificCitation": "Jeff Nippard: Complete Triceps Hypertrophy Guide • NotebookLM MegaProyecto",
+        "biomechanicalCues": [
+          "Bloqueo de codo en la extensión final para reclutar la cabeza lateral",
+          "Extensión sobre la cabeza (overhead) para enfatizar la cabeza larga"
+        ]
+      }
+    ]
   },
   "Full Legs": {
     "routineTitle": "Full Legs",
-    "updatedAt": "2026-11-19T21:34:24.650Z",
+    "updatedAt": "2026-11-19T21:58:10.803Z",
     "source": "VYFITH-AI-Coach-JeffNippard",
     "exercisesCount": 1,
     "hevySyncPayload": [

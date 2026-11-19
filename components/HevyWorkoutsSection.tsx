@@ -27,8 +27,17 @@ import {
   AlertTriangle,
   ShieldCheck,
   RefreshCw,
+  Watch,
+  Activity,
+  Link2,
+  Unlink,
+  Zap,
 } from 'lucide-react';
-import { initialHevySessions, HevyWorkoutSession } from '@/lib/hevyStore';
+import {
+  initialHevySessions,
+  HevyWorkoutSession,
+  WatchExerciseSession,
+} from '@/lib/hevyStore';
 import {
   generateAiCoachPrescription,
   WorkoutRoutinePrescription,
@@ -72,7 +81,30 @@ export default function HevyWorkoutsSection() {
     warning?: string;
   } | null>(null);
   const [isLoadingWorkouts, setIsLoadingWorkouts] = useState(false);
+  const [watchSessions, setWatchSessions] = useState<WatchExerciseSession[]>([]);
+  const [isFusingWatch, setIsFusingWatch] = useState(false);
+  const [fusionMessage, setFusionMessage] = useState<{
+    type: 'success' | 'info' | 'error';
+    text: string;
+  } | null>(null);
+  const [showManualWatchLink, setShowManualWatchLink] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const watchFileInputRef = useRef<HTMLInputElement>(null);
+
+  const fusedWorkoutsCount = useMemo(
+    () => sessions.filter((s) => Boolean(s.watchBiometrics)).length,
+    [sessions]
+  );
+
+  const formatOffsetLabel = (sec: number): string => {
+    if (sec === 0) return '0s (exacto)';
+    const abs = Math.abs(sec);
+    const sign = sec < 0 ? '-' : '+';
+    if (abs < 60) return `${sign}${abs}s`;
+    const mins = Math.floor(abs / 60);
+    const rem = abs % 60;
+    return rem > 0 ? `${sign}${mins}m ${rem}s` : `${sign}${mins}m`;
+  };
 
   const cleanHevyWarning = (raw?: string): string | undefined => {
     if (!raw) return undefined;
@@ -109,6 +141,9 @@ export default function HevyWorkoutsSection() {
           });
           window.dispatchEvent(new CustomEvent('vyfith-hevy-updated'));
         }
+        if (Array.isArray(data.watchSessions)) {
+          setWatchSessions(data.watchSessions);
+        }
         setSyncStatusInfo({
           sourceUsed: data.sourceUsed || 'local_cache',
           addedCount: data.addedCount || 0,
@@ -135,9 +170,151 @@ export default function HevyWorkoutsSection() {
         refreshWorkouts(false);
       }
     };
+    const onExternalUpdate = (ev: Event) => {
+      const detail = (ev as CustomEvent)?.detail;
+      if (detail?.fromCloudBridge && !isConnectingBrowser) {
+        refreshWorkouts(false);
+      }
+    };
     document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+    window.addEventListener('vyfith-hevy-updated', onExternalUpdate);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('vyfith-hevy-updated', onExternalUpdate);
+    };
   }, [isConnectingBrowser]);
+
+  const handleAutoFuseWatch = async () => {
+    if (isFusingWatch) return;
+    setIsFusingWatch(true);
+    setFusionMessage(null);
+    try {
+      const res = await fetch('/api/sync/hevy/fuse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'auto_fuse' }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (Array.isArray(data.workouts) && data.workouts.length > 0) {
+          setSessions(data.workouts);
+        }
+        if (Array.isArray(data.watchSessions)) {
+          setWatchSessions(data.watchSessions);
+        }
+        setFusionMessage({
+          type: data.newlyFusedCount > 0 || data.fusedWorkoutsCount > 0 ? 'success' : 'info',
+          text: data.message || 'Sincronización con sesiones del reloj completada.',
+        });
+      } else {
+        setFusionMessage({
+          type: 'error',
+          text: data.error || `Error HTTP ${res.status} al fusionar con reloj.`,
+        });
+      }
+    } catch (err: any) {
+      setFusionMessage({
+        type: 'error',
+        text: `Error de red al fusionar reloj: ${err?.message || 'desconocido'}`,
+      });
+    } finally {
+      setIsFusingWatch(false);
+    }
+  };
+
+  const handleManualFuseWatch = async (hevyWorkoutId: string, watchSessionId: string) => {
+    setIsFusingWatch(true);
+    setFusionMessage(null);
+    try {
+      const res = await fetch('/api/sync/hevy/fuse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'manual_fuse', hevyWorkoutId, watchSessionId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (Array.isArray(data.workouts)) setSessions(data.workouts);
+        if (Array.isArray(data.watchSessions)) setWatchSessions(data.watchSessions);
+        setShowManualWatchLink(false);
+        setFusionMessage({
+          type: 'success',
+          text: data.message || 'Sesión del reloj fusionada manualmente.',
+        });
+      } else {
+        setFusionMessage({
+          type: 'error',
+          text: data.error || 'No se pudo vincular la sesión del reloj.',
+        });
+      }
+    } catch (err: any) {
+      setFusionMessage({
+        type: 'error',
+        text: `Error vinculando reloj: ${err?.message || 'desconocido'}`,
+      });
+    } finally {
+      setIsFusingWatch(false);
+    }
+  };
+
+  const handleUnfuseWatch = async (hevyWorkoutId: string) => {
+    setIsFusingWatch(true);
+    setFusionMessage(null);
+    try {
+      const res = await fetch('/api/sync/hevy/fuse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unfuse', hevyWorkoutId }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (Array.isArray(data.workouts)) setSessions(data.workouts);
+        setFusionMessage({ type: 'info', text: data.message || 'Sesión desvinculada.' });
+      }
+    } finally {
+      setIsFusingWatch(false);
+    }
+  };
+
+  const handleWatchFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsFusingWatch(true);
+    setFusionMessage(null);
+    try {
+      const content = await file.text();
+      const res = await fetch('/api/sync/hevy/fuse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'ingest_watch_sessions',
+          fileContent: content,
+          filename: file.name,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (Array.isArray(data.workouts)) setSessions(data.workouts);
+        if (Array.isArray(data.watchSessions)) setWatchSessions(data.watchSessions);
+        setFusionMessage({
+          type: 'success',
+          text: data.message || 'Archivo del reloj importado y fusionado.',
+        });
+      } else {
+        setFusionMessage({
+          type: 'error',
+          text: data.error || 'Formato de archivo del reloj no reconocido.',
+        });
+      }
+    } catch (err: any) {
+      setFusionMessage({
+        type: 'error',
+        text: `Error leyendo archivo del reloj: ${err?.message || 'desconocido'}`,
+      });
+    } finally {
+      setIsFusingWatch(false);
+      if (watchFileInputRef.current) watchFileInputRef.current.value = '';
+    }
+  };
 
   const selectedSession =
     sessions.find((s) => s.id === selectedSessionId) || sessions[0] || initialHevySessions[0];
@@ -426,6 +603,23 @@ export default function HevyWorkoutsSection() {
               <span>{isLoadingWorkouts ? 'Sincronizando...' : 'Sync en Vivo'}</span>
             </button>
 
+            {/* Fusionar Hevy con Xiaomi Smart Band 9 Pro (Health Connect / Firestore) */}
+            <button
+              onClick={handleAutoFuseWatch}
+              disabled={isFusingWatch}
+              className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 text-xs font-bold rounded-xl border border-cyan-500/30 transition-all shadow-xs disabled:opacity-50"
+              title="Fusiona automáticamente tus entrenamientos de Hevy con las sesiones de tu Xiaomi Smart Band 9 Pro por fecha y hora de inicio/fin"
+            >
+              <Watch className={`w-3.5 h-3.5 ${isFusingWatch ? 'animate-pulse text-cyan-400' : ''}`} />
+              <span>
+                {isFusingWatch
+                  ? 'Fusionando...'
+                  : fusedWorkoutsCount > 0
+                  ? `Fusionar Reloj (${fusedWorkoutsCount})`
+                  : 'Fusionar Reloj'}
+              </span>
+            </button>
+
             {!syncStatusInfo?.hasProApiKey && !syncStatusInfo?.browserBridgeAuthenticated && (
               <button
                 onClick={handleConnectHevyBrowser}
@@ -482,6 +676,30 @@ export default function HevyWorkoutsSection() {
           <div className="mt-4 p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-800 text-xs text-emerald-300 flex items-center gap-2.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span className="font-medium">{uploadSuccess}</span>
+          </div>
+        )}
+
+        {fusionMessage && (
+          <div
+            className={`mt-4 p-3.5 rounded-xl border text-xs flex items-center justify-between gap-2.5 ${
+              fusionMessage.type === 'success'
+                ? 'bg-cyan-950/60 border-cyan-500/40 text-cyan-200'
+                : fusionMessage.type === 'error'
+                ? 'bg-rose-950/60 border-rose-500/40 text-rose-200'
+                : 'bg-slate-900/80 border-slate-700 text-slate-200'
+            }`}
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Watch className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span className="font-medium break-words">{fusionMessage.text}</span>
+            </div>
+            <button
+              onClick={() => setFusionMessage(null)}
+              className="cursor-pointer px-2 py-0.5 rounded bg-black/30 hover:bg-black/50 text-xs font-bold shrink-0"
+              title="Cerrar"
+            >
+              ✕
+            </button>
           </div>
         )}
 
@@ -589,7 +807,26 @@ export default function HevyWorkoutsSection() {
                       : 'bg-[#09090b]/80 text-slate-300 border-[#27272a] hover:bg-[#27272a] hover:border-slate-600'
                   }`}
                 >
-                  <span className="font-extrabold">{sess.name}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-extrabold">{sess.name}</span>
+                    {sess.watchBiometrics && (
+                      <span
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-mono font-bold ${
+                          isSelected
+                            ? 'bg-white/20 text-white'
+                            : 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
+                        }`}
+                        title={`Fusionado con ${sess.watchBiometrics.watchDevice}`}
+                      >
+                        <Watch className="w-2.5 h-2.5" />
+                        <span>
+                          {sess.watchBiometrics.avgHeartRateBpm
+                            ? `${sess.watchBiometrics.avgHeartRateBpm} bpm`
+                            : 'Reloj'}
+                        </span>
+                      </span>
+                    )}
+                  </div>
                   <span className={`text-[10px] font-mono ${isSelected ? 'text-rose-100' : 'text-slate-400'}`}>
                     {dateLabel} • {formatVolume(sess.totalVolumeKg, sess.totalVolumeLbs)}
                   </span>
@@ -658,6 +895,251 @@ export default function HevyWorkoutsSection() {
             </div>
           </div>
         </div>
+
+        {/* 3.0. FUSIÓN BIOMÉTRICA HEVY + RELOJ XIAOMI SMART BAND 9 PRO */}
+        <input
+          type="file"
+          ref={watchFileInputRef}
+          onChange={handleWatchFileImport}
+          accept=".csv,.json"
+          className="hidden"
+        />
+        {selectedSession.watchBiometrics ? (
+          (() => {
+            const wb = selectedSession.watchBiometrics!;
+            const hrZones = wb.hrZoneMinutes;
+            const totalZoneMins = hrZones
+              ? hrZones.z1 + hrZones.z2 + hrZones.z3 + hrZones.z4 + hrZones.z5
+              : 0;
+            const confLabel =
+              wb.matchConfidence === 'exact'
+                ? `Emparejamiento Exacto • ${wb.overlapPct}% solapamiento`
+                : wb.matchConfidence === 'high'
+                ? `Alta Confianza • ${wb.overlapPct}% solapamiento`
+                : wb.matchConfidence === 'manual'
+                ? 'Vinculación Manual'
+                : `Emparejamiento Temporal • ${wb.overlapPct}%`;
+
+            return (
+              <div className="p-5 rounded-2xl bg-gradient-to-br from-cyan-950/55 via-[#0b1018] to-rose-950/35 border border-cyan-500/35 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-cyan-500/20">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shrink-0">
+                      <Watch className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-sm sm:text-base font-black text-white tracking-tight">
+                          Fusión Reloj + Hevy • {wb.watchDevice}
+                        </h3>
+                        <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35">
+                          {confLabel}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-mono text-slate-300 mt-1 break-words">
+                        Sesión reloj: <strong className="text-cyan-200">{wb.watchTitle}</strong> ({wb.watchStartTime}–{wb.watchEndTime}, {wb.watchDurationMinutes} min) • Δ inicio: <strong className="text-white">{formatOffsetLabel(wb.startOffsetSeconds)}</strong> • Δ fin: <strong className="text-white">{formatOffsetLabel(wb.endOffsetSeconds)}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleUnfuseWatch(selectedSession.id)}
+                    disabled={isFusingWatch}
+                    className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#09090b]/80 hover:bg-rose-950/70 text-slate-300 hover:text-rose-300 text-xs font-bold border border-slate-700 hover:border-rose-500/40 transition-all shrink-0 self-start sm:self-center"
+                    title="Desvincular datos del reloj de este entrenamiento"
+                  >
+                    <Unlink className="w-3.5 h-3.5" />
+                    <span>Desvincular</span>
+                  </button>
+                </div>
+
+                {/* 4 KPIs Cardiovasculares Fusionados */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-xl bg-[#09090b]/75 border border-cyan-500/20">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Heart className="w-3 h-3 text-rose-400" />
+                      <span>FC Promedio</span>
+                    </span>
+                    <div className="text-lg font-black text-rose-300 font-mono mt-1">
+                      {wb.avgHeartRateBpm !== null ? `${wb.avgHeartRateBpm} bpm` : 'Sin dato'}
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {wb.minHeartRateBpm !== null ? `Mín: ${wb.minHeartRateBpm} bpm` : wb.watchSource}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#09090b]/75 border border-cyan-500/20">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Activity className="w-3 h-3 text-amber-400" />
+                      <span>FC Máxima</span>
+                    </span>
+                    <div className="text-lg font-black text-amber-300 font-mono mt-1">
+                      {wb.maxHeartRateBpm !== null ? `${wb.maxHeartRateBpm} bpm` : 'Sin dato'}
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {wb.maxHeartRateBpm !== null
+                        ? `${Math.round((wb.maxHeartRateBpm / 199) * 100)}% FCmáx (21 años)`
+                        : 'Pico cardíaco'}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#09090b]/75 border border-cyan-500/20">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Flame className="w-3 h-3 text-orange-400" />
+                      <span>Calorías Reloj</span>
+                    </span>
+                    <div className="text-lg font-black text-orange-300 font-mono mt-1">
+                      {wb.caloriesBurned !== null ? `${wb.caloriesBurned} kcal` : 'Sin dato'}
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {wb.kcalPerMinute !== null ? `${wb.kcalPerMinute} kcal/min` : 'Gasto activo'}
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#09090b]/75 border border-cyan-500/20">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-cyan-400" />
+                      <span>Carga Cardíaca</span>
+                    </span>
+                    <div className="text-lg font-black text-cyan-300 font-mono mt-1">
+                      {wb.cardiacLoadIndex !== null ? `TRIMP ${wb.cardiacLoadIndex}` : 'Sin dato'}
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {wb.kgPerKcal !== null ? `${wb.kgPerKcal} kg movidos/kcal` : 'Estrés cardiovascular'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Zonas de Frecuencia Cardíaca (si Health Connect trajo muestras HR) */}
+                {hrZones && totalZoneMins > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                      <span>Distribución Real de Zonas Cardíacas ({wb.hrSampleCount || 0} muestras del reloj)</span>
+                      <span>
+                        Z1 {hrZones.z1}m • Z2 {hrZones.z2}m • Z3 {hrZones.z3}m • Z4 {hrZones.z4}m • Z5 {hrZones.z5}m
+                      </span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full overflow-hidden flex bg-slate-900 border border-slate-800">
+                      {[
+                        { val: hrZones.z1, color: 'bg-slate-400', label: 'Z1' },
+                        { val: hrZones.z2, color: 'bg-sky-400', label: 'Z2' },
+                        { val: hrZones.z3, color: 'bg-emerald-400', label: 'Z3' },
+                        { val: hrZones.z4, color: 'bg-amber-400', label: 'Z4' },
+                        { val: hrZones.z5, color: 'bg-rose-500', label: 'Z5' },
+                      ].map((z) =>
+                        z.val > 0 ? (
+                          <div
+                            key={z.label}
+                            style={{ width: `${(z.val / totalZoneMins) * 100}%` }}
+                            className={`${z.color} h-full`}
+                            title={`${z.label}: ${z.val} min`}
+                          />
+                        ) : null
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()
+        ) : (
+          <div className="p-4 rounded-2xl bg-[#09090b]/80 border border-[#27272a] space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-cyan-400 shrink-0">
+                  <Watch className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-black text-white">
+                      Fusión Reloj (Xiaomi Smart Band 9 Pro) — Sin sesión emparejada para esta fecha
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                      {watchSessions.length} sesiones del reloj archivadas
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                    Ventana Hevy:{' '}
+                    <span className="font-mono text-slate-300">
+                      {selectedSession.date}
+                      {selectedSession.startTimeLocal && selectedSession.endTimeLocal
+                        ? ` (${selectedSession.startTimeLocal}–${selectedSession.endTimeLocal}, ${selectedSession.durationMinutes} min)`
+                        : ''}
+                    </span>
+                    . Cuando sincronizas VYFITH Android (con historial de 60 días de Health Connect), cualquier sesión iniciada a la par se fusiona automáticamente con tolerancia de desfase al finalizar.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  onClick={handleAutoFuseWatch}
+                  disabled={isFusingWatch}
+                  className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 text-xs font-bold border border-cyan-500/30 transition-all disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isFusingWatch ? 'animate-spin' : ''}`} />
+                  <span>Buscar en Nube</span>
+                </button>
+                <button
+                  onClick={() => setShowManualWatchLink((v) => !v)}
+                  className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#27272a] hover:bg-[#3f3f46] text-slate-200 text-xs font-bold border border-[#3f3f46] transition-all"
+                >
+                  <Link2 className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Vincular Manual ({watchSessions.length})</span>
+                </button>
+                <button
+                  onClick={() => watchFileInputRef.current?.click()}
+                  disabled={isFusingWatch}
+                  className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#18181b] hover:bg-[#27272a] text-slate-300 text-xs font-bold border border-[#27272a] transition-all"
+                  title="Importar exportación CSV/JSON de Mi Fitness o Health Connect"
+                >
+                  <Upload className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Importar Reloj</span>
+                </button>
+              </div>
+            </div>
+
+            {showManualWatchLink && (
+              <div className="pt-3 border-t border-[#27272a] space-y-2">
+                <div className="text-[11px] font-bold text-slate-300">
+                  Sesiones reales registradas en tu Xiaomi Smart Band 9 Pro / Health Connect:
+                </div>
+                {watchSessions.length === 0 ? (
+                  <p className="text-[11px] text-slate-400">
+                    Todavía no hay sesiones del reloj descargadas. Pulsa «Buscar en Nube» o abre VYFITH Android actualizado en tu Vivo Y20 y toca Sincronizar para subir el historial de los últimos 60 días.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
+                    {watchSessions.map((ws) => (
+                      <div
+                        key={ws.id}
+                        className="p-2.5 rounded-xl bg-[#18181b] border border-[#27272a] flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="min-w-0">
+                          <div className="font-bold text-white truncate">
+                            {ws.title} ({ws.durationMinutes} min)
+                          </div>
+                          <div className="text-[10px] font-mono text-slate-400">
+                            {ws.dateIso} • {ws.startTimeText}–{ws.endTimeText}
+                            {ws.avgHeartRateBpm ? ` • ${Math.round(ws.avgHeartRateBpm)} bpm` : ''}
+                            {ws.caloriesBurned > 0 ? ` • ${ws.caloriesBurned} kcal` : ''}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleManualFuseWatch(selectedSession.id, ws.id)}
+                          disabled={isFusingWatch}
+                          className="cursor-pointer px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold shrink-0 transition-colors"
+                        >
+                          Fusionar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 3.1. ENTRENADOR PERSONAL IA INTEGRADO EN HEVY APP (JEFF NIPPARD SCIENCE) */}
         {coachPrescription && (
@@ -1004,7 +1486,7 @@ export default function HevyWorkoutsSection() {
           </div>
 
           <span className="text-[11px] font-mono text-slate-500">
-            Identificador Hevy: sIkYBSAf7jc • Sincronizado
+            Identificador Hevy: {selectedSession.id} • {selectedSession.watchBiometrics ? 'Fusionado con Reloj' : 'Sincronizado'}
           </span>
         </div>
       </div>
@@ -1050,8 +1532,25 @@ export default function HevyWorkoutsSection() {
                   className="py-3 px-3 rounded-xl hover:bg-[#27272a]/60 cursor-pointer flex items-center justify-between transition-colors"
                 >
                   <div>
-                    <h4 className="text-sm font-bold text-white">{sess.name}</h4>
-                    <span className="text-xs font-mono text-slate-400">{sess.date}</span>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white">{sess.name}</h4>
+                      {sess.watchBiometrics && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[10px] font-mono font-bold">
+                          <Watch className="w-2.5 h-2.5" />
+                          <span>
+                            {sess.watchBiometrics.avgHeartRateBpm
+                              ? `${sess.watchBiometrics.avgHeartRateBpm} bpm`
+                              : 'Reloj'}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs font-mono text-slate-400">
+                      {sess.date}
+                      {sess.startTimeLocal && sess.endTimeLocal
+                        ? ` (${sess.startTimeLocal}–${sess.endTimeLocal})`
+                        : ''}
+                    </span>
                   </div>
                   <div className="text-right font-mono text-xs text-slate-300">
                     <span className="block font-bold text-rose-400">

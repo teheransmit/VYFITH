@@ -30,7 +30,7 @@ export default function GlobalVyfithCloudBridge() {
       const snapshotIso = docData.updatedAt?.toDate
         ? docData.updatedAt.toDate().toISOString()
         : String(docData.updatedAt || '');
-      const fingerprint = `${snapshotIso}|${norm.steps}|${norm.totalSleepHours}|${norm.readinessScore}|${norm.hydrationState?.totalIntakeMl ?? 0}|${norm.financeSummary?.totalLiquidityCop ?? 0}`;
+      const fingerprint = `${snapshotIso}|${norm.steps}|${norm.totalSleepHours}|${norm.readinessScore}|${norm.hydrationState?.totalIntakeMl ?? 0}|${norm.financeSummary?.totalLiquidityCop ?? 0}|w:${norm.watchExerciseSessions.length}`;
       if (fingerprint === lastFingerprintRef.current) return;
       lastFingerprintRef.current = fingerprint;
 
@@ -63,6 +63,13 @@ export default function GlobalVyfithCloudBridge() {
             if (res.data.superAppSync) {
               window.dispatchEvent(
                 new CustomEvent('vyfith-superapp-sync', { detail: res.data.superAppSync })
+              );
+            }
+            if (res.watchFusion && (res.watchFusion.newlyFusedCount > 0 || res.watchFusion.watchSessionsCount > 0)) {
+              window.dispatchEvent(
+                new CustomEvent('vyfith-hevy-updated', {
+                  detail: { ...res.watchFusion, fromCloudBridge: true },
+                })
               );
             }
           }

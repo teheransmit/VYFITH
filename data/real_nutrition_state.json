@@ -12,7 +12,7 @@
     "protein": 30.4,
     "carbs": 58.9,
     "fat": 1.8,
-    "waterMl": 1800
+    "waterMl": 2650
   },
   "meals": {
     "desayuno": {
@@ -120,5 +120,5 @@
       "notes": "en la mañana desayuné un pedazo de pan un pancake una taza de café con un Scoop de proteína"
     }
   ],
-  "lastUpdated": "2026-11-19T21:27:38.631Z"
+  "lastUpdated": "2026-11-19T21:57:54.240Z"
 }

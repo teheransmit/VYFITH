@@ -120,6 +120,11 @@ export interface FullEcosystemTelemetry {
     totalVolumeKg: number;
     date: string;
     setsCompleted: number;
+    fusedWorkoutsCount: number;
+    watchSessionsArchivedCount: number;
+    lastFusedHrAvg: number | null;
+    lastFusedHrMax: number | null;
+    lastFusedCalories: number | null;
   };
   financeDetailed: {
     efectivo: number;
@@ -212,8 +217,13 @@ export function gatherFullEcosystemTelemetry(): FullEcosystemTelemetry {
   if (!hevyRes.ok) {
     auditErrors.push(`real_hevy_workouts.json: ${hevyRes.error}`);
   }
+  const watchRes = readJsonSafe<{ sessions?: Array<Record<string, any>> }>(
+    path.join(cwd, 'data', 'real_watch_workouts.json')
+  );
   const workoutsList = Array.isArray(hevyRes.data) ? hevyRes.data : [];
   const lastWorkout = workoutsList[0] || {};
+  const fusedWorkouts = workoutsList.filter((w) => Boolean(w?.watchBiometrics));
+  const latestFused = fusedWorkouts[0]?.watchBiometrics || null;
   const hevyDetailed = {
     totalWorkouts: Number(
       workoutsList.length || hevyMetaRes.data?.totalWorkouts || 204
@@ -235,6 +245,16 @@ export function gatherFullEcosystemTelemetry(): FullEcosystemTelemetry {
         '17 nov 2026, 17:11'
     ),
     setsCompleted: Number(lastWorkout.totalSets ?? lastWorkout.setsCompleted ?? 0),
+    fusedWorkoutsCount: fusedWorkouts.length,
+    watchSessionsArchivedCount: Array.isArray(watchRes.data?.sessions)
+      ? watchRes.data!.sessions!.length
+      : 0,
+    lastFusedHrAvg:
+      latestFused?.avgHeartRateBpm != null ? Number(latestFused.avgHeartRateBpm) : null,
+    lastFusedHrMax:
+      latestFused?.maxHeartRateBpm != null ? Number(latestFused.maxHeartRateBpm) : null,
+    lastFusedCalories:
+      latestFused?.caloriesBurned != null ? Number(latestFused.caloriesBurned) : null,
   };
 
   // 3. Finanzas Reales (Nequi, Nu, Efectivo, Cobros, Yessid)

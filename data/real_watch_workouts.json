@@ -1,0 +1,26 @@
+{
+  "lastUpdated": "2026-11-19T21:57:54.244Z",
+  "lastFirestorePullAt": "2026-11-19T21:55:26.988Z",
+  "sessions": [
+    {
+      "id": "7711f88c-9df3-3998-95e8-7d02df48b15e",
+      "dateIso": "2026-11-19",
+      "startTimeText": "06:26",
+      "endTimeText": "06:39",
+      "durationMinutes": 12,
+      "title": "Ciclismo",
+      "exerciseTypeName": "Ciclismo",
+      "exerciseTypeCode": 8,
+      "caloriesBurned": 23.8,
+      "avgHeartRateBpm": 116,
+      "maxHeartRateBpm": 135,
+      "minHeartRateBpm": null,
+      "hrZoneMinutes": null,
+      "distanceMeters": 2722,
+      "sourceLabel": "Mi Fitness (Xiaomi) (Reloj)",
+      "deviceModel": "Xiaomi Smart Band 9 Pro",
+      "isWatchSource": true,
+      "syncedAt": "2026-11-19T21:57:54.243Z"
+    }
+  ]
+}
