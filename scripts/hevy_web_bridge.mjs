@@ -190,6 +190,15 @@ async function isLoggedIn(page) {
   ]);
   const url = page.url();
   if (url.includes('/login') || url.includes('/signup')) {
+    try {
+      fs.writeFileSync(
+        SESSION_STATE_FILE,
+        JSON.stringify({ authenticated: false, url, checkedAt: new Date().toISOString() }, null, 2),
+        'utf8'
+      );
+    } catch {
+      // ignore
+    }
     return { authenticated: false, url };
   }
   const hasExportBtn =
