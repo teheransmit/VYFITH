@@ -120,7 +120,7 @@ export default function HevyWorkoutsSection() {
     ) {
       return 'La ventana de Chrome de Hevy Web se cerró o ya estaba abierta en segundo plano. Pulsa «Conectar Hevy Web» una sola vez e inicia sesión.';
     }
-    return stripped.split(/Browser logs:|Call log:|\r?\n/)[0].trim().slice(0, 240);
+    return stripped.split(/Browser logs:|Call log:|\r?\n/)[0].trim().slice(0, 450);
   };
 
   // Cargar entrenamientos desde API real (/api/sync/hevy). Si live=true, extrae desde Hevy Web/API.
@@ -328,10 +328,12 @@ export default function HevyWorkoutsSection() {
     }
   }, [selectedSession.name, sessions]);
 
-  const handleConnectHevyBrowser = async () => {
-    if (isConnectingBrowser || isLoadingWorkouts) return;
+  const handleConnectHevyBrowser = async (autoApplyAfterLogin = false) => {
+    if (isConnectingBrowser) return;
     setIsConnectingBrowser(true);
     setUploadSuccess(null);
+    const waitingNotice =
+      'Se abrió la ventana independiente de Chromium en hevy.com/login (revisa tu pantalla o la barra de tareas). Inicia sesión allí una sola vez y VYFITH guardará tu sesión permanente para sincronizar y editar rutinas solo.';
     setSyncStatusInfo((prev) => ({
       sourceUsed: prev?.sourceUsed || 'local_cache',
       addedCount: prev?.addedCount || 0,
@@ -341,13 +343,23 @@ export default function HevyWorkoutsSection() {
       remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
       pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
       lastSyncAt: prev?.lastSyncAt || null,
-      warning: 'Se abrió la ventana independiente del navegador en hevy.com/login. Inicia sesión allí y el CSV se descargará e importará solo al terminar.',
+      warning: waitingNotice,
     }));
+    if (autoApplyAfterLogin) {
+      setSyncActionResult((prev) => ({
+        syncedToHevy: false,
+        savedLocally: true,
+        requiresLogin: true,
+        routineUrl: prev?.routineUrl,
+        editUrl: prev?.editUrl,
+        message: waitingNotice,
+      }));
+    }
     try {
       const res = await fetch('/api/sync/hevy/browser-auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'login' }),
+        body: JSON.stringify({ action: 'login', force: true }),
       });
       const data = await res.json();
       if (res.ok && data.authenticated) {
@@ -372,6 +384,19 @@ export default function HevyWorkoutsSection() {
         } else {
           await refreshWorkouts(true);
         }
+        if (autoApplyAfterLogin) {
+          setSyncActionResult((prev) => ({
+            syncedToHevy: false,
+            savedLocally: true,
+            requiresLogin: false,
+            routineUrl: prev?.routineUrl,
+            editUrl: prev?.editUrl,
+            message: '¡Sesión conectada en Hevy Web! Aplicando automáticamente tus nuevas cargas en la rutina...',
+          }));
+          setIsConnectingBrowser(false);
+          await handleApplyToHevy();
+          return;
+        }
       } else {
         const errMsg =
           cleanHevyWarning(data?.error) ||
@@ -387,8 +412,19 @@ export default function HevyWorkoutsSection() {
           lastSyncAt: prev?.lastSyncAt || null,
           warning: errMsg,
         }));
+        if (autoApplyAfterLogin) {
+          setSyncActionResult((prev) => ({
+            syncedToHevy: false,
+            savedLocally: true,
+            requiresLogin: true,
+            routineUrl: prev?.routineUrl,
+            editUrl: prev?.editUrl,
+            message: errMsg,
+          }));
+        }
       }
     } catch (err: any) {
+      const netErr = `Error de red al conectar con Hevy Web: ${err?.message || 'desconocido'}`;
       setSyncStatusInfo((prev) => ({
         sourceUsed: prev?.sourceUsed || 'local_cache',
         addedCount: prev?.addedCount || 0,
@@ -398,8 +434,18 @@ export default function HevyWorkoutsSection() {
         remoteWorkoutCount: prev?.remoteWorkoutCount ?? null,
         pendingRemoteDiff: prev?.pendingRemoteDiff ?? 0,
         lastSyncAt: prev?.lastSyncAt || null,
-        warning: `Error de red al conectar con Hevy Web: ${err?.message || 'desconocido'}`,
+        warning: netErr,
       }));
+      if (autoApplyAfterLogin) {
+        setSyncActionResult((prev) => ({
+          syncedToHevy: false,
+          savedLocally: true,
+          requiresLogin: true,
+          routineUrl: prev?.routineUrl,
+          editUrl: prev?.editUrl,
+          message: netErr,
+        }));
+      }
     } finally {
       setIsConnectingBrowser(false);
     }
@@ -622,10 +668,10 @@ export default function HevyWorkoutsSection() {
 
             {!syncStatusInfo?.hasProApiKey && !syncStatusInfo?.browserBridgeAuthenticated && (
               <button
-                onClick={handleConnectHevyBrowser}
-                disabled={isConnectingBrowser || isLoadingWorkouts}
+                onClick={() => handleConnectHevyBrowser(false)}
+                disabled={isConnectingBrowser}
                 className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-xs font-bold rounded-xl border border-amber-500/30 transition-all shadow-xs disabled:opacity-50"
-                title="Inicia sesión 1 sola vez en la ventana dedicada de Hevy; después VYFITH sincronizará solo automáticamente cada vez que detecte un entrenamiento nuevo (sin Antigravity ni tokens)."
+                title="Abre una ventana visible de Chromium en hevy.com/login; inicia sesión 1 sola vez y después VYFITH sincronizará y aplicará rutinas solo (sin Antigravity ni tokens)."
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>{isConnectingBrowser ? 'Esperando Login...' : 'Conectar Hevy Web'}</span>
@@ -750,8 +796,8 @@ export default function HevyWorkoutsSection() {
               )}
               {syncStatusInfo.requiresBrowserAuth && (
                 <button
-                  onClick={handleConnectHevyBrowser}
-                  disabled={isConnectingBrowser || isLoadingWorkouts}
+                  onClick={() => handleConnectHevyBrowser(false)}
+                  disabled={isConnectingBrowser}
                   className="cursor-pointer px-2.5 py-1 rounded-lg bg-amber-500 text-black font-bold hover:bg-amber-400 transition-colors disabled:opacity-50"
                 >
                   {isConnectingBrowser ? 'Esperando Login...' : 'Iniciar Sesión 1 Vez'}
@@ -1224,11 +1270,11 @@ export default function HevyWorkoutsSection() {
                 <div className="flex items-center gap-2 shrink-0">
                   {syncActionResult.requiresLogin && (
                     <button
-                      onClick={handleConnectHevyBrowser}
+                      onClick={() => handleConnectHevyBrowser(true)}
                       disabled={isConnectingBrowser}
-                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition-colors"
+                      className="cursor-pointer px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] transition-colors disabled:opacity-60"
                     >
-                      {isConnectingBrowser ? 'Conectando...' : 'Conectar Chrome Hevy'}
+                      {isConnectingBrowser ? 'Ventana abierta — Esperando login...' : 'Conectar Chrome Hevy'}
                     </button>
                   )}
                   {(syncActionResult.editUrl || syncActionResult.routineUrl) && (

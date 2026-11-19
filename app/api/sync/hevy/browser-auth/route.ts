@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: Boolean(status?.ok), ...status });
     }
 
-    // Lanza navegador Chromium aislado en hevy.com/login usando el perfil dedicado .hevy-chrome-profile
-    const loginRes = await runHevyWebBridgeCommand(['login'], 190000);
+    // Lanza navegador Chromium aislado y 100% VISIBLE en primer plano en hevy.com/login usando .hevy-chrome-profile
+    const loginRes = await runHevyWebBridgeCommand(['login', '--force'], 310000);
     if (loginRes?.authenticated) {
       let workouts = readStoredWorkouts();
       let addedCount = 0;
@@ -76,6 +76,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       authenticated: false,
+      sandboxedDesktop: Boolean(loginRes?.sandboxedDesktop),
+      launcherScript: loginRes?.launcherScript || null,
       error: loginRes?.error || 'No se completó el inicio de sesión en Hevy Web.',
     });
   } catch (error: any) {

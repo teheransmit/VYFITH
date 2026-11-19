@@ -637,7 +637,7 @@ export function sanitizeHevyBridgeError(raw: unknown): string {
     return 'La ventana de Chrome de Hevy Web se cerró o ya había otra sesión abierta. Pulsa «Conectar Hevy Web» o «Sync en Vivo» nuevamente.';
   }
   const cleanLine = str.split(/Browser logs:|Call log:|\r?\n/)[0].trim();
-  return cleanLine.slice(0, 220) || 'Error ejecutando puente Chrome Hevy Web.';
+  return cleanLine.slice(0, 450) || 'Error ejecutando puente Chrome Hevy Web.';
 }
 
 type BridgeGlobalState = {
@@ -659,6 +659,7 @@ export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000)
   }
 
   const cmd = args[0] || 'status';
+  const isForceLogin = cmd === 'login' && args.includes('--force');
   const gState = getGlobalBridgeState();
 
   // Si hay una sesión de login interactivo abierta y entra un export-csv o status concurrente, no lanzar un 2do Chrome sobre el mismo perfil
@@ -667,14 +668,19 @@ export async function runHevyWebBridgeCommand(args: string[], timeoutMs = 95000)
       return {
         ok: false,
         requiresLogin: true,
-        error: 'La ventana de Google Chrome para iniciar sesión en Hevy Web ya está abierta. Completa el login allí primero.',
+        error: 'La ventana de Chromium para iniciar sesión en Hevy Web ya está abierta. Completa el login allí primero.',
       };
     }
-    if (gState.cmd === cmd) {
+    if (isForceLogin) {
+      // Permitir reiniciar limpiamente una ventana de login atascada u oculta
+      gState.promise = null;
+      gState.cmd = null;
+    } else if (gState.cmd === cmd) {
       return gState.promise;
+    } else {
+      // Esperar a que termine la operación previa antes de abrir el perfil .hevy-chrome-profile
+      await gState.promise.catch(() => {});
     }
-    // Esperar a que termine la operación previa antes de abrir el perfil .hevy-chrome-profile
-    await gState.promise.catch(() => {});
   }
 
   const execPromise = execFileAsync(process.execPath, [BRIDGE_SCRIPT, ...args], {
@@ -947,6 +953,7 @@ export async function pushPrescriptionToHevyExternal(params: {
   const exercisesPayload = params.hevySyncPayload.map((item) => ({
     exerciseName: item.exerciseName,
     esTitle: item.esTitle || translateExerciseTitle(item.exerciseName),
+    targetWeightKg: item.suggestedWeightKg,
     targetWeightLbs: item.suggestedWeightLbs || Math.round((item.suggestedWeightKg / LBS_TO_KG) * 10) / 10,
     targetReps: item.targetReps,
     pinnedNote: item.note || '',

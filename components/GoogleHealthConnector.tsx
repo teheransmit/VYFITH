@@ -44,6 +44,7 @@ export default function GoogleHealthConnector({
   const [isDiagExpanded, setIsDiagExpanded] = useState(false);
 
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const lastBroadcastSigRef = React.useRef<string>('');
   const localSyncEndpoint = 'http://192.168.1.8:3000/api/sync/health';
 
   const loadData = React.useCallback(async (silent = false) => {
@@ -63,7 +64,9 @@ export default function GoogleHealthConnector({
           return data.data;
         });
         onSyncStateChange?.(data.data);
-        if (typeof window !== 'undefined') {
+        const sig = `${data.data.changesToken || ''}|${data.data.lastSyncTime || ''}|${data.data.currentMetrics?.steps ?? ''}`;
+        if (typeof window !== 'undefined' && (!silent || sig !== lastBroadcastSigRef.current)) {
+          lastBroadcastSigRef.current = sig;
           window.dispatchEvent(new CustomEvent('vyfith-health-sync', { detail: data.data }));
         }
       }
